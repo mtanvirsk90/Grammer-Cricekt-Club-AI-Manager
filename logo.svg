@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="256" cy="256" r="244" fill="#FFFFFF" stroke="#111111" stroke-width="8"/>
+  <circle cx="256" cy="256" r="214" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
+  <path d="M96 210H416V276C416 359.948 344.948 428 261 428H251C167.052 428 96 359.948 96 276V210Z" fill="#ED1C24" stroke="#111111" stroke-width="6"/>
+  <path d="M110 170C152 130 206 108 256 108C306 108 360 130 402 170V210H110V170Z" fill="#3843A6" stroke="#111111" stroke-width="6"/>
+  <path d="M110 170L178 210H128L110 170Z" fill="#FFFFFF" stroke="#D2A52A" stroke-width="3"/>
+  <path d="M402 170L334 210H384L402 170Z" fill="#FFFFFF" stroke="#D2A52A" stroke-width="3"/>
+  <path d="M256 112L186 210H230L256 173L282 210H326L256 112Z" fill="#FFFFFF" stroke="#D2A52A" stroke-width="3"/>
+  <rect x="232" y="140" width="48" height="30" rx="3" fill="#F7F7F7" stroke="#111111" stroke-width="3"/>
+  <path d="M242 148C247 146 251 146 256 148C261 150 265 150 270 148" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
+  <path d="M242 155C247 153 251 153 256 155C261 157 265 157 270 155" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
+  <path d="M256 140V170" stroke="#111111" stroke-width="3"/>
+  <path d="M96 210H416" stroke="#111111" stroke-width="6"/>
+  <path d="M256 210V428" stroke="#111111" stroke-width="6"/>
+  <path d="M165 240L190 268V378H140V268L165 240Z" fill="#F6F1E7" stroke="#111111" stroke-width="4"/>
+  <path d="M148 278H182M148 305H182M148 332H182M148 359H182" stroke="#111111" stroke-width="3"/>
+  <path d="M157 268V378M173 268V378" stroke="#111111" stroke-width="3"/>
+  <path d="M140 256H190L198 244H132L140 256Z" fill="#F0C419" stroke="#111111" stroke-width="3"/>
+  <path d="M136 244L145 228L154 244M176 244L185 228L194 244" stroke="#F0C419" stroke-width="8" stroke-linecap="round"/>
+  <rect x="307" y="236" width="38" height="34" rx="4" fill="#F6F1E7" stroke="#111111" stroke-width="4"/>
+  <path d="M318 236V224C318 214 326 206 336 206C346 206 354 214 354 224V236" stroke="#111111" stroke-width="4"/>
+  <rect x="167" y="386" width="12" height="24" rx="4" fill="#111111"/>
+  <rect x="232" y="236" width="38" height="34" rx="4" fill="#F6F1E7" stroke="#111111" stroke-width="4"/>
+  <path d="M243 236V224C243 214 251 206 261 206C271 206 279 214 279 224V236" stroke="#111111" stroke-width="4"/>
+  <path d="M300 388C322 360 324 322 324 282" stroke="#D2A52A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M320 346L346 368L320 390L294 368L320 346Z" fill="#F6F1E7" stroke="#111111" stroke-width="3"/>
+  <path d="M320 282V420" stroke="#111111" stroke-width="4"/>
+  <path d="M296 420H344" stroke="#111111" stroke-width="4"/>
+  <path id="topArc" d="M56 256C56 146.647 146.647 56 256 56C365.353 56 456 146.647 456 256" />
+  <text fill="#111111" font-family="Outfit, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="3">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">ABERDEEN GRAMMAR CRICKET</textPath>
+  </text>
+</svg>

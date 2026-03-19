@@ -1,0 +1,29 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node / package managers
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local build / cache
+.vercel/
+dist/
+build/
+
+# Local notes
+Design.txt
+
+# Nested local project folders
+Gammer AI Manager/
+Grammer AI Club Management/

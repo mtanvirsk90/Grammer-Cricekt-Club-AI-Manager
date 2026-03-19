@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grammer Cricket Club AI Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <section id="auth-screen" class="auth-screen">
+      <div class="auth-hero">
+        <img src="./logo.svg" alt="Grammer Cricket Club logo" class="club-logo auth-logo" />
+        <p class="eyebrow">Grammer Cricket Club AI Manager</p>
+        <h1>Manage players, clubs, venues, matches, graphics, and users from one cricket control room.</h1>
+        <p class="hero-text">
+          Create an account with email verification, sign in securely, and run the full Grammer Cricket Club media and match workflow.
+        </p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-card-head">
+          <h2>Welcome To GCC AI Manager</h2>
+          <p class="record-meta">Sign up or log in with email and password. Email confirmation is supported through Supabase.</p>
+        </div>
+
+        <section id="auth-config-note" class="message error hidden"></section>
+
+        <div class="auth-tabs">
+          <button id="tab-signup" type="button" class="tab-button active-tab">Sign Up</button>
+          <button id="tab-login" type="button" class="tab-button">Login</button>
+        </div>
+
+        <section id="messages" class="messages" aria-live="polite"></section>
+
+        <form id="signup-form" class="auth-form active-auth-form">
+          <label class="field">
+            <span>Full Name</span>
+            <input type="text" id="signup-name" placeholder="Aarav Sharma" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="signup-email" placeholder="admin@club.com" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="signup-password" placeholder="Minimum 6 characters" minlength="6" required />
+          </label>
+          <label class="password-toggle">
+            <input type="checkbox" data-password-toggle="signup-password" />
+            <span>Show password</span>
+          </label>
+          <button type="submit" class="primary-action">Create Account</button>
+        </form>
+
+        <form id="login-form" class="auth-form hidden">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="login-email" placeholder="user@club.com" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="login-password" placeholder="Your password" required />
+          </label>
+          <label class="password-toggle">
+            <input type="checkbox" data-password-toggle="login-password" />
+            <span>Show password</span>
+          </label>
+          <button type="submit" class="primary-action">Login With Email</button>
+          <button id="show-reset" type="button" class="text-action">Forgot password?</button>
+        </form>
+
+        <form id="reset-form" class="auth-form hidden reset-panel">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="reset-email" placeholder="user@club.com" required />
+          </label>
+          <button type="submit" class="secondary-action">Send Password Reset Link</button>
+        </form>
+      </div>
+    </section>
+
+    <div id="app-shell" class="hidden">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="brand-lockup">
+            <img src="./logo.svg" alt="Grammer Cricket Club logo" class="club-logo app-logo" />
+            <div>
+              <p class="eyebrow">Grammer Cricket Club AI Manager</p>
+              <h1>Run your club with player records, match planning, AI graphics, results, and user control.</h1>
+            </div>
+          </div>
+          <p class="hero-text">
+            This dashboard is tailored for Grammer Cricket Club with email-auth access, role permissions,
+            searchable match setup, cricket-first databases, and six-design social media graphics.
+          </p>
+        </div>
+        <div class="hero-panel">
+          <h2>Supabase Setup</h2>
+          <p>
+            Add your project URL and anon key in <code>supabase.js</code>, then run the SQL
+            schema below in the Supabase SQL editor for users, players, clubs, venues, matches, and results.
+          </p>
+          <pre id="schema-sql" class="schema-box"></pre>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="panel panel-wide">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Session</p>
+              <h2>Current Account</h2>
+            </div>
+            <p class="panel-note">The dashboard is only shown while a valid session is active.</p>
+          </div>
+
+          <div class="status-card app-status-card">
+            <p class="section-label">Current Session</p>
+            <h3 id="session-email">Not signed in</h3>
+            <p id="session-role" class="record-meta">Role: guest</p>
+            <button id="logout-button" type="button" class="secondary-action">Sign Out</button>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="workspace-tabs">
+            <button id="main-tab-home" type="button" class="workspace-tab active-workspace-tab">Home</button>
+            <button id="main-tab-database" type="button" class="workspace-tab">Data Base</button>
+            <button id="main-tab-matches" type="button" class="workspace-tab">Match Centre</button>
+            <button id="main-tab-results" type="button" class="workspace-tab">Completed Matches</button>
+            <button id="main-tab-poster" type="button" class="workspace-tab">AI Graphics</button>
+          </div>
+        </section>
+
+        <section id="main-pane-home" class="main-pane pane-grid">
+          <section class="panel panel-wide">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Overview</p>
+                <h2>Club Command Centre</h2>
+              </div>
+              <p class="panel-note">Live counts and quick actions for Grammer Cricket Club AI Manager.</p>
+            </div>
+            <div id="stats-grid" class="stats-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Next Up</p>
+                <h2>Upcoming Fixtures</h2>
+              </div>
+              <p class="panel-note">Your next scheduled matches from the match centre.</p>
+            </div>
+            <div id="home-upcoming-list" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Recent Results</p>
+                <h2>Latest Completed Matches</h2>
+              </div>
+              <p class="panel-note">Quick review of the latest finished matches and winners.</p>
+            </div>
+            <div id="home-results-list" class="stack-list"></div>
+          </section>
+        </section>
+
+        <section class="panel panel-wide hidden" id="admin-section">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Admin</p>
+              <h2>Users And Access Levels</h2>
+            </div>
+            <p class="panel-note">Super admin controls everything. Admins can assign user rights and manage day-to-day access.</p>
+          </div>
+
+          <div id="profiles-list" class="stack-list"></div>
+        </section>
+
+        <section id="main-pane-database" class="main-pane pane-grid hidden">
+          <section class="panel panel-wide">
+            <div class="workspace-tabs sub-tabs">
+              <button id="database-tab-players" type="button" class="workspace-tab active-workspace-tab">Players</button>
+              <button id="database-tab-clubs" type="button" class="workspace-tab">Clubs</button>
+              <button id="database-tab-grounds" type="button" class="workspace-tab">Venue / Grounds</button>
+              <button id="database-tab-social" type="button" class="workspace-tab">Social Links</button>
+            </div>
+          </section>
+
+          <section id="database-pane-players" class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Players</p>
+                <h2>Player Registration</h2>
+              </div>
+              <p class="panel-note">Register each player with cricket role, jersey number, batting and bowling types, and a profile picture.</p>
+            </div>
+
+            <form id="player-form" class="form-grid">
+              <input type="hidden" id="player-edit-id" />
+              <label class="field">
+                <span>Player Name</span>
+                <input type="text" id="player-name" placeholder="Virat Kohli" required />
+              </label>
+              <label class="field">
+                <span>Club</span>
+                <select id="player-team" required>
+                  <option value="">Select club</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Jersey Number</span>
+                <input type="number" id="player-jersey-number" min="0" placeholder="18" required />
+              </label>
+              <label class="field">
+                <span>Batsman Type</span>
+                <input type="text" id="player-batting-style" placeholder="Right-hand bat" required />
+              </label>
+              <label class="field">
+                <span>Bowler Type</span>
+                <input type="text" id="player-bowling-style" placeholder="Right-arm medium" required />
+              </label>
+              <label class="field">
+                <span>Player Category</span>
+                <select id="player-category" required>
+                  <option value="">Select category</option>
+                  <option value="Batsman">Batsman</option>
+                  <option value="Bowler">Bowler</option>
+                  <option value="All-Rounder">All-Rounder</option>
+                  <option value="Wicketkeeper">Wicketkeeper</option>
+                  <option value="Wicketkeeper-Batsman">Wicketkeeper-Batsman</option>
+                </select>
+              </label>
+              <label class="field field-wide">
+                <span>Profile Picture URL</span>
+                <input type="url" id="player-profile-url" placeholder="https://example.com/player-photo.jpg" />
+              </label>
+              <label class="field field-wide">
+                <span>Upload Profile Picture</span>
+                <input type="file" id="player-profile-file" accept="image/*" />
+              </label>
+              <button type="submit" id="player-submit-button" class="primary-action">Register Player</button>
+              <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+            </form>
+
+            <label class="field field-wide list-search">
+              <span>Search Players</span>
+              <input type="search" id="players-search" placeholder="Search by player, club, category, jersey, batting, or bowling type" />
+            </label>
+            <div class="import-export-row">
+              <button type="button" id="players-export" class="secondary-action">Export Players CSV</button>
+              <button type="button" id="players-template" class="secondary-action">Download Player Template</button>
+              <label class="import-label secondary-action">
+                <input type="file" id="players-import-file" accept=".csv,text/csv" />
+                <span>Import Players CSV</span>
+              </label>
+            </div>
+            <div class="table-toolbar">
+              <label class="field">
+                <span>View</span>
+                <select id="players-view-mode">
+                  <option value="cards">Cards</option>
+                  <option value="table">Table</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Sort By</span>
+                <select id="players-sort">
+                  <option value="name-asc">Name A-Z</option>
+                  <option value="name-desc">Name Z-A</option>
+                  <option value="jersey-asc">Jersey Low-High</option>
+                  <option value="jersey-desc">Jersey High-Low</option>
+                  <option value="club-asc">Club A-Z</option>
+                </select>
+              </label>
+              <button type="button" id="players-select-page" class="secondary-action">Select Page</button>
+              <button type="button" id="players-bulk-delete" class="danger-action" disabled>Delete Selected</button>
+            </div>
+            <div id="players-list" class="stack-list"></div>
+            <div id="players-pagination" class="pagination-row"></div>
+          </section>
+
+          <section id="database-pane-clubs" class="panel hidden">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Clubs</p>
+                <h2>Club Directory</h2>
+              </div>
+              <p class="panel-note">Save clubs once with logo, team counts, and colors so they can drive fixtures and graphics later.</p>
+            </div>
+
+            <form id="team-form" class="form-grid">
+              <input type="hidden" id="team-edit-id" />
+              <label class="field">
+                <span>Club Name</span>
+                <input type="text" id="team-name" placeholder="Royal Challengers" required />
+              </label>
+              <label class="field">
+                <span>Short Name</span>
+                <input type="text" id="team-short-name" placeholder="RC" required />
+              </label>
+              <label class="field">
+                <span>Logo URL</span>
+                <input type="url" id="team-logo-url" placeholder="https://example.com/club-logo.png" />
+              </label>
+              <label class="field">
+                <span>Upload Logo</span>
+                <input type="file" id="team-logo-file" accept="image/*" />
+              </label>
+              <label class="field">
+                <span>Number Of Teams</span>
+                <input type="number" id="team-count" min="1" placeholder="3" required />
+              </label>
+              <label class="field">
+                <span>Team Labels</span>
+                <input type="text" id="team-squad-labels" placeholder="T1, T2, T3" />
+              </label>
+              <label class="field">
+                <span>Primary Club Color</span>
+                <input type="color" id="team-primary-color" value="#d32027" />
+              </label>
+              <label class="field">
+                <span>Secondary Club Color</span>
+                <input type="color" id="team-secondary-color" value="#3944a7" />
+              </label>
+              <label class="field field-wide">
+                <span>Notes</span>
+                <textarea id="team-notes" rows="2" placeholder="Senior division squad"></textarea>
+              </label>
+              <button type="submit" id="team-submit-button" class="primary-action">Save Club</button>
+              <button type="button" id="team-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+            </form>
+
+            <label class="field field-wide list-search">
+              <span>Search Clubs</span>
+              <input type="search" id="teams-search" placeholder="Search by club, short name, team label, notes, or colors" />
+            </label>
+            <div class="import-export-row">
+              <button type="button" id="teams-export" class="secondary-action">Export Clubs CSV</button>
+              <button type="button" id="teams-template" class="secondary-action">Download Club Template</button>
+              <label class="import-label secondary-action">
+                <input type="file" id="teams-import-file" accept=".csv,text/csv" />
+                <span>Import Clubs CSV</span>
+              </label>
+            </div>
+            <div class="table-toolbar">
+              <label class="field">
+                <span>View</span>
+                <select id="teams-view-mode">
+                  <option value="cards">Cards</option>
+                  <option value="table">Table</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Sort By</span>
+                <select id="teams-sort">
+                  <option value="name-asc">Name A-Z</option>
+                  <option value="name-desc">Name Z-A</option>
+                  <option value="count-asc">Team Count Low-High</option>
+                  <option value="count-desc">Team Count High-Low</option>
+                </select>
+              </label>
+              <button type="button" id="teams-select-page" class="secondary-action">Select Page</button>
+              <button type="button" id="teams-bulk-delete" class="danger-action" disabled>Delete Selected</button>
+            </div>
+            <div id="teams-list" class="stack-list"></div>
+            <div id="teams-pagination" class="pagination-row"></div>
+          </section>
+
+          <section id="database-pane-grounds" class="panel hidden">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Venue / Grounds</p>
+                <h2>Grounds Library</h2>
+              </div>
+              <p class="panel-note">Save grounds, full address, and multiple pictures for fixtures, graphics, and completed match creatives.</p>
+            </div>
+
+            <form id="venue-form" class="form-grid">
+              <input type="hidden" id="venue-edit-id" />
+              <label class="field">
+                <span>Ground Name</span>
+                <input type="text" id="venue-name" placeholder="Eden Gardens" required />
+              </label>
+              <label class="field">
+                <span>City</span>
+                <input type="text" id="venue-city" placeholder="Kolkata" required />
+              </label>
+              <label class="field">
+                <span>Country</span>
+                <input type="text" id="venue-country" placeholder="India" required />
+              </label>
+              <label class="field field-wide">
+                <span>Address</span>
+                <textarea id="venue-address" rows="2" placeholder="Gate 2, central pavilion entrance"></textarea>
+              </label>
+              <label class="field field-wide">
+                <span>Picture URLs</span>
+                <textarea id="venue-image-urls" rows="4" placeholder="One image URL per line for the ground gallery"></textarea>
+              </label>
+              <label class="field field-wide">
+                <span>Upload Ground Pictures</span>
+                <input type="file" id="venue-image-files" accept="image/*" multiple />
+              </label>
+              <label class="field field-wide">
+                <span>Notes</span>
+                <textarea id="venue-notes" rows="2" placeholder="Clubhouse side, north end practice nets"></textarea>
+              </label>
+              <button type="submit" id="venue-submit-button" class="primary-action">Save Ground</button>
+              <button type="button" id="venue-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+            </form>
+
+            <label class="field field-wide list-search">
+              <span>Search Grounds</span>
+              <input type="search" id="venues-search" placeholder="Search by venue, city, country, address, or notes" />
+            </label>
+            <div id="venues-list" class="stack-list"></div>
+            <div id="venues-pagination" class="pagination-row"></div>
+          </section>
+
+          <section id="database-pane-social" class="panel hidden">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Social Links</p>
+                <h2>Streaming And Social Library</h2>
+              </div>
+              <p class="panel-note">Save Facebook, WhatsApp, YouTube, livestream, or website links once and place them on posters later.</p>
+            </div>
+
+            <form id="social-link-form" class="form-grid">
+              <label class="field">
+                <span>Platform</span>
+                <select id="social-link-platform" required>
+                  <option value="">Select platform</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="x">X</option>
+                  <option value="website">Website</option>
+                  <option value="livestream">Livestream</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Label</span>
+                <input type="text" id="social-link-label" placeholder="Watch Live" required />
+              </label>
+              <label class="field field-wide">
+                <span>URL</span>
+                <input type="url" id="social-link-url" placeholder="https://youtube.com/live/..." required />
+              </label>
+              <button type="submit" class="primary-action">Save Social Link</button>
+            </form>
+
+            <div id="social-links-list" class="stack-list"></div>
+          </section>
+        </section>
+
+        <section id="main-pane-matches" class="main-pane pane-grid hidden">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Matches</p>
+              <h2>Fixtures Board</h2>
+            </div>
+            <p class="panel-note">Create upcoming matches with searchable home team, away team, venue, date, and start time.</p>
+          </div>
+
+          <form id="match-form" class="form-grid">
+            <input type="hidden" id="match-edit-id" />
+            <label class="field">
+              <span>Home Club</span>
+              <input id="match-team1" list="match-home-datalist" placeholder="Search home club" required />
+              <datalist id="match-home-datalist"></datalist>
+            </label>
+            <label class="field">
+              <span>Opponent Club</span>
+              <input id="match-team2" list="match-away-datalist" placeholder="Search away club" required />
+              <datalist id="match-away-datalist"></datalist>
+            </label>
+            <label class="field">
+              <span>Date</span>
+              <input type="date" id="match-date" required />
+            </label>
+            <label class="field">
+              <span>Time</span>
+              <input type="time" id="match-time" required />
+            </label>
+            <label class="field field-wide">
+              <span>Venue / Ground</span>
+              <input id="match-venue" list="match-venue-datalist" placeholder="Search venue" required />
+              <datalist id="match-venue-datalist"></datalist>
+            </label>
+            <button type="submit" id="match-submit-button" class="primary-action">Create Match</button>
+            <button type="button" id="match-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+          </form>
+
+          <label class="field field-wide list-search">
+            <span>Search Matches</span>
+            <input type="search" id="matches-search" placeholder="Search by home team, opponent, venue, date, or time" />
+          </label>
+          <div id="matches-list" class="stack-list"></div>
+          <div id="matches-pagination" class="pagination-row"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Playing XI</p>
+              <h2>Lineup Selector</h2>
+            </div>
+            <p class="panel-note">Players come from the two selected clubs, lineup is capped at 11, and anyone already selected in another match that week is hidden.</p>
+          </div>
+
+          <form id="lineup-form" class="form-grid compact-grid">
+            <label class="field">
+              <span>Match</span>
+              <select id="lineup-match" required>
+                <option value="">Select match</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Side</span>
+              <select id="lineup-team-side" required>
+                <option value="">Select side</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Player</span>
+              <select id="lineup-player" required>
+                <option value="">Select player</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Match Role</span>
+              <select id="lineup-role" required>
+                <option value="player">Player</option>
+                <option value="captain">Captain</option>
+                <option value="vice_captain">Vice Captain</option>
+                <option value="wicketkeeper">Wicketkeeper</option>
+              </select>
+            </label>
+            <button type="submit" class="primary-action">Add To XI</button>
+          </form>
+
+          <div class="panel-subhead">
+            <h3>Current Match Squads</h3>
+            <span id="lineup-count" class="pill">Home 0 / 11 | Away 0 / 11</span>
+          </div>
+          <p class="field-hint">Only admins can change saved squads. Each side can have up to 11 players with one captain, one vice captain, and one wicketkeeper.</p>
+          <div id="lineup-list" class="stack-list empty-state">Select a match to view its lineup.</div>
+        </section>
+        </section>
+
+        <section id="main-pane-results" class="main-pane pane-grid hidden">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Results</p>
+              <h2>Match Results</h2>
+            </div>
+              <p class="panel-note">Completed matches move here. Save summary details, player of the match, and a ready-to-copy social caption.</p>
+            </div>
+
+          <form id="result-form" class="form-grid">
+            <input type="hidden" id="result-edit-id" />
+            <label class="field">
+              <span>Match</span>
+              <select id="result-match" required>
+                <option value="">Select match</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Team 1 Score</span>
+              <input type="number" id="team1-score" min="0" placeholder="182" required />
+            </label>
+            <label class="field">
+              <span>Team 2 Score</span>
+              <input type="number" id="team2-score" min="0" placeholder="176" required />
+            </label>
+            <label class="field">
+              <span>Winner</span>
+              <select id="winner-team" required>
+                <option value="">Select winner</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Toss Winner</span>
+              <select id="toss-winner" required>
+                <option value="">Select toss winner</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Toss Decision</span>
+              <select id="toss-decision" required>
+                <option value="">Select decision</option>
+                <option value="bat">Bat</option>
+                <option value="bowl">Bowl</option>
+              </select>
+            </label>
+            <label class="field field-wide">
+              <span>Summary</span>
+              <textarea id="summary" rows="3" placeholder="Won by 6 runs after a late bowling spell."></textarea>
+            </label>
+            <label class="field field-wide">
+              <span>Home Innings Summary</span>
+              <textarea id="team1-innings-summary" rows="2" placeholder="Strong start in the powerplay, middle-order recovery, late finish."></textarea>
+            </label>
+            <label class="field field-wide">
+              <span>Away Innings Summary</span>
+              <textarea id="team2-innings-summary" rows="2" placeholder="Early wickets, a rebuilding stand, then a collapse under pressure."></textarea>
+            </label>
+            <label class="field">
+              <span>Player Of The Match</span>
+              <select id="player-of-match" required>
+                <option value="">Select from match XI</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Player Of The Match Style</span>
+              <select id="player-of-match-style">
+                <option value="hero">Hero Portrait</option>
+                <option value="batting">Best Batsman With Bat</option>
+                <option value="bowling">Best Bowler In Action</option>
+                <option value="allrounder">All-Rounder Spotlight</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Top Run Scorer</span>
+              <select id="best-scorer-name" required>
+                <option value="">Select from match XI</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Top Score</span>
+              <input type="text" id="best-score" placeholder="78 (52)" />
+            </label>
+            <label class="field">
+              <span>Top Run Scorer Style</span>
+              <select id="best-scorer-style">
+                <option value="batting">Best Batsman With Bat</option>
+                <option value="hero">Hero Portrait</option>
+                <option value="bowling">Best Bowler In Action</option>
+                <option value="celebration">Celebration Pose</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Best Bowler</span>
+              <select id="best-bowler-name" required>
+                <option value="">Select from match XI</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Best Bowling Figures</span>
+              <input type="text" id="best-bowler-figures" placeholder="4/22" />
+            </label>
+            <label class="field">
+              <span>Best Bowler Style</span>
+              <select id="best-bowler-style">
+                <option value="bowling">Best Bowler In Action</option>
+                <option value="hero">Hero Portrait</option>
+                <option value="celebration">Celebration Pose</option>
+                <option value="allrounder">All-Rounder Spotlight</option>
+              </select>
+            </label>
+            <label class="field field-wide">
+              <span>Player Of The Match Picture URL</span>
+              <input type="url" id="player-image-url" placeholder="https://example.com/player-photo.jpg" />
+            </label>
+            <label class="field field-wide">
+              <span>Top Run Scorer Picture URL</span>
+              <input type="url" id="best-scorer-image-url" placeholder="https://example.com/best-scorer-photo.jpg" />
+            </label>
+            <label class="field field-wide">
+              <span>Best Bowler Picture URL</span>
+              <input type="url" id="best-bowler-image-url" placeholder="https://example.com/best-bowler-photo.jpg" />
+            </label>
+            <label class="field">
+              <span>Upload Player Of The Match Picture</span>
+              <input type="file" id="player-image-file" accept="image/*" />
+            </label>
+            <label class="field">
+              <span>Upload Top Run Scorer Picture</span>
+              <input type="file" id="best-scorer-image-file" accept="image/*" />
+            </label>
+            <label class="field">
+              <span>Upload Best Bowler Picture</span>
+              <input type="file" id="best-bowler-image-file" accept="image/*" />
+            </label>
+            <label class="field field-wide">
+              <span>Poster Styling Note</span>
+              <p class="field-hint">Local uploads are used for poster preview/download in this browser session. True AI outfit conversion can be connected later with an image-editing API.</p>
+            </label>
+            <button type="submit" id="result-submit-button" class="primary-action">Save Result</button>
+            <button type="button" id="result-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+          </form>
+
+          <div id="results-list" class="stack-list"></div>
+          <div id="results-pagination" class="pagination-row"></div>
+          <label class="field field-wide list-search">
+            <span>Search Completed Matches</span>
+            <input type="search" id="results-search" placeholder="Search by team, winner, summary, player of the match, or best scorer" />
+          </label>
+          <label class="field field-wide caption-field">
+            <span>AI Social Caption</span>
+            <textarea id="result-caption-output" rows="5" readonly placeholder="Generate a result poster to create the social caption here."></textarea>
+          </label>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">Result Poster</p>
+              <h2>Post-Match Graphic</h2>
+            </div>
+            <p class="panel-note">Generate a result poster from completed match data, summary, player of the match, best score, and player photo.</p>
+          </div>
+
+          <div class="form-grid compact-grid">
+            <label class="field">
+              <span>Completed Match</span>
+              <select id="result-poster-match">
+                <option value="">Select completed match</option>
+              </select>
+            </label>
+            <button id="generate-result-poster" type="button" class="primary-action">Generate Result Poster</button>
+            <button id="download-result-poster" type="button" class="secondary-action" disabled>Download PNG</button>
+          </div>
+
+          <label class="field field-wide poster-extra-field">
+            <span>Sponsor Picture URLs</span>
+            <textarea
+              id="result-poster-sponsor-images"
+              rows="3"
+              placeholder="Add one sponsor logo or picture URL per line for result posters."
+            ></textarea>
+          </label>
+
+          <div class="field field-wide poster-extra-field">
+            <span>Saved Social Links</span>
+            <div id="result-poster-social-links" class="selection-grid"></div>
+          </div>
+
+          <div id="result-poster" class="poster-host empty-state">Your result poster will appear here.</div>
+        </section>
+        </section>
+
+        <section id="main-pane-poster" class="main-pane pane-grid hidden">
+        <section class="panel panel-wide">
+          <div class="panel-head">
+            <div>
+              <p class="section-label">AI Graphics</p>
+              <h2>Match Poster Studio</h2>
+            </div>
+            <p class="panel-note">Select one or multiple upcoming matches and generate 6 fixture posters per match using club colors, logos, and venue visuals.</p>
+          </div>
+
+          <div class="form-grid poster-controls">
+            <label class="field">
+              <span>Quick Match Select</span>
+              <select id="poster-match" required>
+                <option value="">Select upcoming match</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Platform</span>
+              <select id="poster-platform">
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="x">X</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Visual Source</span>
+              <select id="poster-visual-mode">
+                <option value="saved">Saved Venue Picture</option>
+                <option value="generated">AI Generated Style</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Venue Picture</span>
+              <select id="poster-venue-image">
+                <option value="">Auto rotate saved pictures</option>
+              </select>
+            </label>
+            <button id="generate-poster" type="button" class="primary-action">Generate 6 Posters</button>
+            <button id="download-poster" type="button" class="secondary-action" disabled>Download Selected</button>
+          </div>
+
+          <div class="field field-wide poster-extra-field">
+            <span>Select Single Or Multiple Upcoming Matches</span>
+            <div id="poster-match-picker" class="selection-grid"></div>
+          </div>
+
+          <label class="field field-wide poster-extra-field">
+            <span>Sponsor Picture URLs</span>
+            <textarea
+              id="poster-sponsor-images"
+              rows="4"
+              placeholder="Add one sponsor logo or picture URL per line. Example:&#10;https://example.com/sponsor-1.png&#10;https://example.com/sponsor-2.png"
+            ></textarea>
+          </label>
+
+          <div class="field field-wide poster-extra-field">
+            <span>Saved Social Links</span>
+            <div id="poster-social-links" class="selection-grid"></div>
+          </div>
+
+          <div id="poster-selection" class="panel-subhead hidden">
+            <h3>Poster Variants</h3>
+            <span id="poster-selection-label" class="pill">Select one design</span>
+          </div>
+          <div id="poster" class="poster-host empty-state">Your 6 upcoming match poster designs will appear here.</div>
+          <label class="field field-wide caption-field">
+            <span>AI Social Caption</span>
+            <textarea id="poster-caption-output" rows="6" readonly placeholder="Generate posters to create the social caption here."></textarea>
+          </label>
+        </section>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3 id="confirm-title">Confirm Action</h3>
+      <p id="confirm-message" class="record-meta">Are you sure?</p>
+      <div class="modal-actions">
+        <button type="button" id="confirm-cancel" class="secondary-action">Cancel</button>
+        <button type="button" id="confirm-accept" class="danger-action">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
