@@ -1,27 +1,50 @@
 # Grammer Cricket Club AI Manager
 
-A static frontend app for cricket club operations with:
+A full-stack-style cricket club management web app built with:
 
-- email signup/login via Supabase
-- clubs, players, venues, matches, and users
-- home and away XI management
-- captain, vice captain, and wicketkeeper roles
-- result tracking tied to the saved match XI
-- AI-style match and result poster generation
-- Vercel-ready static deployment
+- Vanilla HTML, CSS, and JavaScript
+- Supabase Auth, Database, and API
+- HTML poster generation with PNG download
+
+## Features
+
+- Email login, signup, logout, and password reset
+- Admin and user access levels
+- Saved clubs with logos
+- Saved venues/grounds with addresses and multiple images
+- Saved players linked to clubs
+- Match creation from saved clubs and grounds
+- Playing XI management with weekly player availability rules
+- Result entry with:
+  - scores
+  - winner
+  - summary
+  - player of the match
+  - best scorer
+  - player spotlight styles
+- Match posters with:
+  - 5 generated themes
+  - venue picture selection
+  - sponsor images
+  - saved social links
+- Result posters with:
+  - sponsor images
+  - saved social links
+  - player of the match and best scorer spotlight cards
 
 ## Project Files
 
-- `index.html` - app shell and UI
-- `style.css` - styling
-- `app.js` - frontend logic
-- `supabase.js` - Supabase client and SQL schema
+- `index.html` - app UI
+- `style.css` - styling and poster themes
+- `app.js` - main frontend logic
+- `supabase.js` - Supabase client setup and SQL schema
 - `config.js` - runtime Supabase config
-- `vercel.json` - Vercel static deployment config
+- `vercel.json` - static deployment config
+- `DEPLOY-VERCEL.md` - Vercel deployment guide
 
-## Before Deployment
+## Local Setup
 
-### 1. Set Supabase Config
+### 1. Configure Supabase
 
 Edit `config.js`:
 
@@ -32,72 +55,46 @@ window.APP_CONFIG = {
 };
 ```
 
-Use the Supabase publishable key, not the secret key.
+Use the Supabase publishable key only. Do not use the secret service-role key in this frontend app.
 
-### 2. Run The Supabase Schema
+### 2. Run the SQL Schema
 
-Open `supabase.js`, copy the SQL inside the `schemaSQL` string, and run it in the Supabase SQL Editor.
+Open `supabase.js`, copy the `schemaSQL` string, and run it in the Supabase SQL Editor.
 
-This creates:
+This creates the app tables including:
 
 - `profiles`
 - `teams`
-- `players`
 - `venues`
+- `players`
+- `social_links`
 - `matches`
 - `lineups`
 - `results`
-- storage buckets and policies
 
-### 3. Configure Supabase Auth URL
+### 3. Open the App
 
-In Supabase:
+Open `index.html` in your browser after updating `config.js`.
+
+## Deploy to Vercel
+
+Use the guide in `DEPLOY-VERCEL.md`.
+
+Quick version:
+
+1. Push this repo to GitHub
+2. Import it into Vercel
+3. Framework preset: `Other`
+4. Leave build/output settings empty
+5. Deploy
+
+Then update Supabase Auth settings:
 
 - `Authentication` -> `URL Configuration`
-- set `Site URL` to your final Vercel URL
+- set your Vercel production URL as the `Site URL`
 
-Example:
+## Notes
 
-- `https://grammer-cricket-club-ai-manager.vercel.app`
-
-## Deploy To Vercel
-
-### Option A: Vercel CLI
-
-From this folder:
-
-```powershell
-vercel
-vercel --prod
-```
-
-### Option B: GitHub Import
-
-1. Push this project to a GitHub repository
-2. In Vercel, click `Add New...` -> `Project`
-3. Import the repository
-4. Framework preset: `Other`
-5. Build command: leave empty
-6. Output directory: leave empty
-7. Deploy
-
-## Testing Checklist
-
-After deployment:
-
-1. Sign up
-2. Confirm email if confirmation is enabled
-3. Log in
-4. Create a club
-5. Create players
-6. Create a venue
-7. Create a match
-8. Build home and away XI
-9. Save a result
-10. Generate posters
-
-## Important Notes
-
-- This is a static frontend app
-- Supabase publishable key is safe for browser use
-- Never put your Supabase secret key into `config.js`
+- This is a browser-based app using Supabase directly from the frontend
+- Local image uploads used in result posters work in the current browser session
+- True AI image editing or outfit conversion is not connected yet and would require an external image API

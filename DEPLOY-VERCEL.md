@@ -2,7 +2,7 @@
 
 ## 1. Update Supabase Config
 
-Open `config.js` and set:
+Edit `config.js`:
 
 ```js
 window.APP_CONFIG = {
@@ -11,42 +11,46 @@ window.APP_CONFIG = {
 };
 ```
 
-Do not use your Supabase secret key in this frontend app.
+Use the Supabase publishable key only.
 
-## 2. Run The Supabase Schema
+## 2. Run the Supabase Schema
 
-Open `supabase.js`, copy the SQL inside `schemaSQL`, and run it in the Supabase SQL Editor.
+Open `supabase.js`, copy the `schemaSQL` string, and run it in the Supabase SQL Editor.
 
-## 3. Deploy On Vercel
+## 3. Import Into Vercel
 
-### Option A: Import Project
-- Push this project to GitHub
-- In Vercel, click `Add New...` -> `Project`
-- Import the repository
-- Framework preset: `Other`
-- Root directory: this project folder
-- Build command: leave empty
-- Output directory: leave empty
-- Deploy
-
-### Option B: Drag And Drop
-- Zip the project folder
-- In Vercel, create a new static deployment and upload it
+1. Open Vercel
+2. Click `Add New...` -> `Project`
+3. Import this GitHub repository
+4. Framework preset: `Other`
+5. Root directory: project root
+6. Build command: leave empty
+7. Output directory: leave empty
+8. Deploy
 
 ## 4. Set Supabase Auth URLs
 
-In Supabase `Authentication` -> `URL Configuration`:
-- `Site URL` = your Vercel production URL
-- Add the same Vercel URL to redirect URLs if needed
+In Supabase:
+
+1. Open `Authentication` -> `URL Configuration`
+2. Set `Site URL` to your Vercel production URL
+3. Add the same URL to redirect URLs if needed
 
 Example:
+
 - `https://your-project-name.vercel.app`
 
-## 5. Test
+## 5. Test After Deploy
 
-- Sign up
-- Confirm email if enabled
-- Log in
-- Create club, players, venue, match
-- Set home and away XI
-- Save result
+1. Sign up
+2. Log in
+3. Create clubs, venues, and players
+4. Create a match
+5. Build a lineup
+6. Save a result
+7. Generate match and result posters
+
+## Important
+
+- This is a static frontend deployment
+- Never place a Supabase secret key in `config.js`
