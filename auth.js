@@ -11,6 +11,27 @@ const elements = {
   signupForm: document.getElementById('signup-form'),
   loginForm: document.getElementById('login-form'),
   resetForm: document.getElementById('reset-form'),
+  sessionEmail: document.getElementById('session-email'),
+  sessionRole: document.getElementById('session-role'),
+  logoutButton: document.getElementById('logout-button'),
+  mainTabHome: document.getElementById('main-tab-home'),
+  mainTabDatabase: document.getElementById('main-tab-database'),
+  mainTabMatches: document.getElementById('main-tab-matches'),
+  mainTabResults: document.getElementById('main-tab-results'),
+  mainTabPoster: document.getElementById('main-tab-poster'),
+  mainPaneHome: document.getElementById('main-pane-home'),
+  mainPaneDatabase: document.getElementById('main-pane-database'),
+  mainPaneMatches: document.getElementById('main-pane-matches'),
+  mainPaneResults: document.getElementById('main-pane-results'),
+  mainPanePoster: document.getElementById('main-pane-poster'),
+  databaseTabPlayers: document.getElementById('database-tab-players'),
+  databaseTabClubs: document.getElementById('database-tab-clubs'),
+  databaseTabGrounds: document.getElementById('database-tab-grounds'),
+  databaseTabSocial: document.getElementById('database-tab-social'),
+  databasePanePlayers: document.getElementById('database-pane-players'),
+  databasePaneClubs: document.getElementById('database-pane-clubs'),
+  databasePaneGrounds: document.getElementById('database-pane-grounds'),
+  databasePaneSocial: document.getElementById('database-pane-social'),
 };
 
 const htmlEscape = (value = '') =>
@@ -53,6 +74,70 @@ const switchAuthTab = (tabName) => {
   if (elements.resetForm && tabName !== 'login') {
     toggleHidden(elements.resetForm, true);
   }
+};
+
+const switchMainTab = (tabName) => {
+  const tabs = [
+    { button: elements.mainTabHome, pane: elements.mainPaneHome, name: 'home' },
+    { button: elements.mainTabDatabase, pane: elements.mainPaneDatabase, name: 'database' },
+    { button: elements.mainTabMatches, pane: elements.mainPaneMatches, name: 'matches' },
+    { button: elements.mainTabResults, pane: elements.mainPaneResults, name: 'results' },
+    { button: elements.mainTabPoster, pane: elements.mainPanePoster, name: 'poster' },
+  ];
+
+  tabs.forEach((tab) => {
+    if (!tab.button || !tab.pane) return;
+    const active = tab.name === tabName;
+    tab.button.classList.toggle('active-workspace-tab', active);
+    toggleHidden(tab.pane, !active);
+  });
+};
+
+const switchDatabaseTab = (tabName) => {
+  const tabs = [
+    { button: elements.databaseTabPlayers, pane: elements.databasePanePlayers, name: 'players' },
+    { button: elements.databaseTabClubs, pane: elements.databasePaneClubs, name: 'clubs' },
+    { button: elements.databaseTabGrounds, pane: elements.databasePaneGrounds, name: 'grounds' },
+    { button: elements.databaseTabSocial, pane: elements.databasePaneSocial, name: 'social' },
+  ];
+
+  tabs.forEach((tab) => {
+    if (!tab.button || !tab.pane) return;
+    const active = tab.name === tabName;
+    tab.button.classList.toggle('active-workspace-tab', active);
+    toggleHidden(tab.pane, !active);
+  });
+};
+
+const updateSessionCard = async (session) => {
+  if (!elements.sessionEmail || !elements.sessionRole || !elements.logoutButton) return;
+
+  if (!session) {
+    elements.sessionEmail.textContent = 'Not signed in';
+    elements.sessionRole.textContent = 'Role: guest';
+    elements.logoutButton.disabled = true;
+    return;
+  }
+
+  let role = 'user';
+
+  if (SUPABASE_READY && supabase) {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('access_level')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (data?.access_level) role = data.access_level;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  elements.sessionEmail.textContent = session.user.email || 'Signed in';
+  elements.sessionRole.textContent = `Role: ${role}`;
+  elements.logoutButton.disabled = false;
 };
 
 const updateAuthAvailability = () => {
@@ -200,6 +285,22 @@ const handlePasswordReset = async (event) => {
   }
 };
 
+const handleLogout = async () => {
+  if (!SUPABASE_READY || !supabase) {
+    showMessage(getConfigMessage(), 'error');
+    return;
+  }
+
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    showMessage('Signed out successfully.');
+  } catch (error) {
+    console.error(error);
+    showMessage(error.message || 'Logout failed.', 'error');
+  }
+};
+
 const init = () => {
   updateAuthAvailability();
 
@@ -209,6 +310,16 @@ const init = () => {
   elements.signupForm?.addEventListener('submit', handleSignup);
   elements.loginForm?.addEventListener('submit', handleLogin);
   elements.resetForm?.addEventListener('submit', handlePasswordReset);
+  elements.logoutButton?.addEventListener('click', handleLogout);
+  elements.mainTabHome?.addEventListener('click', () => switchMainTab('home'));
+  elements.mainTabDatabase?.addEventListener('click', () => switchMainTab('database'));
+  elements.mainTabMatches?.addEventListener('click', () => switchMainTab('matches'));
+  elements.mainTabResults?.addEventListener('click', () => switchMainTab('results'));
+  elements.mainTabPoster?.addEventListener('click', () => switchMainTab('poster'));
+  elements.databaseTabPlayers?.addEventListener('click', () => switchDatabaseTab('players'));
+  elements.databaseTabClubs?.addEventListener('click', () => switchDatabaseTab('clubs'));
+  elements.databaseTabGrounds?.addEventListener('click', () => switchDatabaseTab('grounds'));
+  elements.databaseTabSocial?.addEventListener('click', () => switchDatabaseTab('social'));
 
   document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     toggle.addEventListener('change', (event) => {
@@ -217,11 +328,23 @@ const init = () => {
     });
   });
 
+  supabase?.auth.getSession().then(({ data }) => {
+    const session = data?.session || null;
+    toggleHidden(elements.authScreen, Boolean(session));
+    toggleHidden(elements.appShell, !session);
+    updateSessionCard(session);
+    switchMainTab('home');
+    switchDatabaseTab('players');
+  });
+
   supabase?.auth.onAuthStateChange((_event, session) => {
     if (elements.authScreen && elements.appShell) {
       toggleHidden(elements.authScreen, Boolean(session));
       toggleHidden(elements.appShell, !session);
     }
+    updateSessionCard(session);
+    switchMainTab('home');
+    switchDatabaseTab('players');
   });
 };
 
