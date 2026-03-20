@@ -557,6 +557,22 @@ const switchAuthTab = (tabName) => {
   }
 };
 
+const initAuthUi = () => {
+  addListener(elements.tabSignup, 'click', () => switchAuthTab('signup'));
+  addListener(elements.tabLogin, 'click', () => switchAuthTab('login'));
+  addListener(elements.showReset, 'click', () => toggleHidden(elements.resetForm, !elements.resetForm.classList.contains('hidden')));
+  addListener(elements.signupForm, 'submit', handleSignup);
+  addListener(elements.loginForm, 'submit', handleLogin);
+  addListener(elements.resetForm, 'submit', handlePasswordReset);
+
+  document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+    toggle.addEventListener('change', (event) => {
+      const input = document.getElementById(event.target.dataset.passwordToggle);
+      if (input) input.type = event.target.checked ? 'text' : 'password';
+    });
+  });
+};
+
 const fillSelect = (select, placeholder, items, labelBuilder) => {
   const currentValue = select.value;
   select.innerHTML = `<option value="">${placeholder}</option>`;
@@ -2992,12 +3008,6 @@ const init = async () => {
   addListener(elements.databaseTabClubs, 'click', () => switchDatabaseTab('clubs'));
   addListener(elements.databaseTabGrounds, 'click', () => switchDatabaseTab('grounds'));
   addListener(elements.databaseTabSocial, 'click', () => switchDatabaseTab('social'));
-  addListener(elements.tabSignup, 'click', () => switchAuthTab('signup'));
-  addListener(elements.tabLogin, 'click', () => switchAuthTab('login'));
-  addListener(elements.showReset, 'click', () => toggleHidden(elements.resetForm, !elements.resetForm.classList.contains('hidden')));
-  addListener(elements.signupForm, 'submit', handleSignup);
-  addListener(elements.loginForm, 'submit', handleLogin);
-  addListener(elements.resetForm, 'submit', handlePasswordReset);
   addListener(elements.logoutButton, 'click', handleLogout);
   addListener(elements.teamForm, 'submit', handleTeamSubmit);
   addListener(elements.teamCancelEdit, 'click', resetTeamForm);
@@ -3188,13 +3198,6 @@ const init = async () => {
   addListener(elements.generatePoster, 'click', renderPoster);
   addListener(elements.downloadPoster, 'click', downloadPoster);
   addListener(elements.posterHost, 'click', handlePosterSelection);
-  document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
-    toggle.addEventListener('change', (event) => {
-      const input = document.getElementById(event.target.dataset.passwordToggle);
-      if (input) input.type = event.target.checked ? 'text' : 'password';
-    });
-  });
-
   [
     elements.profilesList,
     elements.teamsList,
@@ -3232,4 +3235,9 @@ const init = async () => {
   });
 };
 
-init();
+initAuthUi();
+
+init().catch((error) => {
+  console.error(error);
+  showMessage('Some dashboard features failed to load, but auth is still available. Please try signup or login again.', 'error');
+});
