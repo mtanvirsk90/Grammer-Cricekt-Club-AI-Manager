@@ -639,12 +639,16 @@ const getUnavailablePlayerIdsForWeek = (matchId) => {
 };
 
 const updateAppVisibility = () => {
-  const signedIn = Boolean(state.session && state.profile);
+  const signedIn = Boolean(state.session);
   toggleHidden(elements.authScreen, signedIn);
   toggleHidden(elements.appShell, !signedIn);
 };
 
 const renderHomeDashboard = () => {
+  if (!elements.statsGrid || !elements.homeUpcomingList || !elements.homeResultsList) {
+    return;
+  }
+
   const upcomingMatches = state.matches.filter(isUpcomingMatch).slice(0, 5);
   const completedResults = state.results.slice(0, 5);
   const stats = [
@@ -718,7 +722,11 @@ const updateAuthAvailability = () => {
 };
 
 const updateSessionCard = () => {
-  if (!state.session || !state.profile) {
+  if (!elements.sessionEmail || !elements.sessionRole || !elements.logoutButton) {
+    return;
+  }
+
+  if (!state.session) {
     elements.sessionEmail.textContent = 'Not signed in';
     elements.sessionRole.textContent = 'Role: guest';
     elements.logoutButton.disabled = true;
@@ -727,8 +735,8 @@ const updateSessionCard = () => {
     return;
   }
 
-  elements.sessionEmail.textContent = state.profile.email || state.session.user.email;
-  elements.sessionRole.textContent = `Role: ${state.profile.access_level}`;
+  elements.sessionEmail.textContent = state.profile?.email || state.session.user.email || 'Signed in';
+  elements.sessionRole.textContent = `Role: ${state.profile?.access_level || 'user'}`;
   elements.logoutButton.disabled = false;
   toggleHidden(elements.adminSection, !isAdmin());
   updateAppVisibility();
@@ -1700,7 +1708,34 @@ const loadProfile = async () => {
     .maybeSingle();
 
   if (error) throw error;
-  state.profile = data;
+
+  if (!data) {
+    const fullName = state.session.user.user_metadata?.full_name || state.session.user.user_metadata?.name || '';
+    const { count, error: countError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) throw countError;
+
+    const fallbackProfile = {
+      id: state.session.user.id,
+      email: state.session.user.email || '',
+      full_name: fullName,
+      access_level: count === 0 ? 'super_admin' : 'user',
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('profiles')
+      .upsert(fallbackProfile)
+      .select('*')
+      .single();
+
+    if (insertError) throw insertError;
+    state.profile = inserted;
+  } else {
+    state.profile = data;
+  }
+
   updateSessionCard();
 };
 
@@ -2987,8 +3022,8 @@ const bootstrapSession = async (session) => {
     await refreshData();
     renderHomeDashboard();
     setEmptyState(elements.posterHost, 'Choose a match and click "Generate Poster" to preview it here.');
-    elements.posterCaptionOutput.value = '';
-    elements.resultCaptionOutput.value = '';
+    setValueIfPresent(elements.posterCaptionOutput, '');
+    setValueIfPresent(elements.resultCaptionOutput, '');
   } catch (error) {
     console.error(error);
     showMessage(error.message || 'Failed to load session data.', 'error');
