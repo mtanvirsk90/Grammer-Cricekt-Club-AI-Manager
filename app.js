@@ -272,7 +272,7 @@ const showMessage = (text, type = 'success') => {
   window.clearTimeout(showMessage.timer);
   showMessage.timer = window.setTimeout(() => {
     elements.messages.innerHTML = '';
-  }, 3500);
+  }, 8000);
 };
 
 const getStyleLabel = (value) => ({
@@ -2080,9 +2080,16 @@ const handleSignup = async (event) => {
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
   const fullName = document.getElementById('signup-name').value.trim();
+  const submitButton = elements.signupForm.querySelector('button[type="submit"]');
+  const originalButtonText = submitButton ? submitButton.textContent : '';
 
   try {
-    const { error } = await supabase.auth.signUp({
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Creating Account...';
+    }
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -2094,12 +2101,32 @@ const handleSignup = async (event) => {
     });
 
     if (error) throw error;
+
+    const identities = data?.user?.identities || [];
+    const alreadyExists = Array.isArray(identities) && identities.length === 0;
+
+    if (alreadyExists) {
+      showMessage('This email may already be registered. Try Login or use Forgot password.', 'error');
+      return;
+    }
+
     elements.signupForm.reset();
+
+    if (data?.session) {
+      showMessage('Account created and signed in successfully.');
+      return;
+    }
+
+    showMessage('Account created. Please check your email inbox and confirm your email before logging in.');
     switchAuthTab('login');
-    showMessage('Signup complete. Please verify your email before logging in.');
   } catch (error) {
     console.error(error);
     showMessage(error.message || 'Signup failed.', 'error');
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText || 'Create Account';
+    }
   }
 };
 
