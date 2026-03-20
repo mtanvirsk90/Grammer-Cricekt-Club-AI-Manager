@@ -486,11 +486,23 @@ const parseCsv = (text) => {
 };
 
 const setEmptyState = (container, text) => {
+  if (!container) return;
   container.innerHTML = `<div class="empty-state">${htmlEscape(text)}</div>`;
 };
 
 const toggleHidden = (element, hidden) => {
+  if (!element) return;
   element.classList.toggle('hidden', hidden);
+};
+
+const setValueIfPresent = (element, value) => {
+  if (!element) return;
+  element.value = value;
+};
+
+const addListener = (element, eventName, handler) => {
+  if (!element) return;
+  element.addEventListener(eventName, handler);
 };
 
 const switchMainTab = (tabName) => {
@@ -503,6 +515,7 @@ const switchMainTab = (tabName) => {
   ];
 
   tabs.forEach((tab) => {
+    if (!tab.button || !tab.pane) return;
     const active = tab.name === tabName;
     tab.button.classList.toggle('active-workspace-tab', active);
     toggleHidden(tab.pane, !active);
@@ -518,6 +531,7 @@ const switchDatabaseTab = (tabName) => {
   ];
 
   tabs.forEach((tab) => {
+    if (!tab.button || !tab.pane) return;
     const active = tab.name === tabName;
     tab.button.classList.toggle('active-workspace-tab', active);
     toggleHidden(tab.pane, !active);
@@ -531,6 +545,7 @@ const switchAuthTab = (tabName) => {
   ];
 
   tabs.forEach((tab) => {
+    if (!tab.button || !tab.form) return;
     const active = tab.name === tabName;
     tab.button.classList.toggle('active-tab', active);
     toggleHidden(tab.form, !active);
@@ -2862,14 +2877,14 @@ const setSignedOutState = () => {
   state.activePosterMatchIds = [];
   state.activeResultPosterMatchId = '';
   state.selectedPosterVariantKey = '';
-  elements.posterVenueImage.innerHTML = '<option value="">Auto rotate saved pictures</option>';
-  elements.posterSponsorImages.value = '';
-  elements.resultPosterSponsorImages.value = '';
-  elements.posterCaptionOutput.value = '';
-  elements.resultCaptionOutput.value = '';
-  elements.matchTeam1.value = '';
-  elements.matchTeam2.value = '';
-  elements.matchVenue.value = '';
+  if (elements.posterVenueImage) elements.posterVenueImage.innerHTML = '<option value="">Auto rotate saved pictures</option>';
+  setValueIfPresent(elements.posterSponsorImages, '');
+  setValueIfPresent(elements.resultPosterSponsorImages, '');
+  setValueIfPresent(elements.posterCaptionOutput, '');
+  setValueIfPresent(elements.resultCaptionOutput, '');
+  setValueIfPresent(elements.matchTeam1, '');
+  setValueIfPresent(elements.matchTeam2, '');
+  setValueIfPresent(elements.matchVenue, '');
   state.filters.players = '';
   state.filters.teams = '';
   state.filters.venues = '';
@@ -2882,11 +2897,11 @@ const setSignedOutState = () => {
   state.pagination.results = 1;
   state.selectedRows.players.clear();
   state.selectedRows.teams.clear();
-  elements.playersSearch.value = '';
-  elements.teamsSearch.value = '';
-  elements.venuesSearch.value = '';
-  elements.matchesSearch.value = '';
-  elements.resultsSearch.value = '';
+  setValueIfPresent(elements.playersSearch, '');
+  setValueIfPresent(elements.teamsSearch, '');
+  setValueIfPresent(elements.venuesSearch, '');
+  setValueIfPresent(elements.matchesSearch, '');
+  setValueIfPresent(elements.resultsSearch, '');
   resetPlayerForm();
   resetTeamForm();
   resetVenueForm();
@@ -2938,54 +2953,54 @@ const bootstrapSession = async (session) => {
 };
 
 const init = async () => {
-  elements.schemaSql.textContent = schemaSQL;
+  if (elements.schemaSql) elements.schemaSql.textContent = schemaSQL;
   updateAuthAvailability();
 
-  elements.mainTabHome.addEventListener('click', () => switchMainTab('home'));
-  elements.mainTabDatabase.addEventListener('click', () => switchMainTab('database'));
-  elements.mainTabMatches.addEventListener('click', () => switchMainTab('matches'));
-  elements.mainTabResults.addEventListener('click', () => switchMainTab('results'));
-  elements.mainTabPoster.addEventListener('click', () => switchMainTab('poster'));
-  elements.databaseTabPlayers.addEventListener('click', () => switchDatabaseTab('players'));
-  elements.databaseTabClubs.addEventListener('click', () => switchDatabaseTab('clubs'));
-  elements.databaseTabGrounds.addEventListener('click', () => switchDatabaseTab('grounds'));
-  elements.databaseTabSocial.addEventListener('click', () => switchDatabaseTab('social'));
-  elements.tabSignup.addEventListener('click', () => switchAuthTab('signup'));
-  elements.tabLogin.addEventListener('click', () => switchAuthTab('login'));
-  elements.showReset.addEventListener('click', () => toggleHidden(elements.resetForm, !elements.resetForm.classList.contains('hidden')));
-  elements.signupForm.addEventListener('submit', handleSignup);
-  elements.loginForm.addEventListener('submit', handleLogin);
-  elements.resetForm.addEventListener('submit', handlePasswordReset);
-  elements.logoutButton.addEventListener('click', handleLogout);
-  elements.teamForm.addEventListener('submit', handleTeamSubmit);
-  elements.teamCancelEdit.addEventListener('click', resetTeamForm);
-  elements.socialLinkForm.addEventListener('submit', handleSocialLinkSubmit);
-  elements.venueForm.addEventListener('submit', handleVenueSubmit);
-  elements.venueCancelEdit.addEventListener('click', resetVenueForm);
-  elements.playerForm.addEventListener('submit', handlePlayerSubmit);
-  elements.playerCancelEdit.addEventListener('click', resetPlayerForm);
-  elements.matchForm.addEventListener('submit', handleMatchSubmit);
-  elements.matchCancelEdit.addEventListener('click', resetMatchForm);
-  elements.lineupForm.addEventListener('submit', handleLineupSubmit);
-  elements.resultForm.addEventListener('submit', handleResultSubmit);
-  elements.resultCancelEdit.addEventListener('click', resetResultForm);
-  elements.playersSearch.addEventListener('input', (event) => {
+  addListener(elements.mainTabHome, 'click', () => switchMainTab('home'));
+  addListener(elements.mainTabDatabase, 'click', () => switchMainTab('database'));
+  addListener(elements.mainTabMatches, 'click', () => switchMainTab('matches'));
+  addListener(elements.mainTabResults, 'click', () => switchMainTab('results'));
+  addListener(elements.mainTabPoster, 'click', () => switchMainTab('poster'));
+  addListener(elements.databaseTabPlayers, 'click', () => switchDatabaseTab('players'));
+  addListener(elements.databaseTabClubs, 'click', () => switchDatabaseTab('clubs'));
+  addListener(elements.databaseTabGrounds, 'click', () => switchDatabaseTab('grounds'));
+  addListener(elements.databaseTabSocial, 'click', () => switchDatabaseTab('social'));
+  addListener(elements.tabSignup, 'click', () => switchAuthTab('signup'));
+  addListener(elements.tabLogin, 'click', () => switchAuthTab('login'));
+  addListener(elements.showReset, 'click', () => toggleHidden(elements.resetForm, !elements.resetForm.classList.contains('hidden')));
+  addListener(elements.signupForm, 'submit', handleSignup);
+  addListener(elements.loginForm, 'submit', handleLogin);
+  addListener(elements.resetForm, 'submit', handlePasswordReset);
+  addListener(elements.logoutButton, 'click', handleLogout);
+  addListener(elements.teamForm, 'submit', handleTeamSubmit);
+  addListener(elements.teamCancelEdit, 'click', resetTeamForm);
+  addListener(elements.socialLinkForm, 'submit', handleSocialLinkSubmit);
+  addListener(elements.venueForm, 'submit', handleVenueSubmit);
+  addListener(elements.venueCancelEdit, 'click', resetVenueForm);
+  addListener(elements.playerForm, 'submit', handlePlayerSubmit);
+  addListener(elements.playerCancelEdit, 'click', resetPlayerForm);
+  addListener(elements.matchForm, 'submit', handleMatchSubmit);
+  addListener(elements.matchCancelEdit, 'click', resetMatchForm);
+  addListener(elements.lineupForm, 'submit', handleLineupSubmit);
+  addListener(elements.resultForm, 'submit', handleResultSubmit);
+  addListener(elements.resultCancelEdit, 'click', resetResultForm);
+  addListener(elements.playersSearch, 'input', (event) => {
     state.pagination.players = 1;
     state.filters.players = event.target.value;
     renderPlayers();
   });
-  elements.playersExport.addEventListener('click', exportPlayersCsv);
-  elements.playersTemplate.addEventListener('click', downloadPlayersTemplate);
-  elements.playersImportFile.addEventListener('change', handlePlayersImport);
-  elements.playersViewMode.addEventListener('change', (event) => {
+  addListener(elements.playersExport, 'click', exportPlayersCsv);
+  addListener(elements.playersTemplate, 'click', downloadPlayersTemplate);
+  addListener(elements.playersImportFile, 'change', handlePlayersImport);
+  addListener(elements.playersViewMode, 'change', (event) => {
     state.ui.playersViewMode = event.target.value;
     renderPlayers();
   });
-  elements.playersSort.addEventListener('change', (event) => {
+  addListener(elements.playersSort, 'change', (event) => {
     state.ui.playersSort = event.target.value;
     renderPlayers();
   });
-  elements.playersSelectPage.addEventListener('click', () => {
+  addListener(elements.playersSelectPage, 'click', () => {
     const query = normaliseQuery(state.filters.players);
     const filteredPlayers = sortByMode(state.players.filter((player) => {
       const team = findTeam(player.team_id);
@@ -2999,26 +3014,26 @@ const init = async () => {
     paginated.items.forEach((player) => state.selectedRows.players.add(String(player.id)));
     renderPlayers();
   });
-  elements.playersBulkDelete.addEventListener('click', () => {
+  addListener(elements.playersBulkDelete, 'click', () => {
     handleBulkDelete('players', [...state.selectedRows.players], 'Selected players deleted.', [loadPlayers, loadLineups], 'players');
   });
-  elements.teamsSearch.addEventListener('input', (event) => {
+  addListener(elements.teamsSearch, 'input', (event) => {
     state.pagination.teams = 1;
     state.filters.teams = event.target.value;
     renderTeams();
   });
-  elements.teamsExport.addEventListener('click', exportTeamsCsv);
-  elements.teamsTemplate.addEventListener('click', downloadTeamsTemplate);
-  elements.teamsImportFile.addEventListener('change', handleTeamsImport);
-  elements.teamsViewMode.addEventListener('change', (event) => {
+  addListener(elements.teamsExport, 'click', exportTeamsCsv);
+  addListener(elements.teamsTemplate, 'click', downloadTeamsTemplate);
+  addListener(elements.teamsImportFile, 'change', handleTeamsImport);
+  addListener(elements.teamsViewMode, 'change', (event) => {
     state.ui.teamsViewMode = event.target.value;
     renderTeams();
   });
-  elements.teamsSort.addEventListener('change', (event) => {
+  addListener(elements.teamsSort, 'change', (event) => {
     state.ui.teamsSort = event.target.value;
     renderTeams();
   });
-  elements.teamsSelectPage.addEventListener('click', () => {
+  addListener(elements.teamsSelectPage, 'click', () => {
     const query = normaliseQuery(state.filters.teams);
     const filteredTeams = sortByMode(state.teams.filter((team) => matchesFilter(query, [team.name, team.short_name, team.notes, team.primary_color, team.secondary_color, ...(team.squad_labels || [])])), state.ui.teamsSort, (team, mode) => {
       if (mode.startsWith('count')) return Number(team.team_count) || 0;
@@ -3028,70 +3043,70 @@ const init = async () => {
     paginated.items.forEach((team) => state.selectedRows.teams.add(String(team.id)));
     renderTeams();
   });
-  elements.teamsBulkDelete.addEventListener('click', () => {
+  addListener(elements.teamsBulkDelete, 'click', () => {
     handleBulkDelete('teams', [...state.selectedRows.teams], 'Selected clubs deleted.', [loadTeams, loadPlayers, loadMatches, loadResults, loadLineups], 'teams');
   });
-  elements.venuesSearch.addEventListener('input', (event) => {
+  addListener(elements.venuesSearch, 'input', (event) => {
     state.pagination.venues = 1;
     state.filters.venues = event.target.value;
     renderVenues();
   });
-  elements.matchesSearch.addEventListener('input', (event) => {
+  addListener(elements.matchesSearch, 'input', (event) => {
     state.pagination.matches = 1;
     state.filters.matches = event.target.value;
     renderMatches();
   });
-  elements.resultsSearch.addEventListener('input', (event) => {
+  addListener(elements.resultsSearch, 'input', (event) => {
     state.pagination.results = 1;
     state.filters.results = event.target.value;
     renderResults();
   });
-  elements.confirmCancel.addEventListener('click', closeConfirmModal);
-  elements.confirmModal.addEventListener('click', (event) => {
+  addListener(elements.confirmCancel, 'click', closeConfirmModal);
+  addListener(elements.confirmModal, 'click', (event) => {
     if (event.target === elements.confirmModal) closeConfirmModal();
   });
-  elements.confirmAccept.addEventListener('click', async () => {
+  addListener(elements.confirmAccept, 'click', async () => {
     const action = state.pendingConfirm;
     closeConfirmModal();
     if (action) await action();
   });
-  elements.lineupMatch.addEventListener('change', () => {
+  addListener(elements.lineupMatch, 'change', () => {
     updateLineupTeamOptions();
     updateLineupPlayerOptions();
     renderLineup();
   });
-  elements.lineupTeamSide.addEventListener('change', updateLineupPlayerOptions);
-  elements.resultMatch.addEventListener('change', () => {
+  addListener(elements.lineupTeamSide, 'change', updateLineupPlayerOptions);
+  addListener(elements.resultMatch, 'change', () => {
     updateWinnerOptions();
     updateResultPlayerOptions();
     document.getElementById('player-image-url').value = '';
     document.getElementById('best-scorer-image-url').value = '';
     document.getElementById('best-bowler-image-url').value = '';
   });
-  elements.playerOfMatch.addEventListener('change', syncResultPlayerImages);
-  elements.bestScorerName.addEventListener('change', syncResultPlayerImages);
-  elements.bestBowlerName.addEventListener('change', syncResultPlayerImages);
-  elements.resultPosterMatch.addEventListener('change', () => {
+  addListener(elements.playerOfMatch, 'change', syncResultPlayerImages);
+  addListener(elements.bestScorerName, 'change', syncResultPlayerImages);
+  addListener(elements.bestBowlerName, 'change', syncResultPlayerImages);
+  addListener(elements.resultPosterMatch, 'change', () => {
     state.activeResultPosterMatchId = '';
     elements.downloadResultPoster.disabled = true;
     elements.resultCaptionOutput.value = '';
     setEmptyState(elements.resultPosterHost, 'Click "Generate Result Poster" to build the completed-match graphic.');
   });
-  elements.generateResultPoster.addEventListener('click', renderResultPoster);
-  elements.downloadResultPoster.addEventListener('click', downloadResultPoster);
-  elements.resultPosterSponsorImages.addEventListener('input', () => {
+  addListener(elements.generateResultPoster, 'click', renderResultPoster);
+  addListener(elements.downloadResultPoster, 'click', downloadResultPoster);
+  addListener(elements.resultPosterSponsorImages, 'input', () => {
     state.activeResultPosterMatchId = '';
     elements.downloadResultPoster.disabled = true;
     elements.resultCaptionOutput.value = '';
     setEmptyState(elements.resultPosterHost, 'Click "Generate Result Poster" to rebuild the completed-match graphic with the sponsor pictures.');
   });
-  elements.resultPosterSocialLinks.addEventListener('change', () => {
+  addListener(elements.resultPosterSocialLinks, 'change', () => {
     state.activeResultPosterMatchId = '';
     elements.downloadResultPoster.disabled = true;
     elements.resultCaptionOutput.value = '';
     setEmptyState(elements.resultPosterHost, 'Click "Generate Result Poster" to rebuild the completed-match graphic with the selected social links.');
   });
-  elements.posterMatch.addEventListener('change', () => {
+  addListener(elements.posterMatch, 'change', () => {
     state.activePosterMatchIds = [];
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
@@ -3100,42 +3115,42 @@ const init = async () => {
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the match graphic.');
   });
-  elements.posterPlatform.addEventListener('change', () => {
+  addListener(elements.posterPlatform, 'change', () => {
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the match graphic.');
   });
-  elements.posterVisualMode.addEventListener('change', () => {
+  addListener(elements.posterVisualMode, 'change', () => {
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the match graphic.');
   });
-  elements.posterVenueImage.addEventListener('change', () => {
+  addListener(elements.posterVenueImage, 'change', () => {
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to rebuild the match graphic with the selected venue image.');
   });
-  elements.posterSponsorImages.addEventListener('input', () => {
+  addListener(elements.posterSponsorImages, 'input', () => {
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to rebuild the match graphic with the sponsor pictures.');
   });
-  elements.posterSocialLinks.addEventListener('change', () => {
+  addListener(elements.posterSocialLinks, 'change', () => {
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to rebuild the match graphic with the selected social links.');
   });
-  elements.posterMatchPicker.addEventListener('change', () => {
+  addListener(elements.posterMatchPicker, 'change', () => {
     state.activePosterMatchIds = [];
     state.selectedPosterVariantKey = '';
     elements.downloadPoster.disabled = true;
@@ -3143,9 +3158,9 @@ const init = async () => {
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the selected match graphics.');
   });
-  elements.generatePoster.addEventListener('click', renderPoster);
-  elements.downloadPoster.addEventListener('click', downloadPoster);
-  elements.posterHost.addEventListener('click', handlePosterSelection);
+  addListener(elements.generatePoster, 'click', renderPoster);
+  addListener(elements.downloadPoster, 'click', downloadPoster);
+  addListener(elements.posterHost, 'click', handlePosterSelection);
   document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     toggle.addEventListener('change', (event) => {
       const input = document.getElementById(event.target.dataset.passwordToggle);
@@ -3167,8 +3182,8 @@ const init = async () => {
     elements.socialLinksList,
     elements.teamsPagination,
     elements.venuesPagination,
-  ].forEach((container) => container.addEventListener('click', handleListActions));
-  elements.profilesList.addEventListener('change', handleListActions);
+  ].forEach((container) => addListener(container, 'click', handleListActions));
+  addListener(elements.profilesList, 'change', handleListActions);
 
   if (!SUPABASE_READY || !supabase) {
     showMessage(getConfigMessage(), 'error');
