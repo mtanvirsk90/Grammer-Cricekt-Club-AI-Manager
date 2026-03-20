@@ -4,6 +4,7 @@ const elements = {
   authScreen: document.getElementById('auth-screen'),
   appShell: document.getElementById('app-shell'),
   messages: document.getElementById('messages'),
+  appMessages: document.getElementById('app-messages'),
   authConfigNote: document.getElementById('auth-config-note'),
   schemaSql: document.getElementById('schema-sql'),
   mainTabHome: document.getElementById('main-tab-home'),
@@ -268,10 +269,12 @@ const getWeekKey = (dateValue) => {
 };
 
 const showMessage = (text, type = 'success') => {
-  elements.messages.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
+  const target = !elements.authScreen?.classList.contains('hidden') ? elements.messages : (elements.appMessages || elements.messages);
+  if (!target) return;
+  target.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
   window.clearTimeout(showMessage.timer);
   showMessage.timer = window.setTimeout(() => {
-    elements.messages.innerHTML = '';
+    target.innerHTML = '';
   }, 8000);
 };
 
@@ -1681,8 +1684,17 @@ const withRequest = async (callback, successMessage) => {
   }
 
   if (!state.session) {
-    showMessage('Please sign in first.', 'error');
-    return;
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      showMessage(error.message || 'Please sign in first.', 'error');
+      return;
+    }
+
+    state.session = data?.session || null;
+    if (!state.session) {
+      showMessage('Please sign in first.', 'error');
+      return;
+    }
   }
 
   try {

@@ -5,6 +5,7 @@ const elements = {
   appShell: document.getElementById('app-shell'),
   authConfigNote: document.getElementById('auth-config-note'),
   messages: document.getElementById('messages'),
+  appMessages: document.getElementById('app-messages'),
   tabSignup: document.getElementById('tab-signup'),
   tabLogin: document.getElementById('tab-login'),
   showReset: document.getElementById('show-reset'),
@@ -49,11 +50,12 @@ const toggleHidden = (element, hidden) => {
 };
 
 const showMessage = (text, type = 'success') => {
-  if (!elements.messages) return;
-  elements.messages.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
+  const target = !elements.authScreen?.classList.contains('hidden') ? elements.messages : (elements.appMessages || elements.messages);
+  if (!target) return;
+  target.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
   window.clearTimeout(showMessage.timer);
   showMessage.timer = window.setTimeout(() => {
-    elements.messages.innerHTML = '';
+    target.innerHTML = '';
   }, 8000);
 };
 
