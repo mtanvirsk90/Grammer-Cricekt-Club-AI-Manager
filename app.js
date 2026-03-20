@@ -505,7 +505,38 @@ const setValueIfPresent = (element, value) => {
 
 const addListener = (element, eventName, handler) => {
   if (!element) return;
-  element.addEventListener(eventName, handler);
+  element.addEventListener(eventName, (event) => {
+    try {
+      const result = handler(event);
+      if (result && typeof result.then === 'function') {
+        result.catch((error) => {
+          console.error(error);
+          showMessage(error.message || 'Something went wrong.', 'error');
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      showMessage(error.message || 'Something went wrong.', 'error');
+    }
+  });
+};
+
+const ensureSession = async () => {
+  if (state.session) return state.session;
+
+  if (!SUPABASE_READY || !supabase) {
+    throw new Error(getConfigMessage());
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+
+  state.session = data?.session || null;
+  if (!state.session) {
+    throw new Error('Please sign in first.');
+  }
+
+  return state.session;
 };
 
 const switchMainTab = (tabName) => {
@@ -1683,19 +1714,7 @@ const withRequest = async (callback, successMessage) => {
     return;
   }
 
-  if (!state.session) {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      showMessage(error.message || 'Please sign in first.', 'error');
-      return;
-    }
-
-    state.session = data?.session || null;
-    if (!state.session) {
-      showMessage('Please sign in first.', 'error');
-      return;
-    }
-  }
+  await ensureSession();
 
   try {
     await callback();
@@ -2258,6 +2277,7 @@ const handleLogout = async () => {
 const handleTeamSubmit = async (event) => {
   event.preventDefault();
 
+  const session = await ensureSession();
   const editingId = elements.teamEditId.value;
   const uploadedLogo = await uploadImageFile(elements.teamLogoFile.files?.[0], STORAGE_BUCKETS.team, 'logos');
   const payload = {
@@ -2269,7 +2289,7 @@ const handleTeamSubmit = async (event) => {
     primary_color: document.getElementById('team-primary-color').value,
     secondary_color: document.getElementById('team-secondary-color').value,
     notes: document.getElementById('team-notes').value.trim(),
-    created_by: state.session.user.id,
+    created_by: session.user.id,
   };
 
   if (!payload.name || !payload.short_name) {
@@ -2291,6 +2311,7 @@ const handleTeamSubmit = async (event) => {
 const handleVenueSubmit = async (event) => {
   event.preventDefault();
 
+  const session = await ensureSession();
   const editingId = elements.venueEditId.value;
   const existingVenue = editingId ? findVenue(editingId) : null;
   const mergedImages = await mergeStoredImageSources(elements.venueImageUrls.value, elements.venueImageFiles.files, STORAGE_BUCKETS.venue, 'grounds');
@@ -2301,7 +2322,7 @@ const handleVenueSubmit = async (event) => {
     address: elements.venueAddress.value.trim(),
     image_urls: editingId ? [...new Set([...(existingVenue?.image_urls || []), ...mergedImages])] : mergedImages,
     notes: document.getElementById('venue-notes').value.trim(),
-    created_by: state.session.user.id,
+    created_by: session.user.id,
   };
 
   if (!payload.name || !payload.city || !payload.country) {
@@ -2323,11 +2344,12 @@ const handleVenueSubmit = async (event) => {
 const handleSocialLinkSubmit = async (event) => {
   event.preventDefault();
 
+  const session = await ensureSession();
   const payload = {
     platform: document.getElementById('social-link-platform').value,
     label: document.getElementById('social-link-label').value.trim(),
     url: document.getElementById('social-link-url').value.trim(),
-    created_by: state.session.user.id,
+    created_by: session.user.id,
   };
 
   if (!payload.platform || !payload.label || !payload.url) {
@@ -2346,6 +2368,7 @@ const handleSocialLinkSubmit = async (event) => {
 const handlePlayerSubmit = async (event) => {
   event.preventDefault();
 
+  const session = await ensureSession();
   const editingId = elements.playerEditId.value;
   const uploadedProfile = await uploadImageFile(elements.playerProfileFile.files?.[0], STORAGE_BUCKETS.player, 'profiles');
   const payload = {
@@ -2359,7 +2382,7 @@ const handlePlayerSubmit = async (event) => {
     bowling_style: document.getElementById('player-bowling-style').value.trim(),
     player_category: document.getElementById('player-category').value,
     profile_image_url: uploadedProfile || document.getElementById('player-profile-url').value.trim(),
-    created_by: state.session.user.id,
+    created_by: session.user.id,
   };
 
   if (!payload.name || !payload.team_id || !payload.jersey_number || !payload.batsman_type || !payload.bowler_type || !payload.player_category) {
@@ -2381,6 +2404,7 @@ const handlePlayerSubmit = async (event) => {
 const handleMatchSubmit = async (event) => {
   event.preventDefault();
 
+  const session = await ensureSession();
   const editingId = elements.matchEditId.value;
   const homeTeam = findTeamByName(elements.matchTeam1.value);
   const awayTeam = findTeamByName(elements.matchTeam2.value);
@@ -2391,7 +2415,7 @@ const handleMatchSubmit = async (event) => {
     venue_id: venue?.id || '',
     match_date: document.getElementById('match-date').value,
     match_time: document.getElementById('match-time').value,
-    created_by: state.session.user.id,
+    created_by: session.user.id,
   };
 
   if (!payload.team1_id || !payload.team2_id || !payload.venue_id || !payload.match_date || !payload.match_time) {
