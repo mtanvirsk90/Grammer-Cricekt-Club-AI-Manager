@@ -10,6 +10,7 @@ const elements = {
   teamForm: byId('team-form'),
   teamEditId: byId('team-edit-id'),
   teamSubmitButton: byId('team-submit-button'),
+  teamCancelEdit: byId('team-cancel-edit'),
   teamName: byId('team-name'),
   teamShortName: byId('team-short-name'),
   teamLogoUrl: byId('team-logo-url'),
@@ -19,10 +20,12 @@ const elements = {
   teamSecondaryColor: byId('team-secondary-color'),
   teamNotes: byId('team-notes'),
   teamsList: byId('teams-list'),
+  teamsTemplate: byId('teams-template'),
   homeClubsList: byId('home-clubs-list'),
   playerForm: byId('player-form'),
   playerEditId: byId('player-edit-id'),
   playerSubmitButton: byId('player-submit-button'),
+  playerCancelEdit: byId('player-cancel-edit'),
   playerTeam: byId('player-team'),
   playerName: byId('player-name'),
   playerJerseyNumber: byId('player-jersey-number'),
@@ -31,10 +34,12 @@ const elements = {
   playerCategory: byId('player-category'),
   playerProfileUrl: byId('player-profile-url'),
   playersList: byId('players-list'),
+  playersTemplate: byId('players-template'),
   homePlayersList: byId('home-players-list'),
   venueForm: byId('venue-form'),
   venueEditId: byId('venue-edit-id'),
   venueSubmitButton: byId('venue-submit-button'),
+  venueCancelEdit: byId('venue-cancel-edit'),
   venueName: byId('venue-name'),
   venueCity: byId('venue-city'),
   venueCountry: byId('venue-country'),
@@ -51,6 +56,11 @@ const CLUB_TYPE_PREFIX = 'club_type:';
 let teamsCache = [];
 let playersCache = [];
 let venuesCache = [];
+
+const toggleHidden = (element, hidden) => {
+  if (!element) return;
+  element.classList.toggle('hidden', hidden);
+};
 
 const htmlEscape = (value = '') =>
   String(value).replace(/[&<>"']/g, (char) => ({
@@ -129,6 +139,10 @@ const renderTeams = () => {
             <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</p>
           </div>
           ${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : ''}
+          <div class="record-actions">
+            <button type="button" class="secondary-action" data-fallback-action="edit-team" data-id="${team.id}">Edit</button>
+            <button type="button" class="danger-action" data-fallback-action="delete-team" data-id="${team.id}">Delete</button>
+          </div>
         </div>
       </article>
     `).join('');
@@ -178,8 +192,16 @@ const renderPlayers = () => {
       const team = teamsCache.find((entry) => String(entry.id) === String(player.team_id));
       return `
         <article class="record-card">
-          <h3>${htmlEscape(player.name)}</h3>
-          <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
+          <div class="record-row">
+            <div>
+              <h3>${htmlEscape(player.name)}</h3>
+              <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
+            </div>
+            <div class="record-actions">
+              <button type="button" class="secondary-action" data-fallback-action="edit-player" data-id="${player.id}">Edit</button>
+              <button type="button" class="danger-action" data-fallback-action="delete-player" data-id="${player.id}">Delete</button>
+            </div>
+          </div>
         </article>
       `;
     }).join('');
@@ -212,11 +234,45 @@ const renderVenues = () => {
 
   elements.venuesList.innerHTML = venuesCache.map((venue) => `
     <article class="record-card">
-      <h3>${htmlEscape(venue.name)}</h3>
-      <p class="record-meta">${htmlEscape(venue.city)}, ${htmlEscape(venue.country)}</p>
-      <p class="record-meta">${htmlEscape(venue.address || 'No address added')}</p>
+      <div class="record-row">
+        <div>
+          <h3>${htmlEscape(venue.name)}</h3>
+          <p class="record-meta">${htmlEscape(venue.city)}, ${htmlEscape(venue.country)}</p>
+          <p class="record-meta">${htmlEscape(venue.address || 'No address added')}</p>
+        </div>
+        <div class="record-actions">
+          <button type="button" class="secondary-action" data-fallback-action="edit-venue" data-id="${venue.id}">Edit</button>
+          <button type="button" class="danger-action" data-fallback-action="delete-venue" data-id="${venue.id}">Delete</button>
+        </div>
+      </div>
     </article>
   `).join('');
+};
+
+const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadCsv = (filename, headers, rows) => {
+  const csv = [headers.join(','), ...rows.map((row) => headers.map((header) => escapeCsvValue(row[header])).join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const downloadPlayersTemplate = () => {
+  downloadCsv('players-template.csv', ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'], [{
+    name: 'John Smith',
+    club_name: 'Grammer Cricket Club',
+    jersey_number: '18',
+    player_category: 'Batsman',
+    batsman_type: 'Right-hand bat',
+    bowler_type: 'Right-arm medium',
+    profile_image_url: 'https://example.com/player.jpg',
+  }]);
+  showMessage('Player CSV template downloaded.');
 };
 
 const loadTeams = async () => {
@@ -244,16 +300,82 @@ const refreshBaseData = async () => {
   await Promise.all([loadTeams(), loadPlayers(), loadVenues()]);
 };
 
+const resetTeamForm = () => {
+  elements.teamForm?.reset();
+  if (elements.teamEditId) elements.teamEditId.value = '';
+  if (elements.teamSubmitButton) elements.teamSubmitButton.textContent = 'Save Club';
+  if (elements.teamPrimaryColor) elements.teamPrimaryColor.value = '#d32027';
+  if (elements.teamSecondaryColor) elements.teamSecondaryColor.value = '#3944a7';
+  if (elements.teamClubType) elements.teamClubType.value = 'home';
+  toggleHidden(elements.teamCancelEdit, true);
+};
+
+const resetPlayerForm = () => {
+  elements.playerForm?.reset();
+  if (elements.playerEditId) elements.playerEditId.value = '';
+  if (elements.playerSubmitButton) elements.playerSubmitButton.textContent = 'Register Player';
+  toggleHidden(elements.playerCancelEdit, true);
+};
+
+const resetVenueForm = () => {
+  elements.venueForm?.reset();
+  if (elements.venueEditId) elements.venueEditId.value = '';
+  if (elements.venueSubmitButton) elements.venueSubmitButton.textContent = 'Save Ground';
+  toggleHidden(elements.venueCancelEdit, true);
+};
+
+const startTeamEdit = (team) => {
+  if (!team) return;
+  elements.teamEditId.value = String(team.id);
+  elements.teamName.value = team.name || '';
+  elements.teamShortName.value = team.short_name || '';
+  elements.teamLogoUrl.value = team.logo_url || '';
+  elements.teamClubType.value = getTeamType(team);
+  elements.teamPrimaryColor.value = team.primary_color || '#d32027';
+  elements.teamSecondaryColor.value = team.secondary_color || '#3944a7';
+  elements.teamNotes.value = team.notes || '';
+  elements.teamSubmitButton.textContent = 'Update Club';
+  toggleHidden(elements.teamCancelEdit, false);
+};
+
+const startPlayerEdit = (player) => {
+  if (!player) return;
+  elements.playerEditId.value = String(player.id);
+  elements.playerName.value = player.name || '';
+  elements.playerJerseyNumber.value = player.jersey_number || '';
+  elements.playerBattingStyle.value = player.batsman_type || player.batting_style || '';
+  elements.playerBowlingStyle.value = player.bowler_type || player.bowling_style || '';
+  elements.playerCategory.value = player.player_category || player.role || '';
+  elements.playerProfileUrl.value = player.profile_image_url || '';
+  elements.playerSubmitButton.textContent = 'Update Player';
+  toggleHidden(elements.playerCancelEdit, false);
+};
+
+const startVenueEdit = (venue) => {
+  if (!venue) return;
+  elements.venueEditId.value = String(venue.id);
+  elements.venueName.value = venue.name || '';
+  elements.venueCity.value = venue.city || '';
+  elements.venueCountry.value = venue.country || '';
+  elements.venueAddress.value = venue.address || '';
+  elements.venueImageUrls.value = Array.isArray(venue.image_urls) ? venue.image_urls.join('\n') : '';
+  elements.venueNotes.value = venue.notes || '';
+  elements.venueSubmitButton.textContent = 'Update Ground';
+  toggleHidden(elements.venueCancelEdit, false);
+};
+
 const handleTeamSubmit = async (event) => {
   event?.preventDefault?.();
   const session = await getSession();
+  const editingId = String(elements.teamEditId?.value || '');
+  const existingTeam = teamsCache.find((team) => String(team.id) === editingId);
 
   const payload = {
     name: elements.teamName?.value.trim() || '',
     short_name: elements.teamShortName?.value.trim() || '',
     logo_url: elements.teamLogoUrl?.value.trim() || '',
     team_count: 1,
-    squad_labels: withTeamTypeLabel([], elements.teamClubType?.value || 'home'),
+    squad_labels: withTeamTypeLabel(existingTeam?.squad_labels || [], elements.teamClubType?.value || 'home'),
     primary_color: elements.teamPrimaryColor?.value || '#d32027',
     secondary_color: elements.teamSecondaryColor?.value || '#3944a7',
     notes: elements.teamNotes?.value.trim() || '',
@@ -265,20 +387,21 @@ const handleTeamSubmit = async (event) => {
     return;
   }
 
-  const { error } = await supabase.from('teams').insert([payload]);
+  const query = editingId
+    ? supabase.from('teams').update(payload).eq('id', editingId)
+    : supabase.from('teams').insert([payload]);
+  const { error } = await query;
   if (error) throw error;
 
-  elements.teamForm?.reset();
-  if (elements.teamPrimaryColor) elements.teamPrimaryColor.value = '#d32027';
-  if (elements.teamSecondaryColor) elements.teamSecondaryColor.value = '#3944a7';
-  if (elements.teamClubType) elements.teamClubType.value = 'home';
+  resetTeamForm();
   await loadTeams();
-  showMessage('Club saved successfully.');
+  showMessage(editingId ? 'Club updated successfully.' : 'Club saved successfully.');
 };
 
 const handlePlayerSubmit = async (event) => {
   event?.preventDefault?.();
   const session = await getSession();
+  const editingId = String(elements.playerEditId?.value || '');
   const homeTeam = getHomeTeams()[0];
 
   if (!homeTeam) {
@@ -305,17 +428,21 @@ const handlePlayerSubmit = async (event) => {
     return;
   }
 
-  const { error } = await supabase.from('players').insert([payload]);
+  const query = editingId
+    ? supabase.from('players').update(payload).eq('id', editingId)
+    : supabase.from('players').insert([payload]);
+  const { error } = await query;
   if (error) throw error;
 
-  elements.playerForm?.reset();
+  resetPlayerForm();
   await loadPlayers();
-  showMessage('Player saved successfully.');
+  showMessage(editingId ? 'Player updated successfully.' : 'Player saved successfully.');
 };
 
 const handleVenueSubmit = async (event) => {
   event?.preventDefault?.();
   const session = await getSession();
+  const editingId = String(elements.venueEditId?.value || '');
 
   const payload = {
     name: elements.venueName?.value.trim() || '',
@@ -332,12 +459,15 @@ const handleVenueSubmit = async (event) => {
     return;
   }
 
-  const { error } = await supabase.from('venues').insert([payload]);
+  const query = editingId
+    ? supabase.from('venues').update(payload).eq('id', editingId)
+    : supabase.from('venues').insert([payload]);
+  const { error } = await query;
   if (error) throw error;
 
-  elements.venueForm?.reset();
+  resetVenueForm();
   await loadVenues();
-  showMessage('Ground saved successfully.');
+  showMessage(editingId ? 'Ground updated successfully.' : 'Ground saved successfully.');
 };
 
 const createSafeHandler = (handler) => (event) => {
@@ -345,6 +475,60 @@ const createSafeHandler = (handler) => (event) => {
     console.error(error);
     showMessage(error.message || 'Something went wrong.', 'error');
   });
+};
+
+const handleListAction = async (event) => {
+  const button = event.target.closest('[data-fallback-action]');
+  if (!button) return;
+
+  const { fallbackAction, id } = button.dataset;
+  if (!id) return;
+
+  if (fallbackAction === 'edit-team') {
+    startTeamEdit(teamsCache.find((team) => String(team.id) === String(id)));
+    return;
+  }
+
+  if (fallbackAction === 'edit-player') {
+    startPlayerEdit(playersCache.find((player) => String(player.id) === String(id)));
+    return;
+  }
+
+  if (fallbackAction === 'edit-venue') {
+    startVenueEdit(venuesCache.find((venue) => String(venue.id) === String(id)));
+    return;
+  }
+
+  const table = fallbackAction === 'delete-team'
+    ? 'teams'
+    : fallbackAction === 'delete-player'
+      ? 'players'
+      : fallbackAction === 'delete-venue'
+        ? 'venues'
+        : '';
+
+  if (!table) return;
+
+  const { error } = await supabase.from(table).delete().eq('id', id);
+  if (error) throw error;
+
+  if (table === 'teams') {
+    resetTeamForm();
+    await loadTeams();
+    showMessage('Club deleted successfully.');
+  }
+
+  if (table === 'players') {
+    resetPlayerForm();
+    await loadPlayers();
+    showMessage('Player deleted successfully.');
+  }
+
+  if (table === 'venues') {
+    resetVenueForm();
+    await loadVenues();
+    showMessage('Ground deleted successfully.');
+  }
 };
 
 const bindHandlers = () => {
@@ -355,6 +539,13 @@ const bindHandlers = () => {
   elements.teamSubmitButton?.addEventListener?.('click', window.__appHandleTeamSubmit);
   elements.playerSubmitButton?.addEventListener?.('click', window.__appHandlePlayerSubmit);
   elements.venueSubmitButton?.addEventListener?.('click', window.__appHandleVenueSubmit);
+  elements.teamCancelEdit?.addEventListener?.('click', resetTeamForm);
+  elements.playerCancelEdit?.addEventListener?.('click', resetPlayerForm);
+  elements.venueCancelEdit?.addEventListener?.('click', resetVenueForm);
+  elements.playersTemplate?.addEventListener?.('click', downloadPlayersTemplate);
+  elements.teamsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
+  elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
+  elements.venuesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
 };
 
 const init = async () => {
