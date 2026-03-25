@@ -136,6 +136,8 @@ const elements = {
   statsGrid: document.getElementById('stats-grid'),
   homeUpcomingList: document.getElementById('home-upcoming-list'),
   homeResultsList: document.getElementById('home-results-list'),
+  homeClubsList: document.getElementById('home-clubs-list'),
+  homePlayersList: document.getElementById('home-players-list'),
   confirmModal: document.getElementById('confirm-modal'),
   confirmTitle: document.getElementById('confirm-title'),
   confirmMessage: document.getElementById('confirm-message'),
@@ -351,6 +353,23 @@ const renderPagination = (container, key, totalItems) => {
     <span class="pagination-label">Page ${page} of ${totalPages}</span>
     <button type="button" class="secondary-action" data-action="page-next" data-key="${key}" ${page === totalPages ? 'disabled' : ''}>Next</button>
   `;
+};
+
+const upsertStateItem = (items, item, sortValueGetter) => {
+  const nextItems = [...items];
+  const existingIndex = nextItems.findIndex((entry) => String(entry.id) === String(item.id));
+
+  if (existingIndex >= 0) {
+    nextItems[existingIndex] = item;
+  } else {
+    nextItems.push(item);
+  }
+
+  return nextItems.sort((left, right) => {
+    const leftValue = String(sortValueGetter(left) || '').toLowerCase();
+    const rightValue = String(sortValueGetter(right) || '').toLowerCase();
+    return leftValue.localeCompare(rightValue);
+  });
 };
 
 const sortByMode = (items, mode, getValue) => {
@@ -679,12 +698,14 @@ const updateAppVisibility = () => {
 };
 
 const renderHomeDashboard = () => {
-  if (!elements.statsGrid || !elements.homeUpcomingList || !elements.homeResultsList) {
+  if (!elements.statsGrid || !elements.homeUpcomingList || !elements.homeResultsList || !elements.homeClubsList || !elements.homePlayersList) {
     return;
   }
 
   const upcomingMatches = state.matches.filter(isUpcomingMatch).slice(0, 5);
   const completedResults = state.results.slice(0, 5);
+  const savedClubs = state.teams.slice(0, 5);
+  const savedPlayers = state.players.slice(0, 5);
   const stats = [
     { label: 'Registered Players', value: state.players.length },
     { label: 'Saved Clubs', value: state.teams.length },
@@ -726,6 +747,31 @@ const renderHomeDashboard = () => {
           <h3>${htmlEscape(match ? getMatchLabel(match) : 'Completed match')}</h3>
           <p class="record-meta">Winner: ${htmlEscape(winner?.name || 'TBD')}</p>
           <p class="record-meta">${htmlEscape(result.summary || 'No summary added.')}</p>
+        </article>
+      `;
+    }).join('');
+  }
+
+  if (!savedClubs.length) {
+    setEmptyState(elements.homeClubsList, 'No clubs saved yet.');
+  } else {
+    elements.homeClubsList.innerHTML = savedClubs.map((team) => `
+      <article class="record-card">
+        <h3>${htmlEscape(team.name)}</h3>
+        <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(team.team_count || 1)} team${Number(team.team_count || 1) === 1 ? '' : 's'}</p>
+      </article>
+    `).join('');
+  }
+
+  if (!savedPlayers.length) {
+    setEmptyState(elements.homePlayersList, 'No players saved yet.');
+  } else {
+    elements.homePlayersList.innerHTML = savedPlayers.map((player) => {
+      const team = findTeam(player.team_id);
+      return `
+        <article class="record-card">
+          <h3>${htmlEscape(player.name)}</h3>
+          <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
         </article>
       `;
     }).join('');
@@ -2299,12 +2345,20 @@ const handleTeamSubmit = async (event) => {
 
   await withRequest(async () => {
     const query = editingId
-      ? supabase.from('teams').update(payload).eq('id', editingId)
-      : supabase.from('teams').insert([payload]);
-    const { error } = await query;
+      ? supabase.from('teams').update(payload).eq('id', editingId).select('*').single()
+      : supabase.from('teams').insert([payload]).select('*').single();
+    const { data, error } = await query;
     if (error) throw error;
+
+    if (data) {
+      state.teams = upsertStateItem(state.teams, data, (team) => team.name);
+      renderTeams();
+      populateCoreSelectors();
+      renderHomeDashboard();
+    }
+
     resetTeamForm();
-    await Promise.all([loadTeams(), loadPlayers(), loadMatches(), loadResults(), loadLineups()]);
+    await Promise.all([loadPlayers(), loadMatches(), loadResults(), loadLineups()]);
   }, editingId ? 'Club updated successfully.' : 'Team saved successfully.');
 };
 
@@ -2332,12 +2386,20 @@ const handleVenueSubmit = async (event) => {
 
   await withRequest(async () => {
     const query = editingId
-      ? supabase.from('venues').update(payload).eq('id', editingId)
-      : supabase.from('venues').insert([payload]);
-    const { error } = await query;
+      ? supabase.from('venues').update(payload).eq('id', editingId).select('*').single()
+      : supabase.from('venues').insert([payload]).select('*').single();
+    const { data, error } = await query;
     if (error) throw error;
+
+    if (data) {
+      state.venues = upsertStateItem(state.venues, data, (venue) => venue.name);
+      renderVenues();
+      populateCoreSelectors();
+      renderHomeDashboard();
+    }
+
     resetVenueForm();
-    await Promise.all([loadVenues(), loadMatches()]);
+    await loadMatches();
   }, editingId ? 'Ground updated successfully.' : 'Venue saved successfully.');
 };
 
@@ -2358,10 +2420,17 @@ const handleSocialLinkSubmit = async (event) => {
   }
 
   await withRequest(async () => {
-    const { error } = await supabase.from('social_links').insert([payload]);
+    const { data, error } = await supabase.from('social_links').insert([payload]).select('*').single();
     if (error) throw error;
+
+    if (data) {
+      state.socialLinks = upsertStateItem(state.socialLinks, data, (link) => `${link.platform}-${link.label}`);
+      renderSocialLinks();
+      renderSocialLinkChoices(elements.posterSocialLinks, 'poster-social-link');
+      renderSocialLinkChoices(elements.resultPosterSocialLinks, 'result-poster-social-link');
+    }
+
     elements.socialLinkForm.reset();
-    await loadSocialLinks();
   }, 'Social link saved successfully.');
 };
 
@@ -2392,12 +2461,20 @@ const handlePlayerSubmit = async (event) => {
 
   await withRequest(async () => {
     const query = editingId
-      ? supabase.from('players').update(payload).eq('id', editingId)
-      : supabase.from('players').insert([payload]);
-    const { error } = await query;
+      ? supabase.from('players').update(payload).eq('id', editingId).select('*').single()
+      : supabase.from('players').insert([payload]).select('*').single();
+    const { data, error } = await query;
     if (error) throw error;
+
+    if (data) {
+      state.players = upsertStateItem(state.players, data, (player) => player.name);
+      renderPlayers();
+      updateLineupPlayerOptions();
+      renderHomeDashboard();
+    }
+
     resetPlayerForm();
-    await Promise.all([loadPlayers(), loadLineups()]);
+    await loadLineups();
   }, editingId ? 'Player updated successfully.' : 'Player saved successfully.');
 };
 
@@ -3028,6 +3105,8 @@ const setSignedOutState = () => {
   setEmptyState(elements.statsGrid, 'Sign in to view club stats.');
   setEmptyState(elements.homeUpcomingList, 'Sign in to view upcoming fixtures.');
   setEmptyState(elements.homeResultsList, 'Sign in to view recent results.');
+  setEmptyState(elements.homeClubsList, 'Sign in to view saved clubs.');
+  setEmptyState(elements.homePlayersList, 'Sign in to view saved players.');
   updateSessionCard();
   renderProfiles();
   renderTeams();
