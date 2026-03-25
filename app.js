@@ -372,6 +372,12 @@ const upsertStateItem = (items, item, sortValueGetter) => {
   });
 };
 
+const resetListSearch = (key, input) => {
+  state.filters[key] = '';
+  state.pagination[key] = 1;
+  setValueIfPresent(input, '');
+};
+
 const sortByMode = (items, mode, getValue) => {
   const sorted = [...items];
   sorted.sort((left, right) => {
@@ -2350,6 +2356,8 @@ const handleTeamSubmit = async (event) => {
     const { data, error } = await query;
     if (error) throw error;
 
+    resetListSearch('teams', elements.teamsSearch);
+
     if (data) {
       state.teams = upsertStateItem(state.teams, data, (team) => team.name);
       renderTeams();
@@ -2358,7 +2366,9 @@ const handleTeamSubmit = async (event) => {
     }
 
     resetTeamForm();
-    await Promise.all([loadPlayers(), loadMatches(), loadResults(), loadLineups()]);
+    switchMainTab('database');
+    switchDatabaseTab('clubs');
+    await Promise.allSettled([loadTeams(), loadPlayers(), loadMatches(), loadResults(), loadLineups()]);
   }, editingId ? 'Club updated successfully.' : 'Team saved successfully.');
 };
 
@@ -2391,6 +2401,8 @@ const handleVenueSubmit = async (event) => {
     const { data, error } = await query;
     if (error) throw error;
 
+    resetListSearch('venues', elements.venuesSearch);
+
     if (data) {
       state.venues = upsertStateItem(state.venues, data, (venue) => venue.name);
       renderVenues();
@@ -2399,7 +2411,9 @@ const handleVenueSubmit = async (event) => {
     }
 
     resetVenueForm();
-    await loadMatches();
+    switchMainTab('database');
+    switchDatabaseTab('grounds');
+    await Promise.allSettled([loadVenues(), loadMatches()]);
   }, editingId ? 'Ground updated successfully.' : 'Venue saved successfully.');
 };
 
@@ -2466,6 +2480,8 @@ const handlePlayerSubmit = async (event) => {
     const { data, error } = await query;
     if (error) throw error;
 
+    resetListSearch('players', elements.playersSearch);
+
     if (data) {
       state.players = upsertStateItem(state.players, data, (player) => player.name);
       renderPlayers();
@@ -2474,7 +2490,9 @@ const handlePlayerSubmit = async (event) => {
     }
 
     resetPlayerForm();
-    await loadLineups();
+    switchMainTab('database');
+    switchDatabaseTab('players');
+    await Promise.allSettled([loadPlayers(), loadLineups()]);
   }, editingId ? 'Player updated successfully.' : 'Player saved successfully.');
 };
 
