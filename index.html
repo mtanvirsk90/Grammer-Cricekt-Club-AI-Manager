@@ -227,16 +227,15 @@
 
             <form id="player-form" class="form-grid" onsubmit="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(event); } return false;">
               <input type="hidden" id="player-edit-id" />
+              <input type="hidden" id="player-team" />
               <label class="field">
                 <span>Player Name</span>
                 <input type="text" id="player-name" placeholder="Virat Kohli" required />
               </label>
-              <label class="field">
+              <div class="field field-note">
                 <span>Home Club</span>
-                <select id="player-team" required>
-                  <option value="">Select home club</option>
-                </select>
-              </label>
+                <p>Players are linked to your first saved Home Club automatically.</p>
+              </div>
               <label class="field">
                 <span>Jersey Number</span>
                 <input type="number" id="player-jersey-number" min="0" placeholder="18" required />
@@ -359,6 +358,16 @@
               <button type="button" id="team-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
             </form>
 
+            <div class="panel-subhead">
+              <div>
+                <p class="section-label">Saved Clubs</p>
+                <h3>Clubs Added So Far</h3>
+              </div>
+              <p class="panel-note">New clubs should appear here straight after you save them.</p>
+            </div>
+            <div id="teams-list" class="stack-list"></div>
+            <div id="teams-pagination" class="pagination-row"></div>
+
             <label class="field field-wide list-search">
               <span>Search Clubs</span>
               <input type="search" id="teams-search" placeholder="Search by club, short name, type, notes, or colors" />
@@ -389,8 +398,6 @@
               <button type="button" id="teams-select-page" class="secondary-action">Select Page</button>
               <button type="button" id="teams-bulk-delete" class="danger-action" disabled>Delete Selected</button>
             </div>
-            <div id="teams-list" class="stack-list"></div>
-            <div id="teams-pagination" class="pagination-row"></div>
           </section>
 
           <section id="database-pane-grounds" class="panel hidden">

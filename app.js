@@ -667,6 +667,16 @@ const fillDatalist = (datalist, items, labelBuilder) => {
   datalist.innerHTML = items.map((item) => `<option value="${htmlEscape(labelBuilder(item))}"></option>`).join('');
 };
 
+const syncPlayerHomeClubValue = () => {
+  const homeTeams = getHomeTeams();
+  const currentValue = String(elements.playerTeam?.value || '');
+  const currentExists = homeTeams.some((team) => String(team.id) === currentValue);
+
+  if (elements.playerTeam) {
+    elements.playerTeam.value = currentExists ? currentValue : String(homeTeams[0]?.id || '');
+  }
+};
+
 const getMatchLabel = (match) => {
   const team1 = findTeam(match.team1_id);
   const team2 = findTeam(match.team2_id);
@@ -1243,7 +1253,7 @@ const renderResults = () => {
 };
 
 const populateCoreSelectors = () => {
-  fillSelect(elements.playerTeam, 'Select home club', getHomeTeams(), (team) => team.name);
+  syncPlayerHomeClubValue();
   fillSelect(elements.matchTeam1, 'Select home club', getHomeTeams(), (team) => team.name);
   fillSelect(elements.matchTeam2, 'Select opponent club', getOpponentTeams(), (team) => team.name);
   fillSelect(elements.lineupMatch, 'Select match', state.matches, getMatchLabel);
@@ -2482,6 +2492,10 @@ const handlePlayerSubmit = async (event) => {
   };
 
   if (!payload.name || !payload.team_id || !payload.jersey_number || !payload.batsman_type || !payload.bowler_type || !payload.player_category) {
+    if (!payload.team_id) {
+      showMessage('Save at least one Home Club first so players can be linked automatically.', 'error');
+      return;
+    }
     showMessage('Please complete every player field.', 'error');
     return;
   }
