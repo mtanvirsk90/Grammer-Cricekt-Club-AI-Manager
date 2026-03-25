@@ -3445,6 +3445,8 @@ const init = async () => {
   supabase.auth.onAuthStateChange(async (_event, session) => {
     await bootstrapSession(session);
   });
+
+  window.__gccAppReady = true;
 };
 
 initAuthUi();

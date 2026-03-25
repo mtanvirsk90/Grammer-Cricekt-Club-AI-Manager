@@ -267,7 +267,7 @@
                 <span>Upload Profile Picture</span>
                 <input type="file" id="player-profile-file" accept="image/*" />
               </label>
-              <button type="submit" id="player-submit-button" class="primary-action">Register Player</button>
+              <button type="button" id="player-submit-button" class="primary-action" onclick="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(event); }">Register Player</button>
               <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
             </form>
 
@@ -354,7 +354,7 @@
                 <span>Notes</span>
                 <textarea id="team-notes" rows="2" placeholder="Senior division squad"></textarea>
               </label>
-              <button type="submit" id="team-submit-button" class="primary-action">Save Club</button>
+              <button type="button" id="team-submit-button" class="primary-action" onclick="if (window.__appHandleTeamSubmit) { window.__appHandleTeamSubmit(event); }">Save Club</button>
               <button type="button" id="team-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
             </form>
 
@@ -439,7 +439,7 @@
                 <span>Notes</span>
                 <textarea id="venue-notes" rows="2" placeholder="Clubhouse side, north end practice nets"></textarea>
               </label>
-              <button type="submit" id="venue-submit-button" class="primary-action">Save Ground</button>
+              <button type="button" id="venue-submit-button" class="primary-action" onclick="if (window.__appHandleVenueSubmit) { window.__appHandleVenueSubmit(event); }">Save Ground</button>
               <button type="button" id="venue-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
             </form>
 
@@ -526,7 +526,7 @@
               <input id="match-venue" list="match-venue-datalist" placeholder="Search venue" required />
               <datalist id="match-venue-datalist"></datalist>
             </label>
-            <button type="submit" id="match-submit-button" class="primary-action">Create Match</button>
+            <button type="button" id="match-submit-button" class="primary-action" onclick="if (window.__appHandleMatchSubmit) { window.__appHandleMatchSubmit(event); }">Create Match</button>
             <button type="button" id="match-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
           </form>
 
@@ -868,6 +868,18 @@
     </div>
   </div>
 
+  <script>
+    window.__gccAppReady = false;
+    window.addEventListener('load', () => {
+      window.setTimeout(() => {
+        if (window.__gccAppReady) return;
+        const target = document.getElementById('app-messages') || document.getElementById('messages');
+        if (target) {
+          target.innerHTML = '<div class="message error">The app did not finish loading, so save buttons may not work yet. Please hard refresh. If this keeps happening, the latest dashboard script is failing to start.</div>';
+        }
+      }, 2500);
+    });
+  </script>
   <script src="./config.js"></script>
   <script type="module" src="./auth.js"></script>
   <script type="module" src="./app.js"></script>
