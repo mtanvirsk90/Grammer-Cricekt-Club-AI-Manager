@@ -3195,10 +3195,17 @@ const bootstrapSession = async (session) => {
   }
 };
 
-window.__appHandleTeamSubmit = handleTeamSubmit;
-window.__appHandleVenueSubmit = handleVenueSubmit;
-window.__appHandlePlayerSubmit = handlePlayerSubmit;
-window.__appHandleMatchSubmit = handleMatchSubmit;
+const createSafeWindowHandler = (handler) => (event) => {
+  Promise.resolve(handler(event)).catch((error) => {
+    console.error(error);
+    showMessage(error.message || 'Something went wrong.', 'error');
+  });
+};
+
+window.__appHandleTeamSubmit = createSafeWindowHandler(handleTeamSubmit);
+window.__appHandleVenueSubmit = createSafeWindowHandler(handleVenueSubmit);
+window.__appHandlePlayerSubmit = createSafeWindowHandler(handlePlayerSubmit);
+window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
 
 const init = async () => {
   if (elements.schemaSql) elements.schemaSql.textContent = schemaSQL;
