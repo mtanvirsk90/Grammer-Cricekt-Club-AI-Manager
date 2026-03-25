@@ -3,6 +3,7 @@ import { GOOGLE_CLIENT_ID, SUPABASE_READY, getConfigMessage, supabase } from './
 const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const DEFAULT_PLAYERS_RANGE = 'Players!A:G';
 const PLAYER_HEADERS = ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'];
+const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
 
 const byId = (id) => document.getElementById(id);
 
@@ -75,6 +76,7 @@ const isGoogleConfigured = () =>
   GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'your-google-client-id.apps.googleusercontent.com';
 
 const isAdmin = () => ['admin', 'super_admin'].includes(state.profile?.access_level);
+const isBootstrapSuperAdminEmail = (email) => SUPER_ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
 
 const canCurrentUser = (permissionName) => {
   if (isAdmin()) return true;
@@ -156,7 +158,17 @@ const loadProfile = async () => {
     .maybeSingle();
 
   if (error) throw error;
-  state.profile = data;
+  if (data) {
+    state.profile = data;
+    return;
+  }
+
+  state.profile = {
+    id: session.user.id,
+    email: session.user.email || '',
+    full_name: session.user.user_metadata?.full_name || '',
+    access_level: isBootstrapSuperAdminEmail(session.user.email) ? 'super_admin' : 'user',
+  };
 };
 
 const loadConnection = async () => {
@@ -308,6 +320,23 @@ const updateControlState = () => {
   toggleDisabled(elements.sheetDisconnectButton, !canManage || !state.connection);
   toggleDisabled(elements.sheetImportPlayersButton, !canCurrentUser('can_import') || !state.connection);
   toggleDisabled(elements.sheetExportPlayersButton, !canCurrentUser('can_export') || !state.connection);
+
+  if (elements.sheetPermissionsList && !canManage) {
+    elements.sheetPermissionsList.innerHTML = `
+      <div class="empty-state">
+        Admin access is required to manage user spreadsheet permissions.
+        ${isBootstrapSuperAdminEmail(state.session?.user?.email) ? ' Sign out and sign back in after the latest deployment if your super admin role has not appeared yet.' : ''}
+      </div>
+    `;
+  }
+
+  if (elements.sheetConnectionSummary && !isGoogleConfigured() && !state.connection) {
+    elements.sheetConnectionSummary.innerHTML = `
+      <div class="empty-state">
+        Add a real Google web client ID in config.js first, then authorize Google Sheets and save the shared spreadsheet.
+      </div>
+    `;
+  }
 };
 
 const saveConnection = async () => {
