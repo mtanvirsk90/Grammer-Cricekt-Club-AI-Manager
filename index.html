@@ -232,9 +232,9 @@
                 <input type="text" id="player-name" placeholder="Virat Kohli" required />
               </label>
               <label class="field">
-                <span>Club</span>
+                <span>Home Club</span>
                 <select id="player-team" required>
-                  <option value="">Select club</option>
+                  <option value="">Select home club</option>
                 </select>
               </label>
               <label class="field">
@@ -315,7 +315,7 @@
                 <p class="section-label">Clubs</p>
                 <h2>Club Directory</h2>
               </div>
-              <p class="panel-note">Save clubs once with logo, team counts, and colors so they can drive fixtures and graphics later.</p>
+              <p class="panel-note">Save clubs once as either Home or Opponent so fixtures, players, and graphics stay organized.</p>
             </div>
 
             <form id="team-form" class="form-grid">
@@ -337,12 +337,11 @@
                 <input type="file" id="team-logo-file" accept="image/*" />
               </label>
               <label class="field">
-                <span>Number Of Teams</span>
-                <input type="number" id="team-count" min="1" placeholder="3" required />
-              </label>
-              <label class="field">
-                <span>Team Labels</span>
-                <input type="text" id="team-squad-labels" placeholder="T1, T2, T3" />
+                <span>Club Side</span>
+                <select id="team-club-type" required>
+                  <option value="home">Home Club</option>
+                  <option value="opponent">Opponent Club</option>
+                </select>
               </label>
               <label class="field">
                 <span>Primary Club Color</span>
@@ -362,7 +361,7 @@
 
             <label class="field field-wide list-search">
               <span>Search Clubs</span>
-              <input type="search" id="teams-search" placeholder="Search by club, short name, team label, notes, or colors" />
+              <input type="search" id="teams-search" placeholder="Search by club, short name, type, notes, or colors" />
             </label>
             <div class="import-export-row">
               <button type="button" id="teams-export" class="secondary-action">Export Clubs CSV</button>
@@ -385,8 +384,6 @@
                 <select id="teams-sort">
                   <option value="name-asc">Name A-Z</option>
                   <option value="name-desc">Name Z-A</option>
-                  <option value="count-asc">Team Count Low-High</option>
-                  <option value="count-desc">Team Count High-Low</option>
                 </select>
               </label>
               <button type="button" id="teams-select-page" class="secondary-action">Select Page</button>
@@ -495,18 +492,20 @@
             <p class="panel-note">Create upcoming matches with searchable home team, away team, venue, date, and start time.</p>
           </div>
 
-          <form id="match-form" class="form-grid">
-            <input type="hidden" id="match-edit-id" />
-            <label class="field">
-              <span>Home Club</span>
-              <input id="match-team1" list="match-home-datalist" placeholder="Search home club" required />
-              <datalist id="match-home-datalist"></datalist>
-            </label>
-            <label class="field">
-              <span>Opponent Club</span>
-              <input id="match-team2" list="match-away-datalist" placeholder="Search away club" required />
-              <datalist id="match-away-datalist"></datalist>
-            </label>
+            <form id="match-form" class="form-grid">
+              <input type="hidden" id="match-edit-id" />
+              <label class="field">
+                <span>Home Club</span>
+                <select id="match-team1" required>
+                  <option value="">Select home club</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Opponent Club</span>
+                <select id="match-team2" required>
+                  <option value="">Select opponent club</option>
+                </select>
+              </label>
             <label class="field">
               <span>Date</span>
               <input type="date" id="match-date" required />

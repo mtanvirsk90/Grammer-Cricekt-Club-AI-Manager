@@ -52,6 +52,7 @@ const elements = {
   teamsBulkDelete: document.getElementById('teams-bulk-delete'),
   teamLogoUrl: document.getElementById('team-logo-url'),
   teamLogoFile: document.getElementById('team-logo-file'),
+  teamClubType: document.getElementById('team-club-type'),
   socialLinkForm: document.getElementById('social-link-form'),
   socialLinksList: document.getElementById('social-links-list'),
   venueForm: document.getElementById('venue-form'),
@@ -255,6 +256,20 @@ const getTeamSideLabel = (value) => ({
   home: 'Home XI',
   away: 'Away XI',
 }[value] || 'XI');
+const CLUB_TYPE_PREFIX = 'club_type:';
+const normaliseClubType = (value) => (String(value).trim().toLowerCase() === 'opponent' ? 'opponent' : 'home');
+const getTeamType = (team) => {
+  const labels = Array.isArray(team?.squad_labels) ? team.squad_labels : [];
+  const marker = labels.find((label) => String(label).startsWith(CLUB_TYPE_PREFIX));
+  return marker ? normaliseClubType(String(marker).slice(CLUB_TYPE_PREFIX.length)) : 'home';
+};
+const withTeamTypeLabel = (labels, type) => {
+  const cleanLabels = (Array.isArray(labels) ? labels : []).filter((label) => !String(label).startsWith(CLUB_TYPE_PREFIX));
+  return [`${CLUB_TYPE_PREFIX}${normaliseClubType(type)}`, ...cleanLabels];
+};
+const getHomeTeams = () => state.teams.filter((team) => getTeamType(team) === 'home');
+const getOpponentTeams = () => state.teams.filter((team) => getTeamType(team) === 'opponent');
+const getTeamTypeLabel = (team) => (getTeamType(team) === 'opponent' ? 'Opponent' : 'Home');
 
 const getWeekKey = (dateValue) => {
   if (!dateValue) return '';
@@ -764,7 +779,7 @@ const renderHomeDashboard = () => {
     elements.homeClubsList.innerHTML = savedClubs.map((team) => `
       <article class="record-card">
         <h3>${htmlEscape(team.name)}</h3>
-        <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(team.team_count || 1)} team${Number(team.team_count || 1) === 1 ? '' : 's'}</p>
+        <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(getTeamTypeLabel(team))} Club</p>
       </article>
     `).join('');
   }
@@ -863,14 +878,12 @@ const renderTeams = () => {
   const filteredTeams = sortByMode(state.teams.filter((team) => matchesFilter(query, [
     team.name,
     team.short_name,
+    getTeamTypeLabel(team),
     team.notes,
     team.primary_color,
     team.secondary_color,
     ...(team.squad_labels || []),
-  ])), state.ui.teamsSort, (team, mode) => {
-    if (mode.startsWith('count')) return Number(team.team_count) || 0;
-    return team.name || '';
-  });
+  ])), state.ui.teamsSort, (team) => team.name || '');
 
   if (!filteredTeams.length) {
     setEmptyState(elements.teamsList, 'No clubs saved yet.');
@@ -881,13 +894,13 @@ const renderTeams = () => {
   const paginated = getPaginatedItems(filteredTeams, 'teams');
   if (state.ui.teamsViewMode === 'table') {
     elements.teamsList.innerHTML = renderTable(
-      ['Select', 'Club', 'Short', 'Teams', 'Colors', 'Actions'],
+      ['Select', 'Club', 'Short', 'Type', 'Colors', 'Actions'],
       paginated.items.map((team) => `
         <tr>
           <td><input type="checkbox" data-action="toggle-team-select" data-id="${team.id}" ${state.selectedRows.teams.has(String(team.id)) ? 'checked' : ''} /></td>
           <td>${htmlEscape(team.name)}</td>
           <td>${htmlEscape(team.short_name)}</td>
-          <td>${htmlEscape(team.team_count || 1)}</td>
+          <td>${htmlEscape(getTeamTypeLabel(team))}</td>
           <td>${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</td>
           <td class="table-actions">
             <button type="button" class="secondary-action" data-action="edit-team" data-id="${team.id}">Edit</button>
@@ -902,7 +915,7 @@ const renderTeams = () => {
       <div class="record-row">
         <div>
           <h3>${htmlEscape(team.name)}</h3>
-          <p class="record-meta">${htmlEscape(team.short_name)} | ${Number(team.team_count) || 1} teams${team.squad_labels?.length ? ` | ${htmlEscape(team.squad_labels.join(', '))}` : ''}</p>
+          <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(getTeamTypeLabel(team))} Club</p>
           <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}${team.notes ? ` | ${htmlEscape(team.notes)}` : ''}</p>
           ${team.logo_url ? `<p class="record-meta"><a href="${htmlEscape(team.logo_url)}" target="_blank" rel="noreferrer">Club logo</a></p>` : ''}
         </div>
@@ -1230,13 +1243,13 @@ const renderResults = () => {
 };
 
 const populateCoreSelectors = () => {
-  fillSelect(elements.playerTeam, 'Select club', state.teams, (team) => team.name);
+  fillSelect(elements.playerTeam, 'Select home club', getHomeTeams(), (team) => team.name);
+  fillSelect(elements.matchTeam1, 'Select home club', getHomeTeams(), (team) => team.name);
+  fillSelect(elements.matchTeam2, 'Select opponent club', getOpponentTeams(), (team) => team.name);
   fillSelect(elements.lineupMatch, 'Select match', state.matches, getMatchLabel);
   fillSelect(elements.resultMatch, 'Select match', state.matches, getMatchLabel);
   fillSelect(elements.posterMatch, 'Select upcoming match', state.matches.filter(isUpcomingMatch), getMatchLabel);
-  fillDatalist(elements.matchHomeDatalist, state.teams, (team) => team.name);
-  fillDatalist(elements.matchAwayDatalist, state.teams, (team) => team.name);
-  fillDatalist(elements.matchVenueDatalist, state.venues, (venue) => venue.name);
+  if (elements.matchVenueDatalist) fillDatalist(elements.matchVenueDatalist, state.venues, (venue) => venue.name);
   renderPosterMatchChoices();
   updateLineupTeamOptions();
   updateLineupPlayerOptions();
@@ -1934,6 +1947,7 @@ const resetTeamForm = () => {
   elements.teamEditId.value = '';
   elements.teamSubmitButton.textContent = 'Save Club';
   toggleHidden(elements.teamCancelEdit, true);
+  setValueIfPresent(elements.teamClubType, 'home');
   document.getElementById('team-primary-color').value = '#d32027';
   document.getElementById('team-secondary-color').value = '#3944a7';
   setEditMode('team', '', false);
@@ -1979,8 +1993,7 @@ const startTeamEdit = (team) => {
   document.getElementById('team-name').value = team.name || '';
   document.getElementById('team-short-name').value = team.short_name || '';
   elements.teamLogoUrl.value = team.logo_url || '';
-  document.getElementById('team-count').value = team.team_count || 1;
-  document.getElementById('team-squad-labels').value = (team.squad_labels || []).join(', ');
+  setValueIfPresent(elements.teamClubType, getTeamType(team));
   document.getElementById('team-primary-color').value = team.primary_color || '#d32027';
   document.getElementById('team-secondary-color').value = team.secondary_color || '#3944a7';
   document.getElementById('team-notes').value = team.notes || '';
@@ -2011,7 +2024,7 @@ const startPlayerEdit = (player) => {
   if (!player) return;
   elements.playerEditId.value = player.id;
   document.getElementById('player-name').value = player.name || '';
-  elements.playerTeam.value = player.team_id || '';
+  elements.playerTeam.value = String(player.team_id || '');
   document.getElementById('player-jersey-number').value = player.jersey_number || '';
   document.getElementById('player-batting-style').value = player.batsman_type || player.batting_style || '';
   document.getElementById('player-bowling-style').value = player.bowler_type || player.bowling_style || '';
@@ -2027,8 +2040,8 @@ const startPlayerEdit = (player) => {
 const startMatchEdit = (match) => {
   if (!match) return;
   elements.matchEditId.value = match.id;
-  elements.matchTeam1.value = findTeam(match.team1_id)?.name || '';
-  elements.matchTeam2.value = findTeam(match.team2_id)?.name || '';
+  elements.matchTeam1.value = String(match.team1_id || '');
+  elements.matchTeam2.value = String(match.team2_id || '');
   document.getElementById('match-date').value = match.match_date || '';
   document.getElementById('match-time').value = match.match_time || '';
   elements.matchVenue.value = findVenue(match.venue_id)?.name || '';
@@ -2336,8 +2349,8 @@ const handleTeamSubmit = async (event) => {
     name: document.getElementById('team-name').value.trim(),
     short_name: document.getElementById('team-short-name').value.trim(),
     logo_url: uploadedLogo || elements.teamLogoUrl.value.trim(),
-    team_count: Number(document.getElementById('team-count').value) || 1,
-    squad_labels: toTextList(document.getElementById('team-squad-labels').value),
+    team_count: 1,
+    squad_labels: withTeamTypeLabel(findTeam(editingId)?.squad_labels || [], elements.teamClubType.value),
     primary_color: document.getElementById('team-primary-color').value,
     secondary_color: document.getElementById('team-secondary-color').value,
     notes: document.getElementById('team-notes').value.trim(),
@@ -2501,8 +2514,8 @@ const handleMatchSubmit = async (event) => {
 
   const session = await ensureSession();
   const editingId = elements.matchEditId.value;
-  const homeTeam = findTeamByName(elements.matchTeam1.value);
-  const awayTeam = findTeamByName(elements.matchTeam2.value);
+  const homeTeam = findTeam(elements.matchTeam1.value);
+  const awayTeam = findTeam(elements.matchTeam2.value);
   const venue = findVenueByName(elements.matchVenue.value);
   const payload = {
     team1_id: homeTeam?.id || '',
@@ -2520,6 +2533,11 @@ const handleMatchSubmit = async (event) => {
 
   if (payload.team1_id === payload.team2_id) {
     showMessage('A match needs two different teams.', 'error');
+    return;
+  }
+
+  if (!homeTeam || getTeamType(homeTeam) !== 'home' || !awayTeam || getTeamType(awayTeam) !== 'opponent') {
+    showMessage('Please choose a Home club and an Opponent club from the dropdowns.', 'error');
     return;
   }
 
