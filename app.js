@@ -3196,7 +3196,11 @@ const bootstrapSession = async (session) => {
 };
 
 const createSafeWindowHandler = (handler) => (event) => {
-  Promise.resolve(handler(event)).catch((error) => {
+  const safeEvent = event && typeof event.preventDefault === 'function'
+    ? event
+    : { preventDefault() {} };
+
+  Promise.resolve(handler(safeEvent)).catch((error) => {
     console.error(error);
     showMessage(error.message || 'Something went wrong.', 'error');
   });
