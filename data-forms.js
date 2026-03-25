@@ -52,6 +52,8 @@ const elements = {
   matchTeam2: byId('match-team2'),
 };
 
+const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+
 const CLUB_TYPE_PREFIX = 'club_type:';
 
 let teamsCache = [];
@@ -264,14 +266,12 @@ const downloadCsv = (filename, headers, rows) => {
 };
 
 const downloadPlayersTemplate = () => {
-  downloadCsv('players-template.csv', ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'], [{
+  downloadCsv('players-template.csv', PLAYER_TEMPLATE_HEADERS, [{
     name: 'John Smith',
-    club_name: 'Grammer Cricket Club',
     jersey_number: '18',
-    player_category: 'Batsman',
     batsman_type: 'Right-hand bat',
     bowler_type: 'Right-arm medium',
-    profile_image_url: 'https://example.com/player.jpg',
+    player_category: 'Batsman',
   }]);
   showMessage('Player CSV template downloaded.');
 };

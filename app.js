@@ -212,6 +212,8 @@ const CSV_HEADERS = {
   players: ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'],
 };
 
+const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+
 const PAGE_SIZE = 6;
 
 const htmlEscape = (value = '') =>
@@ -2165,14 +2167,12 @@ const downloadTeamsTemplate = () => {
 };
 
 const downloadPlayersTemplate = () => {
-  downloadCsv('players-template.csv', CSV_HEADERS.players, [{
+  downloadCsv('players-template.csv', PLAYER_TEMPLATE_HEADERS, [{
     name: 'John Smith',
-    club_name: 'Grammer Cricket Club',
     jersey_number: '18',
-    player_category: 'Batsman',
     batsman_type: 'Right-hand bat',
     bowler_type: 'Right-arm medium',
-    profile_image_url: 'https://example.com/player.jpg',
+    player_category: 'Batsman',
   }]);
   showMessage('Player CSV template downloaded.');
 };
@@ -2221,9 +2221,10 @@ const handlePlayersImport = async (event) => {
     return;
   }
 
+  const homeTeam = getHomeTeams()[0];
   const payload = rows
     .map((row) => {
-      const team = findTeamByName(row.club_name || '');
+      const team = findTeamByName(row.club_name || '') || homeTeam;
       if (!team || !row.name) return null;
       return {
         name: row.name.trim(),
