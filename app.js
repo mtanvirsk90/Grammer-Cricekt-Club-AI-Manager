@@ -3181,6 +3181,11 @@ const bootstrapSession = async (session) => {
   }
 };
 
+window.__appHandleTeamSubmit = handleTeamSubmit;
+window.__appHandleVenueSubmit = handleVenueSubmit;
+window.__appHandlePlayerSubmit = handlePlayerSubmit;
+window.__appHandleMatchSubmit = handleMatchSubmit;
+
 const init = async () => {
   if (elements.schemaSql) elements.schemaSql.textContent = schemaSQL;
   updateAuthAvailability();

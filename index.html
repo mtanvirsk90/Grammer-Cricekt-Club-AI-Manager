@@ -225,7 +225,7 @@
               <p class="panel-note">Register each player with cricket role, jersey number, batting and bowling types, and a profile picture.</p>
             </div>
 
-            <form id="player-form" class="form-grid">
+            <form id="player-form" class="form-grid" onsubmit="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(event); } return false;">
               <input type="hidden" id="player-edit-id" />
               <label class="field">
                 <span>Player Name</span>
@@ -318,7 +318,7 @@
               <p class="panel-note">Save clubs once as either Home or Opponent so fixtures, players, and graphics stay organized.</p>
             </div>
 
-            <form id="team-form" class="form-grid">
+            <form id="team-form" class="form-grid" onsubmit="if (window.__appHandleTeamSubmit) { window.__appHandleTeamSubmit(event); } return false;">
               <input type="hidden" id="team-edit-id" />
               <label class="field">
                 <span>Club Name</span>
@@ -402,7 +402,7 @@
               <p class="panel-note">Save grounds, full address, and multiple pictures for fixtures, graphics, and completed match creatives.</p>
             </div>
 
-            <form id="venue-form" class="form-grid">
+            <form id="venue-form" class="form-grid" onsubmit="if (window.__appHandleVenueSubmit) { window.__appHandleVenueSubmit(event); } return false;">
               <input type="hidden" id="venue-edit-id" />
               <label class="field">
                 <span>Ground Name</span>
@@ -492,7 +492,7 @@
             <p class="panel-note">Create upcoming matches with searchable home team, away team, venue, date, and start time.</p>
           </div>
 
-            <form id="match-form" class="form-grid">
+            <form id="match-form" class="form-grid" onsubmit="if (window.__appHandleMatchSubmit) { window.__appHandleMatchSubmit(event); } return false;">
               <input type="hidden" id="match-edit-id" />
               <label class="field">
                 <span>Home Club</span>
