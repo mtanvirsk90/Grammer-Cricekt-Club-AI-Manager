@@ -1,5 +1,7 @@
 import { SUPABASE_READY, getConfigMessage, supabase } from './supabase.js';
 
+const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
+
 const elements = {
   authScreen: document.getElementById('auth-screen'),
   appShell: document.getElementById('app-shell'),
@@ -36,6 +38,8 @@ const elements = {
   databasePaneSocial: document.getElementById('database-pane-social'),
   databasePaneSheets: document.getElementById('database-pane-sheets'),
 };
+
+const isBootstrapSuperAdminEmail = (email) => SUPER_ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
 
 const htmlEscape = (value = '') =>
   String(value).replace(/[&<>"']/g, (char) => ({
@@ -135,8 +139,10 @@ const updateSessionCard = async (session) => {
         .maybeSingle();
 
       if (data?.access_level) role = data.access_level;
+      else if (isBootstrapSuperAdminEmail(session.user.email)) role = 'super_admin';
     } catch (error) {
       console.error(error);
+      if (isBootstrapSuperAdminEmail(session.user.email)) role = 'super_admin';
     }
   }
 

@@ -1,5 +1,7 @@
 import { SUPABASE_READY, getConfigMessage, schemaSQL, supabase } from './supabase.js';
 
+const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
+
 const elements = {
   authScreen: document.getElementById('auth-screen'),
   appShell: document.getElementById('app-shell'),
@@ -240,6 +242,7 @@ const formatTime = (value) => {
 
 const isAdmin = () => ['admin', 'super_admin'].includes(state.profile?.access_level);
 const isSuperAdmin = () => state.profile?.access_level === 'super_admin';
+const isBootstrapSuperAdminEmail = (email) => SUPER_ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
 const findTeam = (teamId) => state.teams.find((team) => String(team.id) === String(teamId));
 const findVenue = (venueId) => state.venues.find((venue) => String(venue.id) === String(venueId));
 const findMatch = (matchId) => state.matches.find((match) => String(match.id) === String(matchId));
@@ -1830,7 +1833,7 @@ const loadProfile = async () => {
       id: state.session.user.id,
       email: state.session.user.email || '',
       full_name: fullName,
-      access_level: count === 0 ? 'super_admin' : 'user',
+      access_level: count === 0 || isBootstrapSuperAdminEmail(state.session.user.email) ? 'super_admin' : 'user',
     };
 
     const { data: inserted, error: insertError } = await supabase
@@ -1843,6 +1846,18 @@ const loadProfile = async () => {
     state.profile = inserted;
   } else {
     state.profile = data;
+  }
+
+  if (isBootstrapSuperAdminEmail(state.session.user.email) && state.profile?.access_level !== 'super_admin') {
+    const { data: promoted, error: promoteError } = await supabase
+      .from('profiles')
+      .update({ access_level: 'super_admin' })
+      .eq('id', state.session.user.id)
+      .select('*')
+      .single();
+
+    if (promoteError) throw promoteError;
+    state.profile = promoted;
   }
 
   updateSessionCard();
