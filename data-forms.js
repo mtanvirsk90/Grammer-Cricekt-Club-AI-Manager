@@ -6,6 +6,7 @@ const elements = {
   authScreen: byId('auth-screen'),
   messages: byId('messages'),
   appMessages: byId('app-messages'),
+  databaseFeedback: byId('database-feedback'),
   teamForm: byId('team-form'),
   teamEditId: byId('team-edit-id'),
   teamSubmitButton: byId('team-submit-button'),
@@ -64,9 +65,20 @@ const showMessage = (text, type = 'success') => {
   const target = !elements.authScreen?.classList.contains('hidden') ? elements.messages : (elements.appMessages || elements.messages);
   if (!target) return;
   target.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
+
+  if (elements.databaseFeedback) {
+    elements.databaseFeedback.innerHTML = `<div class="message ${type}">${htmlEscape(text)}</div>`;
+    elements.databaseFeedback.classList.remove('hidden');
+    elements.databaseFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   window.clearTimeout(showMessage.timer);
   showMessage.timer = window.setTimeout(() => {
     target.innerHTML = '';
+    if (elements.databaseFeedback) {
+      elements.databaseFeedback.innerHTML = '';
+      elements.databaseFeedback.classList.add('hidden');
+    }
   }, 8000);
 };
 
