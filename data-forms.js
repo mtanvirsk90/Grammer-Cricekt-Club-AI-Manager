@@ -34,6 +34,7 @@ const elements = {
   playerCategory: byId('player-category'),
   playerProfileUrl: byId('player-profile-url'),
   playersList: byId('players-list'),
+  playersExport: byId('players-export'),
   playersTemplate: byId('players-template'),
   homePlayersList: byId('home-players-list'),
   venueForm: byId('venue-form'),
@@ -273,6 +274,28 @@ const downloadPlayersTemplate = () => {
     profile_image_url: 'https://example.com/player.jpg',
   }]);
   showMessage('Player CSV template downloaded.');
+};
+
+const exportPlayersCsv = () => {
+  const rows = playersCache.map((player) => {
+    const team = teamsCache.find((entry) => String(entry.id) === String(player.team_id));
+    return {
+      name: player.name || '',
+      club_name: team?.name || '',
+      jersey_number: player.jersey_number || '',
+      player_category: player.player_category || player.role || '',
+      batsman_type: player.batsman_type || player.batting_style || '',
+      bowler_type: player.bowler_type || player.bowling_style || '',
+      profile_image_url: player.profile_image_url || '',
+    };
+  });
+
+  downloadCsv(
+    'players-export.csv',
+    ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'],
+    rows,
+  );
+  showMessage(rows.length ? 'Players CSV exported.' : 'Player export downloaded with headers only.');
 };
 
 const loadTeams = async () => {
@@ -542,6 +565,7 @@ const bindHandlers = () => {
   elements.teamCancelEdit?.addEventListener?.('click', resetTeamForm);
   elements.playerCancelEdit?.addEventListener?.('click', resetPlayerForm);
   elements.venueCancelEdit?.addEventListener?.('click', resetVenueForm);
+  elements.playersExport?.addEventListener?.('click', exportPlayersCsv);
   elements.playersTemplate?.addEventListener?.('click', downloadPlayersTemplate);
   elements.teamsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
@@ -550,6 +574,13 @@ const bindHandlers = () => {
 
 const init = async () => {
   bindHandlers();
+
+  window.addEventListener('gcc:refresh-data', () => {
+    refreshBaseData().catch((error) => {
+      console.error(error);
+      showMessage(error.message || 'Could not refresh the local data lists.', 'error');
+    });
+  });
 
   if (!SUPABASE_READY || !supabase) return;
 

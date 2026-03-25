@@ -29,10 +29,12 @@ const elements = {
   databaseTabClubs: document.getElementById('database-tab-clubs'),
   databaseTabGrounds: document.getElementById('database-tab-grounds'),
   databaseTabSocial: document.getElementById('database-tab-social'),
+  databaseTabSheets: document.getElementById('database-tab-sheets'),
   databasePanePlayers: document.getElementById('database-pane-players'),
   databasePaneClubs: document.getElementById('database-pane-clubs'),
   databasePaneGrounds: document.getElementById('database-pane-grounds'),
   databasePaneSocial: document.getElementById('database-pane-social'),
+  databasePaneSheets: document.getElementById('database-pane-sheets'),
 };
 
 const htmlEscape = (value = '') =>
@@ -101,6 +103,7 @@ const switchDatabaseTab = (tabName) => {
     { button: elements.databaseTabClubs, pane: elements.databasePaneClubs, name: 'clubs' },
     { button: elements.databaseTabGrounds, pane: elements.databasePaneGrounds, name: 'grounds' },
     { button: elements.databaseTabSocial, pane: elements.databasePaneSocial, name: 'social' },
+    { button: elements.databaseTabSheets, pane: elements.databasePaneSheets, name: 'sheets' },
   ];
 
   tabs.forEach((tab) => {
@@ -322,6 +325,7 @@ const init = () => {
   elements.databaseTabClubs?.addEventListener('click', () => switchDatabaseTab('clubs'));
   elements.databaseTabGrounds?.addEventListener('click', () => switchDatabaseTab('grounds'));
   elements.databaseTabSocial?.addEventListener('click', () => switchDatabaseTab('social'));
+  elements.databaseTabSheets?.addEventListener('click', () => switchDatabaseTab('sheets'));
 
   document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     toggle.addEventListener('change', (event) => {

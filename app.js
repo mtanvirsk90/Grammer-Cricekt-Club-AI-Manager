@@ -21,10 +21,12 @@ const elements = {
   databaseTabClubs: document.getElementById('database-tab-clubs'),
   databaseTabGrounds: document.getElementById('database-tab-grounds'),
   databaseTabSocial: document.getElementById('database-tab-social'),
+  databaseTabSheets: document.getElementById('database-tab-sheets'),
   databasePanePlayers: document.getElementById('database-pane-players'),
   databasePaneClubs: document.getElementById('database-pane-clubs'),
   databasePaneGrounds: document.getElementById('database-pane-grounds'),
   databasePaneSocial: document.getElementById('database-pane-social'),
+  databasePaneSheets: document.getElementById('database-pane-sheets'),
   tabLogin: document.getElementById('tab-login'),
   tabSignup: document.getElementById('tab-signup'),
   showReset: document.getElementById('show-reset'),
@@ -602,6 +604,7 @@ const switchDatabaseTab = (tabName) => {
     { button: elements.databaseTabClubs, pane: elements.databasePaneClubs, name: 'clubs' },
     { button: elements.databaseTabGrounds, pane: elements.databasePaneGrounds, name: 'grounds' },
     { button: elements.databaseTabSocial, pane: elements.databasePaneSocial, name: 'social' },
+    { button: elements.databaseTabSheets, pane: elements.databasePaneSheets, name: 'sheets' },
   ];
 
   tabs.forEach((tab) => {
@@ -3224,6 +3227,7 @@ const init = async () => {
   addListener(elements.databaseTabClubs, 'click', () => switchDatabaseTab('clubs'));
   addListener(elements.databaseTabGrounds, 'click', () => switchDatabaseTab('grounds'));
   addListener(elements.databaseTabSocial, 'click', () => switchDatabaseTab('social'));
+  addListener(elements.databaseTabSheets, 'click', () => switchDatabaseTab('sheets'));
   addListener(elements.logoutButton, 'click', handleLogout);
   addListener(elements.teamForm, 'submit', handleTeamSubmit);
   addListener(elements.teamCancelEdit, 'click', resetTeamForm);

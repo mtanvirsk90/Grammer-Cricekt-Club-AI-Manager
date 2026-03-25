@@ -215,6 +215,7 @@
               <button id="database-tab-clubs" type="button" class="workspace-tab">Clubs</button>
               <button id="database-tab-grounds" type="button" class="workspace-tab">Venue / Grounds</button>
               <button id="database-tab-social" type="button" class="workspace-tab">Social Links</button>
+              <button id="database-tab-sheets" type="button" class="workspace-tab">Google Sheets</button>
             </div>
           </section>
 
@@ -488,6 +489,94 @@
             </form>
 
             <div id="social-links-list" class="stack-list"></div>
+          </section>
+
+          <section id="database-pane-sheets" class="panel hidden">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Google Sheets</p>
+                <h2>Sheets Sync Hub</h2>
+              </div>
+              <p class="panel-note">Admins connect one shared spreadsheet, grant in-app rights, and let approved users import or export players safely.</p>
+            </div>
+
+            <section id="sheets-feedback" class="messages" aria-live="polite"></section>
+
+            <div class="pane-grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <div>
+                    <p class="section-label">Admin Connection</p>
+                    <h3>Spreadsheet Settings</h3>
+                  </div>
+                  <p class="panel-note">Only admins can save or disconnect the shared spreadsheet configuration.</p>
+                </div>
+
+                <form id="sheet-connection-form" class="form-grid">
+                  <label class="field field-wide">
+                    <span>Google Client ID Status</span>
+                    <p id="google-client-status" class="field-hint">Add your Google web client ID in <code>config.js</code>.</p>
+                  </label>
+                  <label class="field field-wide">
+                    <span>Spreadsheet URL Or ID</span>
+                    <input type="text" id="sheet-spreadsheet-input" placeholder="https://docs.google.com/spreadsheets/d/... or spreadsheet ID" />
+                  </label>
+                  <label class="field">
+                    <span>Players Range</span>
+                    <input type="text" id="sheet-players-range" value="Players!A:G" placeholder="Players!A:G" />
+                  </label>
+                  <label class="field">
+                    <span>OAuth Status</span>
+                    <p id="sheet-oauth-status" class="field-hint">Not connected to Google yet.</p>
+                  </label>
+                  <button type="button" id="sheet-authorize-button" class="primary-action">Authorize Google Sheets</button>
+                  <button type="button" id="sheet-save-button" class="secondary-action">Save Spreadsheet</button>
+                  <button type="button" id="sheet-disconnect-button" class="danger-action">Disconnect Spreadsheet</button>
+                </form>
+
+                <div id="sheet-connection-summary" class="stack-list"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div>
+                    <p class="section-label">Admin Access</p>
+                    <h3>User Permissions</h3>
+                  </div>
+                  <p class="panel-note">Grant users permission to view, import, or export spreadsheet data without making them spreadsheet owners.</p>
+                </div>
+
+                <div id="sheet-permissions-list" class="stack-list"></div>
+              </section>
+            </div>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="section-label">Player Sync</p>
+                  <h3>Import And Export Players</h3>
+                </div>
+                <p class="panel-note">Approved users can sync the player database with the shared Google Sheet once they authorize Sheets access in their own browser session.</p>
+              </div>
+
+              <div class="form-grid compact-grid">
+                <label class="field">
+                  <span>Connected Sheet</span>
+                  <p id="sheet-sync-summary" class="field-hint">No shared spreadsheet saved yet.</p>
+                </label>
+                <label class="field">
+                  <span>Your Permission</span>
+                  <p id="sheet-permission-summary" class="field-hint">No Google Sheets permission assigned yet.</p>
+                </label>
+                <button type="button" id="sheet-import-players-button" class="primary-action">Import Players From Sheet</button>
+                <button type="button" id="sheet-export-players-button" class="secondary-action">Export Players To Sheet</button>
+              </div>
+
+              <label class="field field-wide">
+                <span>Expected Player Columns</span>
+                <p class="field-hint">The app uses: <code>name</code>, <code>club_name</code>, <code>jersey_number</code>, <code>player_category</code>, <code>batsman_type</code>, <code>bowler_type</code>, <code>profile_image_url</code>.</p>
+              </label>
+            </section>
           </section>
         </section>
 
@@ -883,8 +972,10 @@
     });
   </script>
   <script src="./config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="module" src="./auth.js"></script>
   <script type="module" src="./data-forms.js"></script>
+  <script type="module" src="./sheets-sync.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
