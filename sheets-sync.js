@@ -3,6 +3,8 @@ import { GOOGLE_CLIENT_ID, SUPABASE_READY, getConfigMessage, supabase } from './
 const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const DEFAULT_PLAYERS_RANGE = 'Players!A:G';
 const PLAYER_HEADERS = ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'];
+const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Wicketkeeper-Batsman'];
 const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
 
 const byId = (id) => document.getElementById(id);
@@ -24,6 +26,7 @@ const elements = {
   sheetPermissionsList: byId('sheet-permissions-list'),
   sheetSyncSummary: byId('sheet-sync-summary'),
   sheetPermissionSummary: byId('sheet-permission-summary'),
+  sheetCreateTemplateButton: byId('sheet-create-template-button'),
   sheetImportPlayersButton: byId('sheet-import-players-button'),
   sheetExportPlayersButton: byId('sheet-export-players-button'),
 };
@@ -318,6 +321,7 @@ const updateControlState = () => {
   toggleDisabled(elements.sheetAuthorizeButton, !isGoogleConfigured());
   toggleDisabled(elements.sheetSaveButton, !canManage);
   toggleDisabled(elements.sheetDisconnectButton, !canManage || !state.connection);
+  toggleDisabled(elements.sheetCreateTemplateButton, !canCurrentUser('can_export') || !state.connection);
   toggleDisabled(elements.sheetImportPlayersButton, !canCurrentUser('can_import') || !state.connection);
   toggleDisabled(elements.sheetExportPlayersButton, !canCurrentUser('can_export') || !state.connection);
 
@@ -458,6 +462,45 @@ const writeSheetValues = async (spreadsheetId, range, values) => {
   return payload;
 };
 
+const updateSheetStructure = async (spreadsheetId, requests) => {
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+    method: 'POST',
+    headers: getAuthHeader(),
+    body: JSON.stringify({ requests }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error?.message || 'Google Sheets template update failed.');
+  return payload;
+};
+
+const loadSpreadsheetMeta = async (spreadsheetId) => {
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets(properties(sheetId,title))`, {
+    headers: getAuthHeader(),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error?.message || 'Could not read Google Sheet details.');
+  return payload;
+};
+
+const ensurePlayersSheetId = async (spreadsheetId) => {
+  const meta = await loadSpreadsheetMeta(spreadsheetId);
+  const playersSheet = (meta.sheets || []).find((sheet) => sheet.properties?.title === 'Players');
+
+  if (playersSheet?.properties?.sheetId !== undefined) {
+    return playersSheet.properties.sheetId;
+  }
+
+  const result = await updateSheetStructure(spreadsheetId, [{
+    addSheet: {
+      properties: { title: 'Players' },
+    },
+  }]);
+
+  return result.replies?.[0]?.addSheet?.properties?.sheetId;
+};
+
 const importPlayers = async () => {
   if (!canCurrentUser('can_import')) {
     showMessage('You do not have permission to import from Google Sheets.', 'error');
@@ -498,7 +541,7 @@ const importPlayers = async () => {
   const headers = firstRow.map((value) => String(value || '').trim().toLowerCase());
   const useHeaderRow = headers.includes('name');
   const rows = useHeaderRow ? dataRows : values;
-  const effectiveHeaders = useHeaderRow ? headers : PLAYER_HEADERS;
+  const effectiveHeaders = useHeaderRow ? headers : PLAYER_TEMPLATE_HEADERS;
 
   const payload = rows
     .map((row) => effectiveHeaders.reduce((record, header, index) => {
@@ -570,6 +613,72 @@ const exportPlayers = async () => {
   showMessage(`Exported ${rows.length} players to Google Sheets.`);
 };
 
+const createPlayersTemplate = async () => {
+  if (!canCurrentUser('can_export')) {
+    showMessage('You do not have permission to prepare the Google Sheet template.', 'error');
+    return;
+  }
+
+  if (!state.connection) {
+    showMessage('Save the shared spreadsheet first.', 'error');
+    return;
+  }
+
+  if (!state.accessToken) {
+    showMessage('Authorize Google Sheets in this browser session first.', 'error');
+    return;
+  }
+
+  const spreadsheetId = state.connection.spreadsheet_id;
+  const playersSheetId = await ensurePlayersSheetId(spreadsheetId);
+
+  await writeSheetValues(spreadsheetId, 'Players!A1:E2', [
+    PLAYER_TEMPLATE_HEADERS,
+    ['John Smith', '18', 'Right-hand bat', 'Right-arm medium', 'Batsman'],
+  ]);
+
+  await updateSheetStructure(spreadsheetId, [
+    {
+      repeatCell: {
+        range: {
+          sheetId: playersSheetId,
+          startRowIndex: 0,
+          endRowIndex: 1,
+          startColumnIndex: 0,
+          endColumnIndex: 5,
+        },
+        cell: {
+          userEnteredFormat: {
+            textFormat: { bold: true },
+          },
+        },
+        fields: 'userEnteredFormat.textFormat.bold',
+      },
+    },
+    {
+      setDataValidation: {
+        range: {
+          sheetId: playersSheetId,
+          startRowIndex: 1,
+          endRowIndex: 1000,
+          startColumnIndex: 4,
+          endColumnIndex: 5,
+        },
+        rule: {
+          condition: {
+            type: 'ONE_OF_LIST',
+            values: PLAYER_CATEGORY_OPTIONS.map((value) => ({ userEnteredValue: value })),
+          },
+          showCustomUi: true,
+          strict: true,
+        },
+      },
+    },
+  ]);
+
+  showMessage('Google Sheets player template created with a player category dropdown.');
+};
+
 const bindEvents = () => {
   elements.sheetAuthorizeButton?.addEventListener('click', () => {
     try {
@@ -597,6 +706,13 @@ const bindEvents = () => {
     Promise.resolve(importPlayers()).catch((error) => {
       console.error(error);
       showMessage(error.message || 'Player import failed.', 'error');
+    });
+  });
+
+  elements.sheetCreateTemplateButton?.addEventListener('click', () => {
+    Promise.resolve(createPlayersTemplate()).catch((error) => {
+      console.error(error);
+      showMessage(error.message || 'Template creation failed.', 'error');
     });
   });
 

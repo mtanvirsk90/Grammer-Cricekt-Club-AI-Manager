@@ -571,13 +571,14 @@
                   <span>Your Permission</span>
                   <p id="sheet-permission-summary" class="field-hint">No Google Sheets permission assigned yet.</p>
                 </label>
+                <button type="button" id="sheet-create-template-button" class="secondary-action">Create Player Template In Sheet</button>
                 <button type="button" id="sheet-import-players-button" class="primary-action">Import Players From Sheet</button>
                 <button type="button" id="sheet-export-players-button" class="secondary-action">Export Players To Sheet</button>
               </div>
 
               <label class="field field-wide">
                 <span>Expected Player Columns</span>
-                <p class="field-hint">The app uses: <code>name</code>, <code>club_name</code>, <code>jersey_number</code>, <code>player_category</code>, <code>batsman_type</code>, <code>bowler_type</code>, <code>profile_image_url</code>.</p>
+                <p class="field-hint">Template columns: <code>name</code>, <code>jersey_number</code>, <code>batsman_type</code>, <code>bowler_type</code>, <code>player_category</code>. The Google Sheets template adds a dropdown for <code>player_category</code>.</p>
               </label>
             </section>
           </section>
