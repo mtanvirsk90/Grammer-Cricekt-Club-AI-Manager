@@ -22,11 +22,13 @@ const elements = {
   mainTabMatches: document.getElementById('main-tab-matches'),
   mainTabResults: document.getElementById('main-tab-results'),
   mainTabPoster: document.getElementById('main-tab-poster'),
+  mainTabAdmin: document.getElementById('main-tab-admin'),
   mainPaneHome: document.getElementById('main-pane-home'),
   mainPaneDatabase: document.getElementById('main-pane-database'),
   mainPaneMatches: document.getElementById('main-pane-matches'),
   mainPaneResults: document.getElementById('main-pane-results'),
   mainPanePoster: document.getElementById('main-pane-poster'),
+  mainPaneAdmin: document.getElementById('main-pane-admin'),
   databaseTabPlayers: document.getElementById('database-tab-players'),
   databaseTabClubs: document.getElementById('database-tab-clubs'),
   databaseTabGrounds: document.getElementById('database-tab-grounds'),
@@ -91,6 +93,7 @@ const switchMainTab = (tabName) => {
     { button: elements.mainTabMatches, pane: elements.mainPaneMatches, name: 'matches' },
     { button: elements.mainTabResults, pane: elements.mainPaneResults, name: 'results' },
     { button: elements.mainTabPoster, pane: elements.mainPanePoster, name: 'poster' },
+    { button: elements.mainTabAdmin, pane: elements.mainPaneAdmin, name: 'admin' },
   ];
 
   tabs.forEach((tab) => {
@@ -125,6 +128,7 @@ const updateSessionCard = async (session) => {
     elements.sessionEmail.textContent = 'Not signed in';
     elements.sessionRole.textContent = 'Role: guest';
     elements.logoutButton.disabled = true;
+    toggleHidden(elements.mainTabAdmin, true);
     return;
   }
 
@@ -149,6 +153,7 @@ const updateSessionCard = async (session) => {
   elements.sessionEmail.textContent = session.user.email || 'Signed in';
   elements.sessionRole.textContent = `Role: ${role}`;
   elements.logoutButton.disabled = false;
+  toggleHidden(elements.mainTabAdmin, !['admin', 'super_admin'].includes(role));
 };
 
 const updateAuthAvailability = () => {
@@ -332,6 +337,7 @@ const init = () => {
   elements.databaseTabGrounds?.addEventListener('click', () => switchDatabaseTab('grounds'));
   elements.databaseTabSocial?.addEventListener('click', () => switchDatabaseTab('social'));
   elements.databaseTabSheets?.addEventListener('click', () => switchDatabaseTab('sheets'));
+  elements.mainTabAdmin?.addEventListener('click', () => switchMainTab('admin'));
 
   document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     toggle.addEventListener('change', (event) => {
