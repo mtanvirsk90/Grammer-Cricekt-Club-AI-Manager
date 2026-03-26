@@ -148,6 +148,18 @@ const elements = {
   homeResultsList: document.getElementById('home-results-list'),
   homeClubsList: document.getElementById('home-clubs-list'),
   homePlayersList: document.getElementById('home-players-list'),
+  homeNavSchedule: document.getElementById('home-nav-schedule'),
+  homeNavResults: document.getElementById('home-nav-results'),
+  homeNavUpcoming: document.getElementById('home-nav-upcoming'),
+  homeNavLatestResults: document.getElementById('home-nav-latest-results'),
+  homeNavClubs: document.getElementById('home-nav-clubs'),
+  homeNavPosters: document.getElementById('home-nav-posters'),
+  homeNavScheduleMeta: document.getElementById('home-nav-schedule-meta'),
+  homeNavResultsMeta: document.getElementById('home-nav-results-meta'),
+  homeNavUpcomingMeta: document.getElementById('home-nav-upcoming-meta'),
+  homeNavLatestResultsMeta: document.getElementById('home-nav-latest-results-meta'),
+  homeNavClubsMeta: document.getElementById('home-nav-clubs-meta'),
+  homeNavPostersMeta: document.getElementById('home-nav-posters-meta'),
   homeWelcomeEmail: document.getElementById('home-welcome-email'),
   homeHeroBanner: document.querySelector('.home-hero-banner'),
   homeHeroLogo: document.getElementById('home-hero-logo'),
@@ -969,7 +981,7 @@ const updateAppVisibility = () => {
 };
 
 const renderHomeDashboard = () => {
-  if (!elements.statsGrid || !elements.homeUpcomingList || !elements.homeResultsList || !elements.homeClubsList || !elements.homePlayersList) {
+  if (!elements.statsGrid) {
     return;
   }
 
@@ -1027,58 +1039,40 @@ const renderHomeDashboard = () => {
       : 'Add venue pictures to bring posters and results to life.';
   }
 
-  if (!upcomingMatches.length) {
-    setEmptyState(elements.homeUpcomingList, 'No upcoming matches yet.');
-  } else {
-    elements.homeUpcomingList.innerHTML = upcomingMatches.map((match) => {
-      const venue = findVenue(match.venue_id);
-      return `
-        <article class="record-card">
-          <h3>${htmlEscape(getMatchLabel(match))}</h3>
-          <p class="record-meta">${htmlEscape(venue?.name || 'Unknown venue')}</p>
-        </article>
-      `;
-    }).join('');
+  if (elements.homeNavScheduleMeta) {
+    elements.homeNavScheduleMeta.textContent = `${state.matches.length} fixtures in the system.`;
   }
 
-  if (!completedResults.length) {
-    setEmptyState(elements.homeResultsList, 'No completed matches yet.');
-  } else {
-    elements.homeResultsList.innerHTML = completedResults.map((result) => {
-      const match = findMatch(result.match_id);
-      const winner = findTeam(result.winner_team_id);
-      return `
-        <article class="record-card">
-          <h3>${htmlEscape(match ? getMatchLabel(match) : 'Completed match')}</h3>
-          <p class="record-meta">Winner: ${htmlEscape(winner?.name || 'TBD')}</p>
-          <p class="record-meta">${htmlEscape(result.summary || 'No summary added.')}</p>
-        </article>
-      `;
-    }).join('');
+  if (elements.homeNavResultsMeta) {
+    elements.homeNavResultsMeta.textContent = `${state.results.length} completed match results ready to review.`;
   }
 
-  if (!savedClubs.length) {
-    setEmptyState(elements.homeClubsList, 'No clubs saved yet.');
-  } else {
-    elements.homeClubsList.innerHTML = savedClubs.map((team) => `
-      <article class="record-card">
-        <h3>${htmlEscape(team.name)}</h3>
-        <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(getTeamTypeLabel(team))} Club</p>
-      </article>
-    `).join('');
+  if (elements.homeNavUpcomingMeta) {
+    const nextMatch = upcomingMatches[0];
+    const nextVenue = nextMatch ? findVenue(nextMatch.venue_id) : null;
+    elements.homeNavUpcomingMeta.textContent = nextMatch
+      ? `${formatDate(nextMatch.match_date)}${nextVenue?.name ? ` | ${nextVenue.name}` : ''}`
+      : 'No upcoming matches yet.';
   }
 
-  if (!savedPlayers.length) {
-    setEmptyState(elements.homePlayersList, 'No players saved yet.');
-  } else {
-    elements.homePlayersList.innerHTML = savedPlayers.map((player) => {
-      return `
-        <article class="record-card">
-          <h3>${htmlEscape(player.name)}</h3>
-          <p class="record-meta">#${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
-        </article>
-      `;
-    }).join('');
+  if (elements.homeNavLatestResultsMeta) {
+    const latestResult = completedResults[0];
+    const latestWinner = latestResult ? findTeam(latestResult.winner_team_id) : null;
+    elements.homeNavLatestResultsMeta.textContent = latestResult
+      ? `Latest winner: ${latestWinner?.name || 'TBD'}`
+      : 'No completed matches yet.';
+  }
+
+  if (elements.homeNavClubsMeta) {
+    elements.homeNavClubsMeta.textContent = savedClubs.length
+      ? `${savedClubs.length} clubs ready for fixtures and posters.`
+      : 'No clubs saved yet.';
+  }
+
+  if (elements.homeNavPostersMeta) {
+    elements.homeNavPostersMeta.textContent = state.matches.length
+      ? 'Open posters for fixtures, lineups, and results.'
+      : 'Save clubs, grounds, and a match first.';
   }
 };
 
@@ -3615,6 +3609,15 @@ const init = async () => {
   });
   addListener(elements.homeActionMatch, 'click', () => switchMainTab('matches'));
   addListener(elements.homeActionPoster, 'click', () => switchMainTab('poster'));
+  addListener(elements.homeNavSchedule, 'click', () => switchMainTab('matches'));
+  addListener(elements.homeNavResults, 'click', () => switchMainTab('results'));
+  addListener(elements.homeNavUpcoming, 'click', () => switchMainTab('matches'));
+  addListener(elements.homeNavLatestResults, 'click', () => switchMainTab('results'));
+  addListener(elements.homeNavClubs, 'click', () => {
+    switchMainTab('database');
+    switchDatabaseTab('clubs');
+  });
+  addListener(elements.homeNavPosters, 'click', () => switchMainTab('poster'));
   addListener(elements.databaseTabPlayers, 'click', () => switchDatabaseTab('players'));
   addListener(elements.databaseTabClubs, 'click', () => switchDatabaseTab('clubs'));
   addListener(elements.databaseTabGrounds, 'click', () => switchDatabaseTab('grounds'));

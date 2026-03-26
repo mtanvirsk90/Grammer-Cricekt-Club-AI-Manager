@@ -168,55 +168,43 @@
               </button>
             </section>
 
-            <section class="home-dashboard-grid">
-              <article class="panel home-dashboard-panel">
-                <div>
-                  <div class="panel-head">
-                    <div>
-                      <p class="section-label">Recent Matches</p>
-                      <h3>Upcoming Fixtures</h3>
-                    </div>
-                  </div>
-                  <div id="home-upcoming-list" class="stack-list"></div>
-                </div>
-              </article>
-
-              <article class="panel home-dashboard-panel">
-                <div>
-                  <div class="panel-head">
-                    <div>
-                      <p class="section-label">Latest Results</p>
-                      <h3>Completed Matches</h3>
-                    </div>
-                  </div>
-                  <div id="home-results-list" class="stack-list"></div>
-                </div>
-              </article>
-
-              <article class="panel home-dashboard-panel">
-                <div>
-                  <div class="panel-head">
-                    <div>
-                      <p class="section-label">Saved Clubs</p>
-                      <h3>Club Snapshot</h3>
-                    </div>
-                  </div>
-                  <div id="home-clubs-list" class="stack-list"></div>
-                </div>
-              </article>
-
-              <article class="panel home-dashboard-panel">
-                <div>
-                  <div class="panel-head">
-                    <div>
-                      <p class="section-label">Saved Players</p>
-                      <h3>Squad Snapshot</h3>
-                    </div>
-                  </div>
-                  <div id="home-players-list" class="stack-list"></div>
-                </div>
-              </article>
+            <section class="home-launch-grid">
+              <button id="home-nav-schedule" type="button" class="home-launch-card">
+                <small>Match Centre</small>
+                <strong>Schedule Match</strong>
+                <span id="home-nav-schedule-meta">Create a new fixture from saved clubs and grounds.</span>
+              </button>
+              <button id="home-nav-results" type="button" class="home-launch-card">
+                <small>Results</small>
+                <strong>Results</strong>
+                <span id="home-nav-results-meta">Add scores, winner, and match summary.</span>
+              </button>
+              <button id="home-nav-upcoming" type="button" class="home-launch-card">
+                <small>Fixtures</small>
+                <strong>Upcoming Matches</strong>
+                <span id="home-nav-upcoming-meta">No upcoming matches yet.</span>
+              </button>
+              <button id="home-nav-latest-results" type="button" class="home-launch-card">
+                <small>Review</small>
+                <strong>Latest Results</strong>
+                <span id="home-nav-latest-results-meta">No completed matches yet.</span>
+              </button>
+              <button id="home-nav-clubs" type="button" class="home-launch-card">
+                <small>Database</small>
+                <strong>Clubs Saved</strong>
+                <span id="home-nav-clubs-meta">No clubs saved yet.</span>
+              </button>
+              <button id="home-nav-posters" type="button" class="home-launch-card">
+                <small>Graphics</small>
+                <strong>Posters</strong>
+                <span id="home-nav-posters-meta">Open the poster studio.</span>
+              </button>
             </section>
+
+            <div id="home-upcoming-list" class="hidden"></div>
+            <div id="home-results-list" class="hidden"></div>
+            <div id="home-clubs-list" class="hidden"></div>
+            <div id="home-players-list" class="hidden"></div>
           </section>
         </section>
 
