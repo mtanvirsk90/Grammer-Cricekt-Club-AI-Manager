@@ -21,6 +21,7 @@ const elements = {
   teamNotes: byId('team-notes'),
   teamsList: byId('teams-list'),
   teamsTemplate: byId('teams-template'),
+  teamsImportFile: byId('teams-import-file'),
   homeClubsList: byId('home-clubs-list'),
   playerForm: byId('player-form'),
   playerEditId: byId('player-edit-id'),
@@ -53,6 +54,9 @@ const elements = {
 };
 
 const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+const CLUB_TEMPLATE_HEADERS = ['name', 'short_name', 'club_side', 'team_count', 'primary_color', 'secondary_color'];
+const CLUB_SIDE_OPTIONS = ['home', 'opponent'];
+const CLUB_COLOR_OPTIONS = ['#d32027', '#3944a7', '#111111', '#d2a52a', '#0f766e', '#166534', '#ffffff'];
 const BATSMAN_TYPE_OPTIONS = [
   'Right-hand bat',
   'Left-hand bat',
@@ -80,6 +84,8 @@ const CLUB_TYPE_PREFIX = 'club_type:';
 let teamsCache = [];
 let playersCache = [];
 let venuesCache = [];
+
+const buildSquadLabels = (teamCount) => Array.from({ length: Math.max(1, Number(teamCount) || 1) }, (_, index) => `T${index + 1}`);
 
 const toggleHidden = (element, hidden) => {
   if (!element) return;
@@ -154,22 +160,37 @@ const renderTeams = () => {
   if (!teamsCache.length) {
     renderEmptyState(elements.teamsList, 'No clubs saved yet.');
   } else {
-    elements.teamsList.innerHTML = teamsCache.map((team) => `
-      <article class="record-card">
-        <div class="record-row">
-          <div>
-            <h3>${htmlEscape(team.name)}</h3>
-            <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(getTeamType(team) === 'opponent' ? 'Opponent Club' : 'Home Club')}</p>
-            <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</p>
-          </div>
-          ${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : ''}
-          <div class="record-actions">
-            <button type="button" class="secondary-action" data-fallback-action="edit-team" data-id="${team.id}">Edit</button>
-            <button type="button" class="danger-action" data-fallback-action="delete-team" data-id="${team.id}">Delete</button>
-          </div>
-        </div>
-      </article>
-    `).join('');
+    elements.teamsList.innerHTML = `
+      <div class="table-shell">
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th>Club</th>
+              <th>Short</th>
+              <th>Type</th>
+              <th>Colors / Teams</th>
+              <th>Logo</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teamsCache.map((team) => `
+              <tr>
+                <td>${htmlEscape(team.name)}</td>
+                <td>${htmlEscape(team.short_name)}</td>
+                <td>${htmlEscape(getTeamType(team) === 'opponent' ? 'Opponent' : 'Home')}</td>
+                <td>${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')} | ${htmlEscape((team.squad_labels || []).join(', ') || 'T1')}</td>
+                <td>${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : '<span class="record-meta">No logo</span>'}</td>
+                <td class="table-actions">
+                  <button type="button" class="secondary-action" data-fallback-action="edit-team" data-id="${team.id}">Edit</button>
+                  <button type="button" class="danger-action" data-fallback-action="delete-team" data-id="${team.id}">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   if (elements.homeClubsList) {
@@ -324,6 +345,62 @@ const readSpreadsheetRows = async (file) => {
   if (!firstSheetName) return [];
   const worksheet = workbook.Sheets[firstSheetName];
   return window.XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+};
+
+const createClubTemplateWorkbook = async () => {
+  if (!window.ExcelJS) {
+    throw new Error('Excel template support did not load. Please refresh and try again.');
+  }
+
+  const workbook = new window.ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Clubs');
+
+  sheet.columns = [
+    { header: 'name', key: 'name', width: 28 },
+    { header: 'short_name', key: 'short_name', width: 16 },
+    { header: 'club_side', key: 'club_side', width: 16 },
+    { header: 'team_count', key: 'team_count', width: 14 },
+    { header: 'primary_color', key: 'primary_color', width: 18 },
+    { header: 'secondary_color', key: 'secondary_color', width: 18 },
+  ];
+
+  sheet.addRow({
+    name: 'Grammer Cricket Club',
+    short_name: 'GCC',
+    club_side: 'home',
+    team_count: '3',
+    primary_color: '#d32027',
+    secondary_color: '#3944a7',
+  });
+
+  sheet.getRow(1).font = { bold: true };
+
+  const applyDropdown = (columnKey, options) => {
+    for (let rowIndex = 2; rowIndex <= 200; rowIndex += 1) {
+      sheet.getCell(`${columnKey}${rowIndex}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${options.join(',')}"`],
+        showErrorMessage: true,
+      };
+    }
+  };
+
+  applyDropdown('C', CLUB_SIDE_OPTIONS);
+  applyDropdown('D', ['1', '2', '3', '4', '5']);
+  applyDropdown('E', CLUB_COLOR_OPTIONS);
+  applyDropdown('F', CLUB_COLOR_OPTIONS);
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'clubs-template.xlsx';
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
 const createPlayerTemplateWorkbook = async () => {
@@ -526,6 +603,44 @@ const handleTeamSubmit = async (event) => {
   resetTeamForm();
   await loadTeams();
   showMessage(editingId ? 'Club updated successfully.' : 'Club saved successfully.');
+};
+
+const handleTeamsImport = async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const session = await getSession();
+  const rows = await readSpreadsheetRows(file);
+  if (!rows.length) {
+    showMessage('The club file is empty or invalid.', 'error');
+    return;
+  }
+
+  const payload = rows
+    .filter((row) => row.name && row.short_name)
+    .map((row) => ({
+      name: String(row.name || '').trim(),
+      short_name: String(row.short_name || '').trim(),
+      team_count: Number(row.team_count) || 1,
+      squad_labels: withTeamTypeLabel(buildSquadLabels(Number(row.team_count) || 1), row.club_side || 'home'),
+      primary_color: row.primary_color || '#d32027',
+      secondary_color: row.secondary_color || '#3944a7',
+      logo_url: '',
+      notes: row.notes || '',
+      created_by: session.user.id,
+    }));
+
+  if (!payload.length) {
+    showMessage('No valid club rows were found in the file.', 'error');
+    return;
+  }
+
+  const { error } = await supabase.from('teams').upsert(payload, { onConflict: 'name' });
+  if (error) throw error;
+
+  event.target.value = '';
+  await loadTeams();
+  showMessage('Clubs imported successfully. Add logos later from Edit Club.');
 };
 
 const handlePlayerSubmit = async (event) => {
@@ -747,6 +862,8 @@ const bindHandlers = () => {
   elements.venueCancelEdit?.addEventListener?.('click', resetVenueForm);
   elements.playersExport?.addEventListener?.('click', exportPlayersCsv);
   elements.playersTemplate?.addEventListener?.('click', downloadPlayersTemplate);
+  elements.teamsTemplate?.addEventListener?.('click', () => createSafeHandler(createClubTemplateWorkbook)());
+  elements.teamsImportFile?.addEventListener?.('change', (event) => createSafeHandler(handleTeamsImport)(event));
   elements.playersImportFile?.addEventListener?.('change', (event) => createSafeHandler(handlePlayersImport)(event));
   elements.teamsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));

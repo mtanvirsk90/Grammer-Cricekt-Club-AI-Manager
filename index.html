@@ -377,10 +377,10 @@
             </label>
             <div class="import-export-row">
               <button type="button" id="teams-export" class="secondary-action">Export Clubs CSV</button>
-              <button type="button" id="teams-template" class="secondary-action">Download Club Template</button>
+              <button type="button" id="teams-template" class="secondary-action">Download Club Excel Template</button>
               <label class="import-label secondary-action">
-                <input type="file" id="teams-import-file" accept=".csv,text/csv" />
-                <span>Import Clubs CSV</span>
+                <input type="file" id="teams-import-file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                <span>Import Clubs Excel</span>
               </label>
             </div>
             <div class="table-toolbar">
@@ -388,7 +388,7 @@
                 <span>View</span>
                 <select id="teams-view-mode">
                   <option value="cards">Cards</option>
-                  <option value="table">Table</option>
+                  <option value="table" selected>Table</option>
                 </select>
               </label>
               <label class="field">

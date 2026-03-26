@@ -188,7 +188,7 @@ const state = {
   ui: {
     playersViewMode: 'cards',
     playersSort: 'name-asc',
-    teamsViewMode: 'cards',
+    teamsViewMode: 'table',
     teamsSort: 'name-asc',
   },
   selectedRows: {
@@ -255,7 +255,10 @@ const CSV_HEADERS = {
   players: ['name', 'club_name', 'jersey_number', 'player_category', 'batsman_type', 'bowler_type', 'profile_image_url'],
 };
 
+const CLUB_TEMPLATE_HEADERS = ['name', 'short_name', 'club_side', 'team_count', 'primary_color', 'secondary_color'];
 const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+const CLUB_SIDE_OPTIONS = ['home', 'opponent'];
+const CLUB_COLOR_OPTIONS = ['#d32027', '#3944a7', '#111111', '#d2a52a', '#0f766e', '#166534', '#ffffff'];
 const BATSMAN_TYPE_OPTIONS = [
   'Right-hand bat',
   'Left-hand bat',
@@ -277,6 +280,7 @@ const BOWLER_TYPE_OPTIONS = [
   'Left-arm wrist spin',
 ];
 const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Wicketkeeper-Batsman'];
+const buildSquadLabels = (teamCount) => Array.from({ length: Math.max(1, Number(teamCount) || 1) }, (_, index) => `T${index + 1}`);
 
 const PAGE_SIZE = 6;
 
@@ -641,6 +645,62 @@ const createPlayerTemplateWorkbook = async () => {
   const link = document.createElement('a');
   link.href = url;
   link.download = 'players-template.xlsx';
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const createClubTemplateWorkbook = async () => {
+  if (!window.ExcelJS) {
+    throw new Error('Excel template support did not load. Please refresh and try again.');
+  }
+
+  const workbook = new window.ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Clubs');
+
+  sheet.columns = [
+    { header: 'name', key: 'name', width: 28 },
+    { header: 'short_name', key: 'short_name', width: 16 },
+    { header: 'club_side', key: 'club_side', width: 16 },
+    { header: 'team_count', key: 'team_count', width: 14 },
+    { header: 'primary_color', key: 'primary_color', width: 18 },
+    { header: 'secondary_color', key: 'secondary_color', width: 18 },
+  ];
+
+  sheet.addRow({
+    name: 'Grammer Cricket Club',
+    short_name: 'GCC',
+    club_side: 'home',
+    team_count: '3',
+    primary_color: '#d32027',
+    secondary_color: '#3944a7',
+  });
+
+  sheet.getRow(1).font = { bold: true };
+
+  const applyDropdown = (columnKey, options) => {
+    for (let rowIndex = 2; rowIndex <= 200; rowIndex += 1) {
+      sheet.getCell(`${columnKey}${rowIndex}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${options.join(',')}"`],
+        showErrorMessage: true,
+      };
+    }
+  };
+
+  applyDropdown('C', CLUB_SIDE_OPTIONS);
+  applyDropdown('D', ['1', '2', '3', '4', '5']);
+  applyDropdown('E', CLUB_COLOR_OPTIONS);
+  applyDropdown('F', CLUB_COLOR_OPTIONS);
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'clubs-template.xlsx';
   link.click();
   URL.revokeObjectURL(url);
 };
@@ -1080,8 +1140,9 @@ const renderTeams = () => {
           <td>${htmlEscape(team.name)}</td>
           <td>${htmlEscape(team.short_name)}</td>
           <td>${htmlEscape(getTeamTypeLabel(team))}</td>
-          <td>${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</td>
+          <td>${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')} | ${htmlEscape((team.squad_labels || []).join(', ') || 'T1')}</td>
           <td class="table-actions">
+            ${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : '<span class="record-meta">No logo</span>'}
             <button type="button" class="secondary-action" data-action="edit-team" data-id="${team.id}">Edit</button>
             <button type="button" class="danger-action" data-action="delete-team" data-id="${team.id}">Delete</button>
           </td>
@@ -2307,18 +2368,9 @@ const exportPlayersCsv = () => {
   showMessage('Players exported as CSV.');
 };
 
-const downloadTeamsTemplate = () => {
-  downloadCsv('clubs-template.csv', CSV_HEADERS.teams, [{
-    name: 'Grammer Cricket Club',
-    short_name: 'GCC',
-    team_count: '3',
-    squad_labels: 'T1|T2|T3',
-    primary_color: '#d32027',
-    secondary_color: '#3944a7',
-    logo_url: 'https://example.com/logo.png',
-    notes: 'Senior teams',
-  }]);
-  showMessage('Club CSV template downloaded.');
+const downloadTeamsTemplate = async () => {
+  await createClubTemplateWorkbook();
+  showMessage('Club Excel template downloaded with dropdowns.');
 };
 
 const downloadPlayersTemplate = async () => {
@@ -2330,10 +2382,9 @@ const handleTeamsImport = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
 
-  const text = await file.text();
-  const rows = parseCsv(text);
+  const rows = await readSpreadsheetRows(file);
   if (!rows.length) {
-    showMessage('The clubs CSV is empty or invalid.', 'error');
+    showMessage('The club file is empty or invalid.', 'error');
     return;
   }
 
@@ -2343,10 +2394,10 @@ const handleTeamsImport = async (event) => {
       name: row.name.trim(),
       short_name: row.short_name.trim(),
       team_count: Number(row.team_count) || 1,
-      squad_labels: toTextList(String(row.squad_labels || '').replace(/\|/g, ',')),
+      squad_labels: withTeamTypeLabel(buildSquadLabels(Number(row.team_count) || 1), row.club_side || 'home'),
       primary_color: row.primary_color || '#d32027',
       secondary_color: row.secondary_color || '#3944a7',
-      logo_url: row.logo_url || '',
+      logo_url: '',
       notes: row.notes || '',
       created_by: state.session.user.id,
     }));
@@ -2356,7 +2407,7 @@ const handleTeamsImport = async (event) => {
     if (error) throw error;
     event.target.value = '';
     await loadTeams();
-  }, 'Clubs imported successfully.');
+  }, 'Clubs imported successfully. Add logos later from Edit Club.');
 };
 
 const handlePlayersImport = async (event) => {
