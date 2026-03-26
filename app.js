@@ -1303,7 +1303,6 @@ const renderPlayers = () => {
             <article class="player-roster-card">
               <div class="player-card-actions">
                 <button type="button" class="icon-action" data-action="edit-player" data-id="${player.id}" aria-label="Edit ${htmlEscape(player.name)}">Edit</button>
-                <button type="button" class="icon-action danger-icon-action" data-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
               </div>
               <div class="player-roster-media">
                 ${
@@ -1313,15 +1312,19 @@ const renderPlayers = () => {
                       <div class="player-avatar-kit">
                         <div class="player-avatar-head"></div>
                         <div class="player-avatar-body"></div>
+                        <img src="./logo.svg" alt="Club crest" class="player-avatar-crest" />
                         <div class="player-avatar-badge">${htmlEscape(initials || 'G')}</div>
                       </div>
                     `
                 }
               </div>
               <div class="player-roster-meta">
+                <div class="player-roster-type">${htmlEscape(category)}</div>
                 <h3>${htmlEscape(player.name)}</h3>
-                <p class="record-meta">${htmlEscape(category)}</p>
-                <p class="player-roster-number">#${htmlEscape(player.jersey_number || '0')}</p>
+              </div>
+              <div class="player-roster-footer">
+                <span class="player-roster-number">#${htmlEscape(player.jersey_number || '0')}</span>
+                <button type="button" class="player-delete-link" data-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
               </div>
             </article>
           `;
