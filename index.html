@@ -83,96 +83,115 @@
       </div>
     </section>
 
-    <div id="app-shell" class="hidden">
-      <section id="app-messages" class="messages" aria-live="polite"></section>
-      <header class="app-topbar panel panel-wide">
-        <div class="app-topbar-main">
-        <div class="app-brand-copy">
-          <div class="brand-lockup">
-            <img src="./logo.svg" alt="Grammer Cricket Club logo" class="club-logo app-logo" />
-            <div>
-              <p class="eyebrow">Grammer Cricket Club AI Manager</p>
-              <h1>Run your club with player records, match planning, graphics, results, and user control.</h1>
-            </div>
+    <div id="app-shell" class="hidden app-layout">
+      <aside class="app-sidebar">
+        <div class="app-sidebar-brand">
+          <img src="./logo.svg" alt="Grammer Cricket Club logo" class="club-logo app-sidebar-logo" />
+          <div>
+            <p class="eyebrow">Grammer</p>
+            <h2>AI Manager</h2>
           </div>
-          <p class="app-brand-text">
-            This dashboard is tailored for Grammer Cricket Club with email-auth access, role permissions,
-            searchable match setup, cricket-first databases, social graphics, and multi-user workflows.
-          </p>
-        </div>
-        <div class="status-card app-status-card app-topbar-session">
-          <p class="section-label">Current Session</p>
-          <h3 id="session-email">Not signed in</h3>
-          <p id="session-role" class="record-meta">Role: guest</p>
-          <button id="logout-button" type="button" class="secondary-action">Sign Out</button>
-        </div>
         </div>
 
-        <div class="workspace-tabs top-workspace-tabs">
-          <button id="main-tab-home" type="button" class="workspace-tab active-workspace-tab">Home</button>
-          <button id="main-tab-database" type="button" class="workspace-tab">Data Base</button>
-          <button id="main-tab-matches" type="button" class="workspace-tab">Match Centre</button>
-          <button id="main-tab-results" type="button" class="workspace-tab">Completed Matches</button>
-          <button id="main-tab-poster" type="button" class="workspace-tab">AI Graphics</button>
+        <nav class="workspace-tabs sidebar-workspace-tabs">
+          <button id="main-tab-home" type="button" class="workspace-tab active-workspace-tab">Dashboard</button>
+          <button id="main-tab-database" type="button" class="workspace-tab">Players</button>
+          <button id="main-tab-matches" type="button" class="workspace-tab">Matches</button>
+          <button id="main-tab-results" type="button" class="workspace-tab">Results</button>
+          <button id="main-tab-poster" type="button" class="workspace-tab">Posters</button>
           <button id="main-tab-admin" type="button" class="workspace-tab hidden">User Management</button>
+        </nav>
+
+        <div class="app-sidebar-session">
+          <p class="section-label">Active Role</p>
+          <h3 id="session-role">Role: guest</h3>
+          <p id="session-email" class="record-meta">Not signed in</p>
+          <button id="logout-button" type="button" class="secondary-action">Sign Out</button>
         </div>
-      </header>
+      </aside>
+
+      <section class="app-workspace">
+        <section id="app-messages" class="messages" aria-live="polite"></section>
+        <header class="app-topbar">
+          <div class="app-topbar-main compact-app-topbar">
+            <div class="app-topbar-copy">
+              <p class="eyebrow">Grammer Cricket Club</p>
+              <h1>Club Operations Dashboard</h1>
+            </div>
+            <div class="app-topbar-user">
+              <span id="topbar-email">Not signed in</span>
+            </div>
+          </div>
+        </header>
 
       <main class="dashboard">
         <section id="main-pane-home" class="main-pane pane-grid">
-          <section class="panel panel-wide">
-            <div class="panel-head">
-              <div>
-                <p class="section-label">Overview</p>
-                <h2>Club Command Centre</h2>
+          <section class="home-dashboard-layout panel-wide">
+            <section class="home-hero-banner">
+              <div class="home-hero-overlay">
+                <span class="home-hero-pill">Official Home Ground</span>
+                <h2>Aberdeen Grammar <span>Cricket Club</span></h2>
+                <p>"Excellence in every stroke, integrity in every play."</p>
               </div>
-              <p class="panel-note">Live counts and quick actions for Grammer Cricket Club AI Manager.</p>
-            </div>
-            <div id="stats-grid" class="stats-grid"></div>
-          </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div>
-                  <p class="section-label">Next Up</p>
-                  <h2>Upcoming Fixtures</h2>
-              </div>
-              <p class="panel-note">Your next scheduled matches from the match centre.</p>
-            </div>
-            <div id="home-upcoming-list" class="stack-list"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="section-label">Recent Results</p>
-                <h2>Latest Completed Matches</h2>
-              </div>
-              <p class="panel-note">Quick review of the latest finished matches and winners.</p>
-              </div>
-              <div id="home-results-list" class="stack-list"></div>
             </section>
 
-            <section class="panel">
-              <div class="panel-head">
-                <div>
-                  <p class="section-label">Saved Clubs</p>
-                  <h2>Club Snapshot</h2>
-                </div>
-                <p class="panel-note">Recently saved clubs ready for matches and posters.</p>
+            <section class="home-intro-row">
+              <div>
+                <h2>Dashboard</h2>
+                <p class="record-meta">Welcome back, <strong id="home-welcome-email">mtanvir.sk90@gmail.com</strong></p>
               </div>
-              <div id="home-clubs-list" class="stack-list"></div>
             </section>
 
-            <section class="panel">
-              <div class="panel-head">
+            <section id="stats-grid" class="home-stats-grid"></section>
+
+            <section class="home-dashboard-grid">
+              <article class="panel home-dashboard-panel">
                 <div>
-                  <p class="section-label">Saved Players</p>
-                  <h2>Squad Snapshot</h2>
+                  <div class="panel-head">
+                    <div>
+                      <p class="section-label">Recent Matches</p>
+                      <h3>Upcoming Fixtures</h3>
+                    </div>
+                  </div>
+                  <div id="home-upcoming-list" class="stack-list"></div>
                 </div>
-                <p class="panel-note">Recently saved players available for lineups.</p>
-              </div>
-              <div id="home-players-list" class="stack-list"></div>
+              </article>
+
+              <article class="panel home-dashboard-panel">
+                <div>
+                  <div class="panel-head">
+                    <div>
+                      <p class="section-label">Latest Results</p>
+                      <h3>Completed Matches</h3>
+                    </div>
+                  </div>
+                  <div id="home-results-list" class="stack-list"></div>
+                </div>
+              </article>
+
+              <article class="panel home-dashboard-panel">
+                <div>
+                  <div class="panel-head">
+                    <div>
+                      <p class="section-label">Saved Clubs</p>
+                      <h3>Club Snapshot</h3>
+                    </div>
+                  </div>
+                  <div id="home-clubs-list" class="stack-list"></div>
+                </div>
+              </article>
+
+              <article class="panel home-dashboard-panel">
+                <div>
+                  <div class="panel-head">
+                    <div>
+                      <p class="section-label">Saved Players</p>
+                      <h3>Squad Snapshot</h3>
+                    </div>
+                  </div>
+                  <div id="home-players-list" class="stack-list"></div>
+                </div>
+              </article>
             </section>
           </section>
 
@@ -971,6 +990,7 @@
         </section>
         </section>
       </main>
+      </section>
     </div>
   </div>
 

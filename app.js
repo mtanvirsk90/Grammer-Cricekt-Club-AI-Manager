@@ -148,6 +148,8 @@ const elements = {
   homeResultsList: document.getElementById('home-results-list'),
   homeClubsList: document.getElementById('home-clubs-list'),
   homePlayersList: document.getElementById('home-players-list'),
+  homeWelcomeEmail: document.getElementById('home-welcome-email'),
+  topbarEmail: document.getElementById('topbar-email'),
   confirmModal: document.getElementById('confirm-modal'),
   confirmTitle: document.getElementById('confirm-title'),
   confirmMessage: document.getElementById('confirm-message'),
@@ -967,12 +969,10 @@ const renderHomeDashboard = () => {
   const savedClubs = state.teams.slice(0, 5);
   const savedPlayers = state.players.slice(0, 5);
   const stats = [
-    { label: 'Registered Players', value: state.players.length },
-    { label: 'Saved Clubs', value: state.teams.length },
-    { label: 'Saved Grounds', value: state.venues.length },
-    { label: 'Upcoming Matches', value: state.matches.filter(isUpcomingMatch).length },
-    { label: 'Completed Matches', value: state.results.length },
-    { label: 'Registered Users', value: state.profiles.length || (state.profile ? 1 : 0) },
+    { label: 'Total Players', value: state.players.length },
+    { label: 'Registered Clubs', value: state.teams.length },
+    { label: 'Match Venues', value: state.venues.length },
+    { label: 'Matches Total', value: state.matches.length },
   ];
 
   elements.statsGrid.innerHTML = stats.map((stat) => `
@@ -1069,6 +1069,8 @@ const updateSessionCard = () => {
   if (!state.session) {
     elements.sessionEmail.textContent = 'Not signed in';
     elements.sessionRole.textContent = 'Role: guest';
+    if (elements.homeWelcomeEmail) elements.homeWelcomeEmail.textContent = 'guest';
+    if (elements.topbarEmail) elements.topbarEmail.textContent = 'Not signed in';
     elements.logoutButton.disabled = true;
     toggleHidden(elements.mainTabAdmin, true);
     toggleHidden(elements.adminSection, true);
@@ -1078,6 +1080,8 @@ const updateSessionCard = () => {
 
   elements.sessionEmail.textContent = state.profile?.email || state.session.user.email || 'Signed in';
   elements.sessionRole.textContent = `Role: ${state.profile?.access_level || 'user'}`;
+  if (elements.homeWelcomeEmail) elements.homeWelcomeEmail.textContent = state.profile?.email || state.session.user.email || 'member';
+  if (elements.topbarEmail) elements.topbarEmail.textContent = state.profile?.email || state.session.user.email || 'Signed in';
   elements.logoutButton.disabled = false;
   toggleHidden(elements.mainTabAdmin, !isAdmin());
   toggleHidden(elements.adminSection, !isAdmin());
