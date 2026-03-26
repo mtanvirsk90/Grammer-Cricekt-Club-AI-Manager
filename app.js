@@ -2115,7 +2115,6 @@ const startPlayerEdit = (player) => {
   document.getElementById('player-batting-style').value = player.batsman_type || player.batting_style || '';
   document.getElementById('player-bowling-style').value = player.bowler_type || player.bowling_style || '';
   document.getElementById('player-category').value = player.player_category || player.role || '';
-  document.getElementById('player-profile-url').value = player.profile_image_url || '';
   elements.playerSubmitButton.textContent = 'Update Player';
   toggleHidden(elements.playerCancelEdit, false);
   setEditMode('player', player.id, true);
@@ -2552,6 +2551,7 @@ const handlePlayerSubmit = async (event) => {
 
   const session = await ensureSession();
   const editingId = elements.playerEditId.value;
+  const existingPlayer = state.players.find((player) => String(player.id) === String(editingId));
   const uploadedProfile = await uploadImageFile(elements.playerProfileFile.files?.[0], STORAGE_BUCKETS.player, 'profiles');
   const payload = {
     name: document.getElementById('player-name').value.trim(),
@@ -2563,7 +2563,7 @@ const handlePlayerSubmit = async (event) => {
     batting_style: document.getElementById('player-batting-style').value.trim(),
     bowling_style: document.getElementById('player-bowling-style').value.trim(),
     player_category: document.getElementById('player-category').value,
-    profile_image_url: uploadedProfile || document.getElementById('player-profile-url').value.trim(),
+    profile_image_url: uploadedProfile || existingPlayer?.profile_image_url || '',
     created_by: session.user.id,
   };
 

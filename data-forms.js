@@ -32,7 +32,6 @@ const elements = {
   playerBattingStyle: byId('player-batting-style'),
   playerBowlingStyle: byId('player-bowling-style'),
   playerCategory: byId('player-category'),
-  playerProfileUrl: byId('player-profile-url'),
   playersList: byId('players-list'),
   playersExport: byId('players-export'),
   playersTemplate: byId('players-template'),
@@ -369,7 +368,6 @@ const startPlayerEdit = (player) => {
   elements.playerBattingStyle.value = player.batsman_type || player.batting_style || '';
   elements.playerBowlingStyle.value = player.bowler_type || player.bowling_style || '';
   elements.playerCategory.value = player.player_category || player.role || '';
-  elements.playerProfileUrl.value = player.profile_image_url || '';
   elements.playerSubmitButton.textContent = 'Update Player';
   toggleHidden(elements.playerCancelEdit, false);
 };
@@ -426,6 +424,7 @@ const handlePlayerSubmit = async (event) => {
   const session = await getSession();
   const editingId = String(elements.playerEditId?.value || '');
   const homeTeam = getHomeTeams()[0];
+  const existingPlayer = playersCache.find((player) => String(player.id) === editingId);
 
   if (!homeTeam) {
     showMessage('Save at least one Home Club first so players can be linked automatically.', 'error');
@@ -442,7 +441,7 @@ const handlePlayerSubmit = async (event) => {
     batting_style: elements.playerBattingStyle?.value.trim() || '',
     bowling_style: elements.playerBowlingStyle?.value.trim() || '',
     player_category: elements.playerCategory?.value || '',
-    profile_image_url: elements.playerProfileUrl?.value.trim() || '',
+    profile_image_url: existingPlayer?.profile_image_url || '',
     created_by: session.user.id,
   };
 

@@ -229,11 +229,31 @@
               </label>
               <label class="field">
                 <span>Batsman Type</span>
-                <input type="text" id="player-batting-style" placeholder="Right-hand bat" required />
+                <select id="player-batting-style" required>
+                  <option value="">Select batsman type</option>
+                  <option value="Right-hand bat">Right-hand bat</option>
+                  <option value="Left-hand bat">Left-hand bat</option>
+                  <option value="Right-hand aggressive bat">Right-hand aggressive bat</option>
+                  <option value="Left-hand aggressive bat">Left-hand aggressive bat</option>
+                  <option value="Right-hand anchor bat">Right-hand anchor bat</option>
+                  <option value="Left-hand anchor bat">Left-hand anchor bat</option>
+                </select>
               </label>
               <label class="field">
                 <span>Bowler Type</span>
-                <input type="text" id="player-bowling-style" placeholder="Right-arm medium" required />
+                <select id="player-bowling-style" required>
+                  <option value="">Select bowler type</option>
+                  <option value="Right-arm fast">Right-arm fast</option>
+                  <option value="Right-arm fast-medium">Right-arm fast-medium</option>
+                  <option value="Right-arm medium">Right-arm medium</option>
+                  <option value="Right-arm off spin">Right-arm off spin</option>
+                  <option value="Right-arm leg spin">Right-arm leg spin</option>
+                  <option value="Left-arm fast">Left-arm fast</option>
+                  <option value="Left-arm fast-medium">Left-arm fast-medium</option>
+                  <option value="Left-arm medium">Left-arm medium</option>
+                  <option value="Left-arm orthodox spin">Left-arm orthodox spin</option>
+                  <option value="Left-arm wrist spin">Left-arm wrist spin</option>
+                </select>
               </label>
               <label class="field">
                 <span>Player Category</span>
@@ -245,10 +265,6 @@
                   <option value="Wicketkeeper">Wicketkeeper</option>
                   <option value="Wicketkeeper-Batsman">Wicketkeeper-Batsman</option>
                 </select>
-              </label>
-              <label class="field field-wide">
-                <span>Profile Picture URL</span>
-                <input type="url" id="player-profile-url" placeholder="https://example.com/player-photo.jpg" />
               </label>
               <label class="field field-wide">
                 <span>Upload Profile Picture</span>
