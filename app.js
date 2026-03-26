@@ -124,6 +124,7 @@ const elements = {
   resultPosterSocialLinks: document.getElementById('result-poster-social-links'),
   resultCaptionOutput: document.getElementById('result-caption-output'),
   posterMatch: document.getElementById('poster-match'),
+  posterType: document.getElementById('poster-type'),
   posterMatchPicker: document.getElementById('poster-match-picker'),
   posterPlatform: document.getElementById('poster-platform'),
   posterVisualMode: document.getElementById('poster-visual-mode'),
@@ -1476,6 +1477,8 @@ const renderMatches = () => {
                 </div>
               </div>
               <div class="match-card-actions">
+                <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}">Match Poster</button>
+                <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}">Lineup Poster</button>
                 <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
                 <button type="button" class="danger-action" data-action="delete-match" data-id="${match.id}">Delete</button>
               </div>
@@ -1857,6 +1860,27 @@ const getSelectedPosterMatchIds = () => {
   return [...new Set(checkedIds)];
 };
 
+const getPrimaryLineupEntries = (matchId) => {
+  const homeEntries = getLineupForMatchSide(matchId, 'home');
+  if (homeEntries.length) return homeEntries;
+  return getLineupForMatchSide(matchId, 'away');
+};
+
+const openPosterStudio = (matchId, posterType = 'match') => {
+  switchMainTab('poster');
+  if (elements.posterMatch) {
+    elements.posterMatch.value = String(matchId || '');
+  }
+  if (elements.posterType) {
+    elements.posterType.value = posterType;
+  }
+  updatePosterVenueImageOptions();
+  renderPosterMatchPicker();
+  const checkbox = elements.posterMatchPicker?.querySelector(`input[value="${String(matchId)}"]`);
+  if (checkbox) checkbox.checked = true;
+  renderPoster();
+};
+
 const buildFixtureCaption = (match) => {
   const homeTeam = findTeam(match.team1_id);
   const awayTeam = findTeam(match.team2_id);
@@ -1961,8 +1985,10 @@ const renderPoster = () => {
     setEmptyState(elements.posterHost, 'Choose a match to generate its poster.');
     return;
   }
+
   const platform = elements.posterPlatform.value;
   const visualMode = elements.posterVisualMode.value;
+  const posterType = elements.posterType?.value || 'match';
   const platformSpec = getPlatformSpec(platform);
   const sponsorImages = getSponsorImages();
   const socialLinks = getSelectedSocialLinks(elements.posterSocialLinks);
@@ -1985,17 +2011,107 @@ const renderPoster = () => {
         awayViceCaptain: '',
         awayWicketkeeper: '',
       };
-    const homeTeam = team1;
-    const awayTeam = team2;
 
     if (!match || !team1 || !team2 || !venue) {
       return;
     }
 
-    captions.push(buildFixtureCaption(match));
+    captions.push(posterType === 'lineup' ? `${buildFixtureCaption(match)}\nPlaying XI locked in for this design.` : buildFixtureCaption(match));
 
     getVariantThemes(team1, team2).forEach((theme, index) => {
-      const variantKey = `${match.id}-${theme.id}`;
+      const sourceMode = visualMode === 'mixed' ? (index < 3 ? 'saved' : 'generated') : visualMode;
+      const variantLabel = index < 3 ? 'Venue Based' : 'AI Style';
+      const variantKey = `${match.id}-${posterType}-${sourceMode}-${theme.id}`;
+
+      if (posterType === 'lineup') {
+        const lineupEntries = getPrimaryLineupEntries(match.id);
+        const lineupMarkup = lineupEntries.length
+          ? `
+            <ol class="poster-xi">
+              ${lineupEntries.slice(0, 11).map((entry, playerIndex) => `
+                <li>
+                  <strong>${playerIndex + 1}. ${htmlEscape(entry.players?.name || 'Player')}</strong>
+                  <small>${htmlEscape(getRoleLabel(entry.match_role))}</small>
+                </li>
+              `).join('')}
+            </ol>
+          `
+          : '<div class="poster-xi poster-xi-empty"><p>Select the playing XI in Match Centre to unlock lineup posters.</p></div>';
+
+        posters.push(`
+          <article
+            class="poster-card poster-variant lineup-poster-card theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
+            data-variant-key="${variantKey}"
+            data-match-id="${match.id}"
+            style="
+              --poster-accent: ${theme.accent};
+              --poster-secondary: ${theme.secondary};
+              --poster-width: ${platformSpec.width};
+              --poster-height: ${platformSpec.height};
+              background: ${getPosterBackground(sourceMode, venue, theme, index, getPosterVenueImage(venue, index))};
+            "
+          >
+            <div class="poster-overlay"></div>
+            <div class="poster-top lineup-poster-top">
+              <div class="lineup-heading">
+                <span class="poster-badge">${platformSpec.label} | ${variantLabel}</span>
+                <h2 class="poster-title poster-title-lineup">Playing XI</h2>
+                <p class="lineup-versus">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
+              </div>
+              <div class="poster-logos lineup-poster-logos">
+                ${team1.logo_url ? `<img src="${htmlEscape(team1.logo_url)}" alt="${htmlEscape(team1.name)} logo" class="poster-logo" />` : ''}
+                ${team2.logo_url ? `<img src="${htmlEscape(team2.logo_url)}" alt="${htmlEscape(team2.name)} logo" class="poster-logo" />` : ''}
+              </div>
+            </div>
+            <div class="lineup-meta-row">
+              <span>${formatDate(match.match_date)}</span>
+              <span>${formatTime(match.match_time)}</span>
+              <span>${htmlEscape(venue.name)}</span>
+            </div>
+            <div class="poster-grid lineup-poster-grid">
+              <section class="poster-box lineup-list-box">
+                ${lineupMarkup}
+              </section>
+              <aside class="poster-box poster-visual-box">
+                <div
+                  class="poster-venue-visual"
+                  style="${getPosterVenueImage(venue, index) ? `background-image: linear-gradient(180deg, rgba(8, 15, 13, 0.12), rgba(8, 15, 13, 0.35)), url('${htmlEscape(getPosterVenueImage(venue, index))}');` : ''}"
+                ></div>
+                <div class="poster-info poster-info-compact">
+                  <div>
+                    <strong>Home Club</strong>
+                    <span>${htmlEscape(team1.name)}</span>
+                  </div>
+                  <div>
+                    <strong>Opponent</strong>
+                    <span>${htmlEscape(team2.name)}</span>
+                  </div>
+                  <div>
+                    <strong>Ground</strong>
+                    <span>${htmlEscape(venue.name)}</span>
+                  </div>
+                  <div>
+                    <strong>Address</strong>
+                    <span>${htmlEscape(venue.address || `${venue.city}, ${venue.country}`)}</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+            <section class="poster-box sponsor-box">
+              <h3>Partners</h3>
+              <div class="poster-sponsor-grid">
+                ${sponsorMarkup}
+              </div>
+            </section>
+            <section class="poster-box poster-social-box">
+              <h3>Watch And Follow</h3>
+              ${getSocialLinkMarkup(socialLinks)}
+            </section>
+          </article>
+        `);
+        return;
+      }
+
       posters.push(`
         <article
           class="poster-card poster-variant match-poster-card theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
@@ -2006,7 +2122,7 @@ const renderPoster = () => {
             --poster-secondary: ${theme.secondary};
             --poster-width: ${platformSpec.width};
             --poster-height: ${platformSpec.height};
-            background: ${getPosterBackground(visualMode, venue, theme, index, getPosterVenueImage(venue, index))};
+            background: ${getPosterBackground(sourceMode, venue, theme, index, getPosterVenueImage(venue, index))};
           "
         >
           <div class="poster-overlay"></div>
@@ -2020,7 +2136,7 @@ const renderPoster = () => {
           </div>
           <div class="match-poster-hero">
             <div class="match-poster-title-wrap">
-              <span class="poster-badge">${platformSpec.label} | ${theme.name}</span>
+              <span class="poster-badge">${platformSpec.label} | ${variantLabel}</span>
               <h2 class="poster-title match-poster-title">Cricket Match</h2>
               <p class="match-poster-subtitle">Upcoming club fixture poster</p>
             </div>
@@ -2072,27 +2188,27 @@ const renderPoster = () => {
                   <span>${htmlEscape(venue.address || `${venue.city}, ${venue.country}`)}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(homeTeam?.short_name || 'Home')} Captain</strong>
+                  <strong>${htmlEscape(team1?.short_name || 'Home')} Captain</strong>
                   <span>${htmlEscape(lineupSummary.homeCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(homeTeam?.short_name || 'Home')} Vice Captain</strong>
+                  <strong>${htmlEscape(team1?.short_name || 'Home')} Vice Captain</strong>
                   <span>${htmlEscape(lineupSummary.homeViceCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(homeTeam?.short_name || 'Home')} Wicketkeeper</strong>
+                  <strong>${htmlEscape(team1?.short_name || 'Home')} Wicketkeeper</strong>
                   <span>${htmlEscape(lineupSummary.homeWicketkeeper || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(awayTeam?.short_name || 'Away')} Captain</strong>
+                  <strong>${htmlEscape(team2?.short_name || 'Away')} Captain</strong>
                   <span>${htmlEscape(lineupSummary.awayCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(awayTeam?.short_name || 'Away')} Vice Captain</strong>
+                  <strong>${htmlEscape(team2?.short_name || 'Away')} Vice Captain</strong>
                   <span>${htmlEscape(lineupSummary.awayViceCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(awayTeam?.short_name || 'Away')} Wicketkeeper</strong>
+                  <strong>${htmlEscape(team2?.short_name || 'Away')} Wicketkeeper</strong>
                   <span>${htmlEscape(lineupSummary.awayWicketkeeper || 'Not set')}</span>
                 </div>
                 <div>
@@ -3401,6 +3517,16 @@ const handleListActions = async (event) => {
     return;
   }
 
+  if (action === 'open-match-poster') {
+    openPosterStudio(id, 'match');
+    return;
+  }
+
+  if (action === 'open-lineup-poster') {
+    openPosterStudio(id, 'lineup');
+    return;
+  }
+
   if (action === 'edit-match') {
     startMatchEdit(findMatch(id));
     return;
@@ -3778,6 +3904,13 @@ const init = async () => {
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the match graphic.');
+  });
+  addListener(elements.posterType, 'change', () => {
+    state.selectedPosterVariantKey = '';
+    elements.downloadPoster.disabled = true;
+    toggleHidden(elements.posterSelection, true);
+    elements.posterCaptionOutput.value = '';
+    setEmptyState(elements.posterHost, 'Click "Generate Poster" to build the selected match graphics.');
   });
   addListener(elements.posterVisualMode, 'change', () => {
     state.selectedPosterVariantKey = '';
