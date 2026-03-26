@@ -187,7 +187,7 @@ const state = {
     results: 1,
   },
   ui: {
-    playersViewMode: 'table',
+    playersViewMode: 'cards',
     playersSort: 'name-asc',
     teamsViewMode: 'table',
     teamsSort: 'name-asc',
@@ -1288,31 +1288,46 @@ const renderPlayers = () => {
       }),
     );
   } else {
-    elements.playersList.innerHTML = paginated.items.map((player) => {
-    const category = player.player_category || player.role || 'Player';
+    elements.playersList.innerHTML = `
+      <div class="player-roster-grid">
+        ${paginated.items.map((player) => {
+          const category = player.player_category || player.role || 'Player';
+          const initials = String(player.name || 'P')
+            .split(' ')
+            .map((part) => part[0] || '')
+            .join('')
+            .slice(0, 2)
+            .toUpperCase();
 
-    return `
-      <article class="record-card">
-        <div class="record-row">
-          <div>
-          <h3>${htmlEscape(player.name)}</h3>
-          <p class="record-meta">
-              #${htmlEscape(player.jersey_number || '0')} | ${htmlEscape(category)}
-          </p>
-        </div>
-        ${player.profile_image_url ? `<img src="${htmlEscape(player.profile_image_url)}" alt="${htmlEscape(player.name)} profile" class="list-logo" />` : ''}
-        <div class="record-actions">
-          <label class="selection-chip compact-chip">
-            <input type="checkbox" data-action="toggle-player-select" data-id="${player.id}" ${state.selectedRows.players.has(String(player.id)) ? 'checked' : ''} />
-            <span>Select</span>
-          </label>
-          <button type="button" class="secondary-action" data-action="edit-player" data-id="${player.id}">Edit</button>
-          <button type="button" class="danger-action" data-action="delete-player" data-id="${player.id}">Delete</button>
-        </div>
+          return `
+            <article class="player-roster-card">
+              <div class="player-card-actions">
+                <button type="button" class="icon-action" data-action="edit-player" data-id="${player.id}" aria-label="Edit ${htmlEscape(player.name)}">Edit</button>
+                <button type="button" class="icon-action danger-icon-action" data-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
+              </div>
+              <div class="player-roster-media">
+                ${
+                  player.profile_image_url
+                    ? `<img src="${htmlEscape(player.profile_image_url)}" alt="${htmlEscape(player.name)} profile" class="player-roster-photo" />`
+                    : `
+                      <div class="player-avatar-kit">
+                        <div class="player-avatar-head"></div>
+                        <div class="player-avatar-body"></div>
+                        <div class="player-avatar-badge">${htmlEscape(initials || 'G')}</div>
+                      </div>
+                    `
+                }
+              </div>
+              <div class="player-roster-meta">
+                <h3>${htmlEscape(player.name)}</h3>
+                <p class="record-meta">${htmlEscape(category)}</p>
+                <p class="player-roster-number">#${htmlEscape(player.jersey_number || '0')}</p>
+              </div>
+            </article>
+          `;
+        }).join('')}
       </div>
-      </article>
     `;
-    }).join('');
   }
   renderPagination(elements.playersPagination, 'players', filteredPlayers.length);
   updateBulkActionState();
