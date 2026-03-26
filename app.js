@@ -189,7 +189,7 @@ const state = {
   ui: {
     playersViewMode: 'cards',
     playersSort: 'name-asc',
-    teamsViewMode: 'table',
+    teamsViewMode: 'cards',
     teamsSort: 'name-asc',
     playersCategoryFilter: 'all',
   },
@@ -1152,27 +1152,38 @@ const renderTeams = () => {
       `),
     );
   } else {
-    elements.teamsList.innerHTML = paginated.items.map((team) => `
-    <article class="record-card">
-      <div class="record-row">
-        <div>
-          <h3>${htmlEscape(team.name)}</h3>
-          <p class="record-meta">${htmlEscape(team.short_name)} | ${htmlEscape(getTeamTypeLabel(team))} Club</p>
-          <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}${team.notes ? ` | ${htmlEscape(team.notes)}` : ''}</p>
-          ${team.logo_url ? `<p class="record-meta"><a href="${htmlEscape(team.logo_url)}" target="_blank" rel="noreferrer">Club logo</a></p>` : ''}
-        </div>
-        ${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : ''}
-        <div class="record-actions">
-          <label class="selection-chip compact-chip">
-            <input type="checkbox" data-action="toggle-team-select" data-id="${team.id}" ${state.selectedRows.teams.has(String(team.id)) ? 'checked' : ''} />
-            <span>Select</span>
-          </label>
-          <button type="button" class="secondary-action" data-action="edit-team" data-id="${team.id}">Edit</button>
-          <button type="button" class="danger-action" data-action="delete-team" data-id="${team.id}">Delete</button>
-        </div>
+    elements.teamsList.innerHTML = `
+      <div class="club-card-grid">
+        ${paginated.items.map((team) => {
+          const teamTypeLabel = getTeamTypeLabel(team);
+          const logoMarkup = team.logo_url
+            ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="club-card-logo" />`
+            : `
+              <div class="club-card-logo club-card-logo-fallback" aria-hidden="true">
+                <img src="./logo.svg" alt="Club crest" class="club-card-logo-crest" />
+              </div>
+            `;
+
+          return `
+            <article class="club-card">
+              <div class="club-card-hero">
+                <div class="club-card-badge">${htmlEscape(teamTypeLabel)}</div>
+                ${logoMarkup}
+              </div>
+              <div class="club-card-body">
+                <h3>${htmlEscape(team.name)}</h3>
+                <p class="record-meta">${htmlEscape(team.short_name)}${team.notes ? ` | ${htmlEscape(team.notes)}` : ''}</p>
+                <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</p>
+              </div>
+              <div class="club-card-actions">
+                <button type="button" class="secondary-action" data-action="edit-team" data-id="${team.id}">Edit</button>
+                <button type="button" class="danger-action" data-action="delete-team" data-id="${team.id}">Delete</button>
+              </div>
+            </article>
+          `;
+        }).join('')}
       </div>
-    </article>
-    `).join('');
+    `;
   }
   renderPagination(elements.teamsPagination, 'teams', filteredTeams.length);
   updateBulkActionState();
