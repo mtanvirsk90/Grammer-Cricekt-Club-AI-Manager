@@ -1495,47 +1495,37 @@ const renderLineup = () => {
   const matchId = elements.lineupMatch.value;
 
   if (!matchId) {
-    elements.lineupCount.textContent = 'Home 0 / 11 | Away 0 / 11';
+    elements.lineupCount.textContent = 'Home XI 0 / 11';
     setEmptyState(elements.lineupList, 'Select a match to view its lineup.');
     return;
   }
 
   const homeLineup = getLineupForMatchSide(matchId, 'home');
-  const awayLineup = getLineupForMatchSide(matchId, 'away');
-  elements.lineupCount.textContent = `Home ${homeLineup.length} / 11 | Away ${awayLineup.length} / 11`;
+  elements.lineupCount.textContent = `Home XI ${homeLineup.length} / 11`;
 
-  if (!homeLineup.length && !awayLineup.length) {
+  if (!homeLineup.length) {
     setEmptyState(elements.lineupList, 'No players selected for this match yet.');
     return;
   }
 
-  const renderSideBlock = (entries, teamSide) => {
-    const match = findMatch(matchId);
-    const team = match
-      ? findTeam(teamSide === 'home' ? match.team1_id : match.team2_id)
-      : null;
-
-    return `
-      <article class="record-card">
-        <h3>${htmlEscape(team?.name || getTeamSideLabel(teamSide))} | ${htmlEscape(getTeamSideLabel(teamSide))}</h3>
-        ${entries.length ? entries.map((entry, index) => `
-          <div class="record-row lineup-row">
-            <div>
-              <p><strong>${index + 1}. ${htmlEscape(entry.players.name)}</strong></p>
-              <p class="record-meta">${htmlEscape(entry.players.role)} | ${htmlEscape(getLineupRoleLabel(entry.match_role))}</p>
-            </div>
-            <div class="record-actions">
-              <button type="button" class="danger-action" data-action="delete-lineup" data-id="${entry.id}" data-match-id="${entry.match_id}">Remove</button>
-            </div>
-          </div>
-        `).join('') : '<p class="record-meta">No players selected yet.</p>'}
-      </article>
-    `;
-  };
+  const match = findMatch(matchId);
+  const homeTeam = match ? findTeam(match.team1_id) : null;
 
   elements.lineupList.innerHTML = `
-    ${renderSideBlock(homeLineup, 'home')}
-    ${renderSideBlock(awayLineup, 'away')}
+    <article class="record-card">
+      <h3>${htmlEscape(homeTeam?.name || 'Home Club')} | Home XI</h3>
+      ${homeLineup.map((entry, index) => `
+        <div class="record-row lineup-row">
+          <div>
+            <p><strong>${index + 1}. ${htmlEscape(entry.players.name)}</strong></p>
+            <p class="record-meta">${htmlEscape(entry.players.role)} | ${htmlEscape(getLineupRoleLabel(entry.match_role))}</p>
+          </div>
+          <div class="record-actions">
+            <button type="button" class="danger-action" data-action="delete-lineup" data-id="${entry.id}" data-match-id="${entry.match_id}">Remove</button>
+          </div>
+        </div>
+      `).join('')}
+    </article>
   `;
 };
 
@@ -1641,7 +1631,7 @@ const renderPosterMatchChoices = () => {
 
 const updateLineupPlayerOptions = () => {
   const matchId = elements.lineupMatch.value;
-  const teamSide = elements.lineupTeamSide.value;
+  const teamSide = 'home';
   const matchLineup = getLineupForMatch(matchId);
   const selectedIds = new Set(matchLineup.map((entry) => String(entry.player_id)));
   const unavailableIds = matchId ? getUnavailablePlayerIdsForWeek(matchId) : new Set();
@@ -1653,7 +1643,7 @@ const updateLineupPlayerOptions = () => {
         ? match.team2_id
         : ''
     : '';
-  const allowedPlayers = matchId && teamSide
+  const allowedPlayers = matchId
     ? getAllowedPlayersForMatch(matchId).filter((player) =>
       String(player.team_id) === String(sideTeamId) &&
       !selectedIds.has(String(player.id)) && !unavailableIds.has(String(player.id)))
@@ -1680,27 +1670,8 @@ const updateWinnerOptions = () => {
 
 const updateLineupTeamOptions = () => {
   const match = findMatch(elements.lineupMatch.value);
-  const options = [];
-
-  if (match) {
-    const homeTeam = findTeam(match.team1_id);
-    const awayTeam = findTeam(match.team2_id);
-    if (homeTeam) options.push({ id: 'home', label: `${homeTeam.name} | Home XI` });
-    if (awayTeam) options.push({ id: 'away', label: `${awayTeam.name} | Away XI` });
-  }
-
-  const currentValue = elements.lineupTeamSide.value;
-  elements.lineupTeamSide.innerHTML = '<option value="">Select side</option>';
-  options.forEach((optionData) => {
-    const option = document.createElement('option');
-    option.value = optionData.id;
-    option.textContent = optionData.label;
-    elements.lineupTeamSide.appendChild(option);
-  });
-
-  if (options.some((optionData) => optionData.id === currentValue)) {
-    elements.lineupTeamSide.value = currentValue;
-  }
+  if (!elements.lineupTeamSide) return;
+  elements.lineupTeamSide.value = match ? 'home' : '';
 };
 
 const getRoleHolder = (matchId, teamSide, roleKey) =>
@@ -3066,12 +3037,12 @@ const handleLineupSubmit = async (event) => {
   }
 
   const matchId = elements.lineupMatch.value;
-  const teamSide = elements.lineupTeamSide.value;
+  const teamSide = 'home';
   const playerId = elements.lineupPlayer.value;
   const matchRole = elements.lineupRole.value;
 
-  if (!matchId || !teamSide || !playerId || !matchRole) {
-    showMessage('Choose a match, side, player, and match role.', 'error');
+  if (!matchId || !playerId || !matchRole) {
+    showMessage('Choose a match, player, and match role.', 'error');
     return;
   }
 

@@ -693,7 +693,7 @@
               <p class="section-label">Playing XI</p>
               <h2>Lineup Selector</h2>
             </div>
-            <p class="panel-note">Players come from the two selected clubs, lineup is capped at 11, and anyone already selected in another match that week is hidden.</p>
+            <p class="panel-note">Players come from your saved Home Club only, lineup is capped at 11, and anyone already selected in another match that week is hidden.</p>
           </div>
 
           <form id="lineup-form" class="form-grid compact-grid">
@@ -703,12 +703,7 @@
                 <option value="">Select match</option>
               </select>
             </label>
-            <label class="field">
-              <span>Side</span>
-              <select id="lineup-team-side" required>
-                <option value="">Select side</option>
-              </select>
-            </label>
+            <input id="lineup-team-side" type="hidden" value="home" />
             <label class="field">
               <span>Player</span>
               <select id="lineup-player" required>
@@ -728,10 +723,10 @@
           </form>
 
           <div class="panel-subhead">
-            <h3>Current Match Squads</h3>
-            <span id="lineup-count" class="pill">Home 0 / 11 | Away 0 / 11</span>
+            <h3>Current Home XI</h3>
+            <span id="lineup-count" class="pill">Home XI 0 / 11</span>
           </div>
-          <p class="field-hint">Only admins can change saved squads. Each side can have up to 11 players with one captain, one vice captain, and one wicketkeeper.</p>
+          <p class="field-hint">Only admins can change the saved home XI. You can save up to 11 players with one captain, one vice captain, and one wicketkeeper.</p>
           <div id="lineup-list" class="stack-list empty-state">Select a match to view its lineup.</div>
         </section>
         </section>
