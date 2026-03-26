@@ -1206,27 +1206,36 @@ const renderVenues = () => {
   }
 
   const paginated = getPaginatedItems(filteredVenues, 'venues');
-  elements.venuesList.innerHTML = paginated.items.map((venue) => `
-    <article class="record-card">
-      <div class="record-row">
-        <div>
-          <h3>${htmlEscape(venue.name)}</h3>
-          <p class="record-meta">${htmlEscape(venue.city)}, ${htmlEscape(venue.country)}</p>
-          <p class="record-meta">${htmlEscape(venue.address || 'No address added')}</p>
-          <p class="record-meta">${Array.isArray(venue.image_urls) ? venue.image_urls.length : 0} saved pictures${venue.notes ? ` | ${htmlEscape(venue.notes)}` : ''}</p>
-        </div>
-        <div class="record-actions">
-          <button type="button" class="secondary-action" data-action="edit-venue" data-id="${venue.id}">Edit</button>
-          <button type="button" class="danger-action" data-action="delete-venue" data-id="${venue.id}">Delete</button>
-        </div>
-      </div>
-      ${Array.isArray(venue.image_urls) && venue.image_urls.length ? `
-        <div class="ground-gallery">
-          ${venue.image_urls.map((url) => `<img src="${htmlEscape(url)}" alt="${htmlEscape(venue.name)} ground view" class="ground-thumb" />`).join('')}
-        </div>
-      ` : ''}
-    </article>
-  `).join('');
+  elements.venuesList.innerHTML = `
+    <div class="venue-card-grid">
+      ${paginated.items.map((venue) => {
+        const imageUrls = Array.isArray(venue.image_urls) ? venue.image_urls : [];
+        const heroImage = imageUrls[0] || '';
+        const locationLine = venue.address || `${venue.city || ''}${venue.country ? `, ${venue.country}` : ''}`.trim() || 'Address not added';
+        return `
+          <article class="venue-card">
+            <div class="venue-card-media">
+              ${
+                heroImage
+                  ? `<img src="${htmlEscape(heroImage)}" alt="${htmlEscape(venue.name)} ground view" class="venue-card-photo" />`
+                  : `<div class="venue-card-photo venue-card-photo-fallback"><img src="./logo.svg" alt="Club crest" class="venue-card-fallback-crest" /></div>`
+              }
+              <div class="venue-card-badge">${imageUrls.length ? 'Saved Photos' : 'No Photo Yet'}</div>
+            </div>
+            <div class="venue-card-body">
+              <h3>${htmlEscape(venue.name)}</h3>
+              <p class="record-meta">${htmlEscape(locationLine)}</p>
+              ${venue.notes ? `<p class="record-meta">${htmlEscape(venue.notes)}</p>` : ''}
+            </div>
+            <div class="venue-card-actions">
+              <button type="button" class="secondary-action" data-action="edit-venue" data-id="${venue.id}">Edit</button>
+              <button type="button" class="danger-action" data-action="delete-venue" data-id="${venue.id}">Delete</button>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
   renderPagination(elements.venuesPagination, 'venues', filteredVenues.length);
 };
 
