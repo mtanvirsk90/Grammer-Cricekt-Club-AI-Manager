@@ -245,23 +245,63 @@ const renderPlayers = () => {
   if (!playersCache.length) {
     renderEmptyState(elements.playersList, 'No players saved yet.');
   } else {
-    elements.playersList.innerHTML = playersCache.map((player) => {
-      const team = teamsCache.find((entry) => String(entry.id) === String(player.team_id));
-      return `
-        <article class="record-card">
-          <div class="record-row">
-            <div>
-              <h3>${htmlEscape(player.name)}</h3>
-              <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
-            </div>
-            <div class="record-actions">
-              <button type="button" class="secondary-action" data-fallback-action="edit-player" data-id="${player.id}">Edit</button>
-              <button type="button" class="danger-action" data-fallback-action="delete-player" data-id="${player.id}">Delete</button>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join('');
+    elements.playersList.innerHTML = `
+      <div class="player-roster-grid">
+        ${playersCache.map((player) => {
+          const category = player.player_category || player.role || 'Player';
+          const initials = String(player.name || 'P')
+            .split(' ')
+            .map((part) => part[0] || '')
+            .join('')
+            .slice(0, 2)
+            .toUpperCase();
+
+          return `
+            <article class="player-roster-card">
+              <div class="player-roster-badge">#${htmlEscape(player.jersey_number || '0')}</div>
+              <div class="player-card-actions">
+                <button type="button" class="icon-action player-card-delete" data-fallback-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
+              </div>
+              <div class="player-roster-media">
+                ${
+                  player.profile_image_url
+                    ? `<img src="${htmlEscape(player.profile_image_url)}" alt="${htmlEscape(player.name)} profile" class="player-roster-photo" />`
+                    : `
+                      <div class="player-avatar-kit">
+                        <div class="player-avatar-head"></div>
+                        <div class="player-avatar-body"></div>
+                        <img src="./logo.svg" alt="Club crest" class="player-avatar-crest" />
+                        <div class="player-avatar-badge">${htmlEscape(initials || 'G')}</div>
+                      </div>
+                    `
+                }
+              </div>
+              <div class="player-roster-meta">
+                <h3>${htmlEscape(player.name)}</h3>
+                <div class="player-roster-type">${htmlEscape(category)}</div>
+              </div>
+              <div class="player-roster-controls">
+                <button type="button" class="player-edit-button" data-fallback-action="edit-player" data-id="${player.id}" aria-label="Edit ${htmlEscape(player.name)}">Edit</button>
+              </div>
+              <div class="player-roster-footer">
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Matches</span>
+                </div>
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Runs</span>
+                </div>
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Wickets</span>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('')}
+      </div>
+    `;
   }
 
   if (elements.homePlayersList) {
@@ -269,11 +309,10 @@ const renderPlayers = () => {
       renderEmptyState(elements.homePlayersList, 'No players saved yet.');
     } else {
       elements.homePlayersList.innerHTML = playersCache.slice(0, 5).map((player) => {
-        const team = teamsCache.find((entry) => String(entry.id) === String(player.team_id));
         return `
           <article class="record-card">
             <h3>${htmlEscape(player.name)}</h3>
-            <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)}</p>
+            <p class="record-meta">#${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
           </article>
         `;
       }).join('');

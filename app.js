@@ -1072,11 +1072,10 @@ const renderHomeDashboard = () => {
     setEmptyState(elements.homePlayersList, 'No players saved yet.');
   } else {
     elements.homePlayersList.innerHTML = savedPlayers.map((player) => {
-      const team = findTeam(player.team_id);
       return `
         <article class="record-card">
           <h3>${htmlEscape(player.name)}</h3>
-          <p class="record-meta">${htmlEscape(team?.name || 'Unknown club')} | #${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
+          <p class="record-meta">#${htmlEscape(player.jersey_number || 0)} | ${htmlEscape(player.player_category || player.role || 'Player')}</p>
         </article>
       `;
     }).join('');

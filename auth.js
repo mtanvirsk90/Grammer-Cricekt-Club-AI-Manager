@@ -18,6 +18,8 @@ const elements = {
   resetForm: document.getElementById('reset-form'),
   sessionEmail: document.getElementById('session-email'),
   sessionRole: document.getElementById('session-role'),
+  topbarEmail: document.getElementById('topbar-email'),
+  homeWelcomeEmail: document.getElementById('home-welcome-email'),
   logoutButton: document.getElementById('logout-button'),
   mainTabHome: document.getElementById('main-tab-home'),
   mainTabDatabase: document.getElementById('main-tab-database'),
@@ -155,6 +157,8 @@ const updateSessionCard = async (session) => {
   if (!session) {
     elements.sessionEmail.textContent = 'Not signed in';
     elements.sessionRole.textContent = 'Role: guest';
+    if (elements.topbarEmail) elements.topbarEmail.textContent = 'Not signed in';
+    if (elements.homeWelcomeEmail) elements.homeWelcomeEmail.textContent = 'guest';
     elements.logoutButton.disabled = true;
     toggleHidden(elements.mainTabAdmin, true);
     return;
@@ -180,6 +184,8 @@ const updateSessionCard = async (session) => {
 
   elements.sessionEmail.textContent = session.user.email || 'Signed in';
   elements.sessionRole.textContent = `Role: ${role}`;
+  if (elements.topbarEmail) elements.topbarEmail.textContent = session.user.email || 'Signed in';
+  if (elements.homeWelcomeEmail) elements.homeWelcomeEmail.textContent = session.user.email || 'member';
   elements.logoutButton.disabled = false;
   toggleHidden(elements.mainTabAdmin, !['admin', 'super_admin'].includes(role));
 };
