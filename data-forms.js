@@ -35,6 +35,7 @@ const elements = {
   playersList: byId('players-list'),
   playersExport: byId('players-export'),
   playersTemplate: byId('players-template'),
+  playersImportFile: byId('players-import-file'),
   homePlayersList: byId('home-players-list'),
   venueForm: byId('venue-form'),
   venueEditId: byId('venue-edit-id'),
@@ -294,6 +295,35 @@ const downloadExcelFile = (filename, sheetName, rows) => {
   const worksheet = window.XLSX.utils.json_to_sheet(rows);
   window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   window.XLSX.writeFile(workbook, filename);
+};
+
+const readSpreadsheetRows = async (file) => {
+  const fileName = String(file?.name || '').toLowerCase();
+
+  if (fileName.endsWith('.csv')) {
+    const text = await file.text();
+    const [headerLine, ...lines] = text.split(/\r?\n/).filter((line) => line.trim());
+    if (!headerLine) return [];
+    const headers = headerLine.split(',').map((value) => value.trim());
+    return lines.map((line) => {
+      const values = line.split(',').map((value) => value.trim());
+      return headers.reduce((record, header, index) => {
+        record[header] = values[index] || '';
+        return record;
+      }, {});
+    });
+  }
+
+  if (!window.XLSX) {
+    throw new Error('Excel support did not load. Please refresh and try again.');
+  }
+
+  const buffer = await file.arrayBuffer();
+  const workbook = window.XLSX.read(buffer, { type: 'array' });
+  const firstSheetName = workbook.SheetNames[0];
+  if (!firstSheetName) return [];
+  const worksheet = workbook.Sheets[firstSheetName];
+  return window.XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 };
 
 const createPlayerTemplateWorkbook = async () => {
@@ -571,6 +601,78 @@ const handleVenueSubmit = async (event) => {
   showMessage(editingId ? 'Ground updated successfully.' : 'Ground saved successfully.');
 };
 
+const handlePlayersImport = async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const rows = await readSpreadsheetRows(file);
+  if (!rows.length) {
+    showMessage('The player file is empty or invalid.', 'error');
+    return;
+  }
+
+  const session = await getSession();
+  const homeTeam = getHomeTeams()[0];
+
+  if (!homeTeam) {
+    showMessage('Save at least one Home Club first so imported players can be linked automatically.', 'error');
+    return;
+  }
+
+  const payload = rows
+    .map((row) => ({
+      name: String(row.name || '').trim(),
+      team_id: homeTeam.id,
+      jersey_number: Number(row.jersey_number) || 0,
+      role: row.player_category || 'Player',
+      batsman_type: String(row.batsman_type || '').trim(),
+      bowler_type: String(row.bowler_type || '').trim(),
+      batting_style: String(row.batsman_type || '').trim(),
+      bowling_style: String(row.bowler_type || '').trim(),
+      player_category: row.player_category || 'Player',
+      profile_image_url: '',
+      created_by: session.user.id,
+    }))
+    .filter((player) => player.name && player.jersey_number);
+
+  if (!payload.length) {
+    showMessage('No valid player rows were found in the file.', 'error');
+    return;
+  }
+
+  const existingByKey = new Map(playersCache.map((player) => [
+    `${String(player.name || '').trim().toLowerCase()}::${Number(player.jersey_number) || 0}`,
+    player,
+  ]));
+
+  const updates = [];
+  const inserts = [];
+
+  payload.forEach((player) => {
+    const key = `${String(player.name || '').trim().toLowerCase()}::${Number(player.jersey_number) || 0}`;
+    const existing = existingByKey.get(key);
+    if (existing) {
+      updates.push({ ...player, id: existing.id, profile_image_url: existing.profile_image_url || '' });
+    } else {
+      inserts.push(player);
+    }
+  });
+
+  if (updates.length) {
+    const { error: updateError } = await supabase.from('players').upsert(updates, { onConflict: 'id' });
+    if (updateError) throw updateError;
+  }
+
+  if (inserts.length) {
+    const { error: insertError } = await supabase.from('players').insert(inserts);
+    if (insertError) throw insertError;
+  }
+
+  event.target.value = '';
+  await loadPlayers();
+  showMessage('Players imported and updated successfully.');
+};
+
 const createSafeHandler = (handler) => (event) => {
   Promise.resolve(handler(event)).catch((error) => {
     console.error(error);
@@ -645,6 +747,7 @@ const bindHandlers = () => {
   elements.venueCancelEdit?.addEventListener?.('click', resetVenueForm);
   elements.playersExport?.addEventListener?.('click', exportPlayersCsv);
   elements.playersTemplate?.addEventListener?.('click', downloadPlayersTemplate);
+  elements.playersImportFile?.addEventListener?.('change', (event) => createSafeHandler(handlePlayersImport)(event));
   elements.teamsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.venuesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
