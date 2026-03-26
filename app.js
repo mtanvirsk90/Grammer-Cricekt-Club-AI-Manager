@@ -1301,8 +1301,9 @@ const renderPlayers = () => {
 
           return `
             <article class="player-roster-card">
+              <div class="player-roster-badge">#${htmlEscape(player.jersey_number || '0')}</div>
               <div class="player-card-actions">
-                <button type="button" class="icon-action" data-action="edit-player" data-id="${player.id}" aria-label="Edit ${htmlEscape(player.name)}">Edit</button>
+                <button type="button" class="icon-action player-card-delete" data-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
               </div>
               <div class="player-roster-media">
                 ${
@@ -1319,12 +1320,25 @@ const renderPlayers = () => {
                 }
               </div>
               <div class="player-roster-meta">
-                <div class="player-roster-type">${htmlEscape(category)}</div>
                 <h3>${htmlEscape(player.name)}</h3>
+                <div class="player-roster-type">${htmlEscape(category)}</div>
+              </div>
+              <div class="player-roster-controls">
+                <button type="button" class="player-edit-button" data-action="edit-player" data-id="${player.id}" aria-label="Edit ${htmlEscape(player.name)}">Edit</button>
               </div>
               <div class="player-roster-footer">
-                <span class="player-roster-number">#${htmlEscape(player.jersey_number || '0')}</span>
-                <button type="button" class="player-delete-link" data-action="delete-player" data-id="${player.id}" aria-label="Delete ${htmlEscape(player.name)}">Delete</button>
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Matches</span>
+                </div>
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Runs</span>
+                </div>
+                <div class="player-stat">
+                  <strong>0</strong>
+                  <span>Wickets</span>
+                </div>
               </div>
             </article>
           `;
