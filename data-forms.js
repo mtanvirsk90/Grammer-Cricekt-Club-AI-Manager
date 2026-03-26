@@ -264,15 +264,26 @@ const downloadCsv = (filename, headers, rows) => {
   URL.revokeObjectURL(url);
 };
 
+const downloadExcelFile = (filename, sheetName, rows) => {
+  if (!window.XLSX) {
+    throw new Error('Excel support did not load. Please refresh and try again.');
+  }
+
+  const workbook = window.XLSX.utils.book_new();
+  const worksheet = window.XLSX.utils.json_to_sheet(rows);
+  window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  window.XLSX.writeFile(workbook, filename);
+};
+
 const downloadPlayersTemplate = () => {
-  downloadCsv('players-template.csv', PLAYER_TEMPLATE_HEADERS, [{
+  downloadExcelFile('players-template.xlsx', 'Players', [{
     name: 'John Smith',
     jersey_number: '18',
     batsman_type: 'Right-hand bat',
     bowler_type: 'Right-arm medium',
     player_category: 'Batsman',
   }]);
-  showMessage('Player CSV template downloaded.');
+  showMessage('Player Excel template downloaded.');
 };
 
 const exportPlayersCsv = () => {

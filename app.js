@@ -540,6 +540,37 @@ const downloadCsv = (filename, headers, rows) => {
   URL.revokeObjectURL(url);
 };
 
+const readSpreadsheetRows = async (file) => {
+  const fileName = String(file?.name || '').toLowerCase();
+
+  if (fileName.endsWith('.csv')) {
+    const text = await file.text();
+    return parseCsv(text);
+  }
+
+  if (!window.XLSX) {
+    throw new Error('Excel support did not load. Please refresh and try again.');
+  }
+
+  const buffer = await file.arrayBuffer();
+  const workbook = window.XLSX.read(buffer, { type: 'array' });
+  const firstSheetName = workbook.SheetNames[0];
+  if (!firstSheetName) return [];
+  const worksheet = workbook.Sheets[firstSheetName];
+  return window.XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+};
+
+const downloadExcelFile = (filename, sheetName, rows) => {
+  if (!window.XLSX) {
+    throw new Error('Excel support did not load. Please refresh and try again.');
+  }
+
+  const workbook = window.XLSX.utils.book_new();
+  const worksheet = window.XLSX.utils.json_to_sheet(rows);
+  window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  window.XLSX.writeFile(workbook, filename);
+};
+
 const parseCsvLine = (line) => {
   const values = [];
   let current = '';
@@ -2217,14 +2248,14 @@ const downloadTeamsTemplate = () => {
 };
 
 const downloadPlayersTemplate = () => {
-  downloadCsv('players-template.csv', PLAYER_TEMPLATE_HEADERS, [{
+  downloadExcelFile('players-template.xlsx', 'Players', [{
     name: 'John Smith',
     jersey_number: '18',
     batsman_type: 'Right-hand bat',
     bowler_type: 'Right-arm medium',
     player_category: 'Batsman',
   }]);
-  showMessage('Player CSV template downloaded.');
+  showMessage('Player Excel template downloaded.');
 };
 
 const handleTeamsImport = async (event) => {
@@ -2264,10 +2295,9 @@ const handlePlayersImport = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
 
-  const text = await file.text();
-  const rows = parseCsv(text);
+  const rows = await readSpreadsheetRows(file);
   if (!rows.length) {
-    showMessage('The players CSV is empty or invalid.', 'error');
+    showMessage('The player file is empty or invalid.', 'error');
     return;
   }
 
@@ -2293,11 +2323,38 @@ const handlePlayersImport = async (event) => {
     .filter(Boolean);
 
   await withRequest(async () => {
-    const { error } = await supabase.from('players').insert(payload);
-    if (error) throw error;
+    const existingPlayers = state.players.filter((player) => String(player.team_id) === String(homeTeam?.id));
+    const existingByKey = new Map(existingPlayers.map((player) => [
+      `${String(player.name || '').trim().toLowerCase()}::${Number(player.jersey_number) || 0}`,
+      player,
+    ]));
+
+    const updates = [];
+    const inserts = [];
+
+    payload.forEach((player) => {
+      const key = `${String(player.name || '').trim().toLowerCase()}::${Number(player.jersey_number) || 0}`;
+      const existing = existingByKey.get(key);
+      if (existing) {
+        updates.push({ ...player, id: existing.id, profile_image_url: existing.profile_image_url || '' });
+      } else {
+        inserts.push(player);
+      }
+    });
+
+    if (updates.length) {
+      const { error: updateError } = await supabase.from('players').upsert(updates, { onConflict: 'id' });
+      if (updateError) throw updateError;
+    }
+
+    if (inserts.length) {
+      const { error: insertError } = await supabase.from('players').insert(inserts);
+      if (insertError) throw insertError;
+    }
+
     event.target.value = '';
     await loadPlayers();
-  }, 'Players imported successfully.');
+  }, 'Players imported and updated successfully.');
 };
 
 const handleSignup = async (event) => {
