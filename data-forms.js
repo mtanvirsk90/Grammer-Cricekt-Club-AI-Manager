@@ -52,6 +52,27 @@ const elements = {
 };
 
 const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
+const BATSMAN_TYPE_OPTIONS = [
+  'Right-hand bat',
+  'Left-hand bat',
+  'Right-hand aggressive bat',
+  'Left-hand aggressive bat',
+  'Right-hand anchor bat',
+  'Left-hand anchor bat',
+];
+const BOWLER_TYPE_OPTIONS = [
+  'Right-arm fast',
+  'Right-arm fast-medium',
+  'Right-arm medium',
+  'Right-arm off spin',
+  'Right-arm leg spin',
+  'Left-arm fast',
+  'Left-arm fast-medium',
+  'Left-arm medium',
+  'Left-arm orthodox spin',
+  'Left-arm wrist spin',
+];
+const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Wicketkeeper-Batsman'];
 
 const CLUB_TYPE_PREFIX = 'club_type:';
 
@@ -275,15 +296,62 @@ const downloadExcelFile = (filename, sheetName, rows) => {
   window.XLSX.writeFile(workbook, filename);
 };
 
-const downloadPlayersTemplate = () => {
-  downloadExcelFile('players-template.xlsx', 'Players', [{
+const createPlayerTemplateWorkbook = async () => {
+  if (!window.ExcelJS) {
+    throw new Error('Excel template support did not load. Please refresh and try again.');
+  }
+
+  const workbook = new window.ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Players');
+
+  sheet.columns = [
+    { header: 'name', key: 'name', width: 28 },
+    { header: 'jersey_number', key: 'jersey_number', width: 16 },
+    { header: 'batsman_type', key: 'batsman_type', width: 26 },
+    { header: 'bowler_type', key: 'bowler_type', width: 26 },
+    { header: 'player_category', key: 'player_category', width: 24 },
+  ];
+
+  sheet.addRow({
     name: 'John Smith',
     jersey_number: '18',
     batsman_type: 'Right-hand bat',
     bowler_type: 'Right-arm medium',
     player_category: 'Batsman',
-  }]);
-  showMessage('Player Excel template downloaded.');
+  });
+
+  sheet.getRow(1).font = { bold: true };
+
+  const applyDropdown = (columnKey, options) => {
+    for (let rowIndex = 2; rowIndex <= 200; rowIndex += 1) {
+      sheet.getCell(`${columnKey}${rowIndex}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${options.join(',')}"`],
+        showErrorMessage: true,
+      };
+    }
+  };
+
+  applyDropdown('C', BATSMAN_TYPE_OPTIONS);
+  applyDropdown('D', BOWLER_TYPE_OPTIONS);
+  applyDropdown('E', PLAYER_CATEGORY_OPTIONS);
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'players-template.xlsx';
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const downloadPlayersTemplate = async () => {
+  await createPlayerTemplateWorkbook();
+  showMessage('Player Excel template downloaded with dropdowns.');
 };
 
 const exportPlayersCsv = () => {
