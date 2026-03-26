@@ -1398,25 +1398,53 @@ const renderMatches = () => {
   }
 
   const paginated = getPaginatedItems(filteredMatches, 'matches');
-  elements.matchesList.innerHTML = paginated.items.map((match) => {
-    const venue = findVenue(match.venue_id);
+  elements.matchesList.innerHTML = `
+    <div class="match-card-grid">
+      ${paginated.items.map((match) => {
+        const venue = findVenue(match.venue_id);
+        const homeTeam = findTeam(match.team1_id);
+        const awayTeam = findTeam(match.team2_id);
+        const formatTeamLogo = (team) => team?.logo_url
+          ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="match-team-logo" />`
+          : `<div class="match-team-logo match-team-logo-fallback"><img src="./logo.svg" alt="Club crest" class="match-team-logo-crest" /></div>`;
 
-    return `
-      <article class="record-card">
-        <div class="record-row">
-          <div>
-            <h3>${htmlEscape(getMatchLabel(match))}</h3>
-            <p class="record-meta">${htmlEscape(findTeam(match.team1_id)?.name || 'Unknown home')} vs ${htmlEscape(findTeam(match.team2_id)?.name || 'Unknown away')}</p>
-            <p class="record-meta">${htmlEscape(venue?.name || 'Unknown venue')} | ${htmlEscape(venue?.address || `${venue?.city || ''} ${venue?.country || ''}`.trim())}</p>
-          </div>
-          <div class="record-actions">
-            <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
-            <button type="button" class="danger-action" data-action="delete-match" data-id="${match.id}">Delete</button>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join('');
+        return `
+          <article class="match-card">
+            <div class="match-card-header">
+              <div class="match-team-block">
+                ${formatTeamLogo(homeTeam)}
+                <span>${htmlEscape(homeTeam?.name || 'Unknown home')}</span>
+              </div>
+              <div class="match-versus-block">
+                <div class="match-status-pill">Scheduled</div>
+                <strong>VS</strong>
+              </div>
+              <div class="match-team-block">
+                ${formatTeamLogo(awayTeam)}
+                <span>${htmlEscape(awayTeam?.name || 'Unknown away')}</span>
+              </div>
+            </div>
+            <div class="match-card-body">
+              <div class="match-card-meta">
+                <div class="match-meta-item">
+                  <small>Date</small>
+                  <strong>${htmlEscape(formatDate(match.match_date))}</strong>
+                </div>
+                <div class="match-meta-item">
+                  <small>Venue</small>
+                  <strong>${htmlEscape(venue?.name || 'Unknown venue')}</strong>
+                </div>
+              </div>
+              <div class="match-card-actions">
+                <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
+                <button type="button" class="danger-action" data-action="delete-match" data-id="${match.id}">Delete</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
   renderPagination(elements.matchesPagination, 'matches', filteredMatches.length);
 };
 
