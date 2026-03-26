@@ -87,6 +87,9 @@ const BOWLER_TYPE_OPTIONS = [
   'Left-arm wrist spin',
 ];
 const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Wicketkeeper-Batsman'];
+const STORAGE_BUCKETS = {
+  team: 'club-assets',
+};
 
 const CLUB_TYPE_PREFIX = 'club_type:';
 
@@ -164,6 +167,45 @@ const renderEmptyState = (element, text) => {
   element.innerHTML = `<div class="empty-state">${htmlEscape(text)}</div>`;
 };
 
+const readLocalImage = (file) =>
+  new Promise((resolve, reject) => {
+    if (!file) {
+      resolve('');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+    reader.onerror = () => reject(new Error('Image upload could not be read.'));
+    reader.readAsDataURL(file);
+  });
+
+const uploadImageFile = async (file, bucket, folder) => {
+  if (!file) return '';
+
+  if (!SUPABASE_READY || !supabase) {
+    return readLocalImage(file);
+  }
+
+  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '-')}`;
+  const path = `${folder}/${safeName}`;
+
+  try {
+    const { error } = await supabase.storage.from(bucket).upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || '';
+  } catch (error) {
+    console.warn(`Storage upload failed for ${bucket}/${path}. Falling back to local data URL.`, error);
+    return readLocalImage(file);
+  }
+};
+
 const renderTeams = () => {
   if (!elements.teamsList) return;
 
@@ -171,34 +213,33 @@ const renderTeams = () => {
     renderEmptyState(elements.teamsList, 'No clubs saved yet.');
   } else {
     elements.teamsList.innerHTML = `
-      <div class="table-shell">
-        <table class="records-table">
-          <thead>
-            <tr>
-              <th>Club</th>
-              <th>Short</th>
-              <th>Type</th>
-              <th>Colors / Teams</th>
-              <th>Logo</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${teamsCache.map((team) => `
-              <tr>
-                <td>${htmlEscape(team.name)}</td>
-                <td>${htmlEscape(team.short_name)}</td>
-                <td>${htmlEscape(getTeamType(team) === 'opponent' ? 'Opponent' : 'Home')}</td>
-                <td>${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')} | ${htmlEscape((team.squad_labels || []).join(', ') || 'T1')}</td>
-                <td>${team.logo_url ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="list-logo" />` : '<span class="record-meta">No logo</span>'}</td>
-                <td class="table-actions">
-                  <button type="button" class="secondary-action" data-fallback-action="edit-team" data-id="${team.id}">Edit</button>
-                  <button type="button" class="danger-action" data-fallback-action="delete-team" data-id="${team.id}">Delete</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div class="club-card-grid">
+        ${teamsCache.map((team) => {
+          const teamTypeLabel = getTeamType(team) === 'opponent' ? 'Opponent' : 'Home';
+          const logoMarkup = team.logo_url
+            ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="club-card-logo" />`
+            : `
+              <div class="club-card-logo club-card-logo-fallback" aria-hidden="true">
+                <img src="./logo.svg" alt="Club crest" class="club-card-logo-crest" />
+              </div>
+            `;
+
+          return `
+            <article class="club-card">
+              <div class="club-card-hero">
+                <div class="club-card-badge">${htmlEscape(teamTypeLabel)}</div>
+                ${logoMarkup}
+              </div>
+              <div class="club-card-body">
+                <h3>${htmlEscape(team.name)}</h3>
+              </div>
+              <div class="club-card-actions">
+                <button type="button" class="secondary-action" data-fallback-action="edit-team" data-id="${team.id}">Edit</button>
+                <button type="button" class="danger-action" data-fallback-action="delete-team" data-id="${team.id}">Delete</button>
+              </div>
+            </article>
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -700,11 +741,12 @@ const handleTeamSubmit = async (event) => {
   const session = await getSession();
   const editingId = String(elements.teamEditId?.value || '');
   const existingTeam = teamsCache.find((team) => String(team.id) === editingId);
+  const uploadedLogo = await uploadImageFile(elements.teamLogoFile?.files?.[0], STORAGE_BUCKETS.team, 'logos');
 
   const payload = {
     name: elements.teamName?.value.trim() || '',
     short_name: elements.teamShortName?.value.trim() || '',
-    logo_url: elements.teamLogoUrl?.value.trim() || '',
+    logo_url: uploadedLogo || elements.teamLogoUrl?.value.trim() || existingTeam?.logo_url || '',
     team_count: 1,
     squad_labels: withTeamTypeLabel(existingTeam?.squad_labels || [], elements.teamClubType?.value || 'home'),
     primary_color: elements.teamPrimaryColor?.value || '#d32027',

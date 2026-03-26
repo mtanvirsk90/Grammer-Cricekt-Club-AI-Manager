@@ -1220,8 +1220,6 @@ const renderTeams = () => {
               </div>
               <div class="club-card-body">
                 <h3>${htmlEscape(team.name)}</h3>
-                <p class="record-meta">${htmlEscape(team.short_name)}${team.notes ? ` | ${htmlEscape(team.notes)}` : ''}</p>
-                <p class="record-meta">Colors: ${htmlEscape(team.primary_color || '#d32027')} / ${htmlEscape(team.secondary_color || '#3944a7')}</p>
               </div>
               <div class="club-card-actions">
                 <button type="button" class="secondary-action" data-action="edit-team" data-id="${team.id}">Edit</button>
