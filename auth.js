@@ -1,6 +1,8 @@
 import { SUPABASE_READY, getConfigMessage, supabase } from './supabase.js';
 
 const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
+const DEFAULT_MAIN_TAB = 'home';
+const DEFAULT_DATABASE_TAB = 'players';
 
 const elements = {
   authScreen: document.getElementById('auth-screen'),
@@ -42,6 +44,32 @@ const elements = {
 };
 
 const isBootstrapSuperAdminEmail = (email) => SUPER_ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
+const getMainTabStorageKey = (session) => `gcc-active-main-tab:${session?.user?.id || 'guest'}`;
+const getDatabaseTabStorageKey = (session) => `gcc-active-database-tab:${session?.user?.id || 'guest'}`;
+const getSavedMainTab = (session) => {
+  try {
+    return window.localStorage.getItem(getMainTabStorageKey(session)) || DEFAULT_MAIN_TAB;
+  } catch (error) {
+    console.error(error);
+    return DEFAULT_MAIN_TAB;
+  }
+};
+const getSavedDatabaseTab = (session) => {
+  try {
+    return window.localStorage.getItem(getDatabaseTabStorageKey(session)) || DEFAULT_DATABASE_TAB;
+  } catch (error) {
+    console.error(error);
+    return DEFAULT_DATABASE_TAB;
+  }
+};
+const clearSavedTabs = (session) => {
+  try {
+    window.localStorage.removeItem(getMainTabStorageKey(session));
+    window.localStorage.removeItem(getDatabaseTabStorageKey(session));
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 const htmlEscape = (value = '') =>
   String(value).replace(/[&<>"']/g, (char) => ({
@@ -308,6 +336,8 @@ const handleLogout = async () => {
   }
 
   try {
+    const { data } = await supabase.auth.getSession();
+    clearSavedTabs(data?.session || null);
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     showMessage('Signed out successfully.');
@@ -351,8 +381,8 @@ const init = () => {
     toggleHidden(elements.authScreen, Boolean(session));
     toggleHidden(elements.appShell, !session);
     updateSessionCard(session);
-    switchMainTab('home');
-    switchDatabaseTab('players');
+    switchMainTab(getSavedMainTab(session));
+    switchDatabaseTab(getSavedDatabaseTab(session));
   });
 
   supabase?.auth.onAuthStateChange((_event, session) => {
@@ -361,8 +391,8 @@ const init = () => {
       toggleHidden(elements.appShell, !session);
     }
     updateSessionCard(session);
-    switchMainTab('home');
-    switchDatabaseTab('players');
+    switchMainTab(getSavedMainTab(session));
+    switchDatabaseTab(getSavedDatabaseTab(session));
   });
 };
 

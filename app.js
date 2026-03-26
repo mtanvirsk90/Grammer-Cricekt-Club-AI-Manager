@@ -1,6 +1,8 @@
 import { SUPABASE_READY, getConfigMessage, schemaSQL, supabase } from './supabase.js';
 
 const SUPER_ADMIN_EMAILS = ['mtanvir.sk90@gmail.com'];
+const DEFAULT_MAIN_TAB = 'home';
+const DEFAULT_DATABASE_TAB = 'players';
 
 const elements = {
   authScreen: document.getElementById('auth-screen'),
@@ -199,6 +201,47 @@ const state = {
   selectedPosterVariantKey: '',
   activeResultPosterMatchId: '',
   pendingConfirm: null,
+};
+
+const getMainTabStorageKey = (session = state.session) => `gcc-active-main-tab:${session?.user?.id || 'guest'}`;
+const getDatabaseTabStorageKey = (session = state.session) => `gcc-active-database-tab:${session?.user?.id || 'guest'}`;
+const saveActiveMainTab = (tabName) => {
+  try {
+    window.localStorage.setItem(getMainTabStorageKey(), tabName);
+  } catch (error) {
+    console.error(error);
+  }
+};
+const saveActiveDatabaseTab = (tabName) => {
+  try {
+    window.localStorage.setItem(getDatabaseTabStorageKey(), tabName);
+  } catch (error) {
+    console.error(error);
+  }
+};
+const getSavedMainTab = () => {
+  try {
+    return window.localStorage.getItem(getMainTabStorageKey()) || DEFAULT_MAIN_TAB;
+  } catch (error) {
+    console.error(error);
+    return DEFAULT_MAIN_TAB;
+  }
+};
+const getSavedDatabaseTab = () => {
+  try {
+    return window.localStorage.getItem(getDatabaseTabStorageKey()) || DEFAULT_DATABASE_TAB;
+  } catch (error) {
+    console.error(error);
+    return DEFAULT_DATABASE_TAB;
+  }
+};
+const clearSavedTabs = (session = state.session) => {
+  try {
+    window.localStorage.removeItem(getMainTabStorageKey(session));
+    window.localStorage.removeItem(getDatabaseTabStorageKey(session));
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const STORAGE_BUCKETS = {
@@ -604,6 +647,10 @@ const switchMainTab = (tabName) => {
     tab.button.classList.toggle('active-workspace-tab', active);
     toggleHidden(tab.pane, !active);
   });
+
+  if (tabs.some((tab) => tab.name === tabName)) {
+    saveActiveMainTab(tabName);
+  }
 };
 
 const switchDatabaseTab = (tabName) => {
@@ -621,6 +668,10 @@ const switchDatabaseTab = (tabName) => {
     tab.button.classList.toggle('active-workspace-tab', active);
     toggleHidden(tab.pane, !active);
   });
+
+  if (tabs.some((tab) => tab.name === tabName)) {
+    saveActiveDatabaseTab(tabName);
+  }
 };
 
 const switchAuthTab = (tabName) => {
@@ -2363,6 +2414,7 @@ const handleLogout = async () => {
   }
 
   try {
+    clearSavedTabs(state.session);
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     switchAuthTab('login');
@@ -3129,6 +3181,7 @@ const handleListActions = async (event) => {
 };
 
 const setSignedOutState = () => {
+  clearSavedTabs();
   state.profile = null;
   state.profiles = [];
   state.teams = [];
@@ -3192,8 +3245,8 @@ const setSignedOutState = () => {
   renderResults();
   setEmptyState(elements.posterHost, 'Sign in to work with teams, lineups, results, and posters.');
   setEmptyState(elements.resultPosterHost, 'Sign in to generate result posters from completed matches.');
-  switchMainTab('home');
-  switchDatabaseTab('players');
+  switchMainTab(DEFAULT_MAIN_TAB);
+  switchDatabaseTab(DEFAULT_DATABASE_TAB);
   switchAuthTab('signup');
   updateAuthAvailability();
 };
@@ -3213,6 +3266,10 @@ const bootstrapSession = async (session) => {
     setEmptyState(elements.posterHost, 'Choose a match and click "Generate Poster" to preview it here.');
     setValueIfPresent(elements.posterCaptionOutput, '');
     setValueIfPresent(elements.resultCaptionOutput, '');
+    const nextMainTab = getSavedMainTab();
+    const nextDatabaseTab = getSavedDatabaseTab();
+    switchMainTab(nextMainTab);
+    switchDatabaseTab(nextDatabaseTab);
   } catch (error) {
     console.error(error);
     showMessage(error.message || 'Failed to load session data.', 'error');

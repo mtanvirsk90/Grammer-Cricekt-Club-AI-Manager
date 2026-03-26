@@ -152,15 +152,7 @@ textarea {
   display: grid;
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.hero-copy,
-.hero-panel,
+.hero,
 .panel {
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 24px;
@@ -168,8 +160,12 @@ textarea {
   backdrop-filter: blur(14px);
 }
 
-.hero-copy {
-  padding: 2rem;
+.app-topbar {
+  position: sticky;
+  top: 1rem;
+  z-index: 30;
+  margin-bottom: 1rem;
+  padding: 1rem 1.2rem;
   background:
     linear-gradient(140deg, rgba(14, 18, 44, 0.82), rgba(57, 68, 167, 0.74) 48%, rgba(211, 32, 39, 0.7) 100%),
     linear-gradient(0deg, rgba(10, 14, 35, 0.12), rgba(10, 14, 35, 0.12)),
@@ -179,17 +175,34 @@ textarea {
   color: #f8fafc;
 }
 
-.hero-copy h1 {
-  margin: 0.25rem 0 0.75rem;
-  font-size: clamp(2rem, 4vw, 3.75rem);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
+.app-topbar-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.hero-text {
+.app-brand-copy {
+  min-width: 0;
+}
+
+.app-brand-copy h1 {
+  margin: 0.2rem 0 0.5rem;
+  font-size: clamp(1.5rem, 2.6vw, 2.35rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.app-brand-text {
   max-width: 42rem;
-  color: rgba(248, 250, 252, 0.8);
-  font-size: 1rem;
+  margin: 0;
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 0.98rem;
+}
+
+.top-workspace-tabs {
+  padding-top: 0.2rem;
 }
 
 .eyebrow,
@@ -321,6 +334,11 @@ textarea {
 
 .app-status-card {
   max-width: 380px;
+}
+
+.app-topbar-session {
+  width: min(320px, 100%);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .status-card h3 {
@@ -1402,9 +1420,12 @@ code {
 
 @media (max-width: 980px) {
   .auth-screen,
-  .hero,
   .dashboard {
     grid-template-columns: 1fr;
+  }
+
+  .app-topbar-main {
+    flex-direction: column;
   }
 
   .pane-grid {
@@ -1434,8 +1455,7 @@ code {
 
   .auth-hero,
   .auth-card,
-  .hero-copy,
-  .hero-panel,
+  .app-topbar,
   .panel {
     border-radius: 20px;
   }

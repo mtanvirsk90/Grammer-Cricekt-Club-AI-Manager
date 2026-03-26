@@ -85,59 +85,40 @@
 
     <div id="app-shell" class="hidden">
       <section id="app-messages" class="messages" aria-live="polite"></section>
-      <header class="hero">
-        <div class="hero-copy">
+      <header class="app-topbar panel panel-wide">
+        <div class="app-topbar-main">
+        <div class="app-brand-copy">
           <div class="brand-lockup">
             <img src="./logo.svg" alt="Grammer Cricket Club logo" class="club-logo app-logo" />
             <div>
               <p class="eyebrow">Grammer Cricket Club AI Manager</p>
-              <h1>Run your club with player records, match planning, AI graphics, results, and user control.</h1>
+              <h1>Run your club with player records, match planning, graphics, results, and user control.</h1>
             </div>
           </div>
-          <p class="hero-text">
+          <p class="app-brand-text">
             This dashboard is tailored for Grammer Cricket Club with email-auth access, role permissions,
-            searchable match setup, cricket-first databases, and six-design social media graphics.
+            searchable match setup, cricket-first databases, social graphics, and multi-user workflows.
           </p>
         </div>
-        <div class="hero-panel">
-          <h2>Supabase Setup</h2>
-          <p>
-            Add your project URL and anon key in <code>supabase.js</code>, then run the SQL
-            schema below in the Supabase SQL editor for users, players, clubs, venues, matches, and results.
-          </p>
-          <pre id="schema-sql" class="schema-box"></pre>
+        <div class="status-card app-status-card app-topbar-session">
+          <p class="section-label">Current Session</p>
+          <h3 id="session-email">Not signed in</h3>
+          <p id="session-role" class="record-meta">Role: guest</p>
+          <button id="logout-button" type="button" class="secondary-action">Sign Out</button>
+        </div>
+        </div>
+
+        <div class="workspace-tabs top-workspace-tabs">
+          <button id="main-tab-home" type="button" class="workspace-tab active-workspace-tab">Home</button>
+          <button id="main-tab-database" type="button" class="workspace-tab">Data Base</button>
+          <button id="main-tab-matches" type="button" class="workspace-tab">Match Centre</button>
+          <button id="main-tab-results" type="button" class="workspace-tab">Completed Matches</button>
+          <button id="main-tab-poster" type="button" class="workspace-tab">AI Graphics</button>
+          <button id="main-tab-admin" type="button" class="workspace-tab hidden">User Management</button>
         </div>
       </header>
 
       <main class="dashboard">
-        <section class="panel panel-wide">
-          <div class="panel-head">
-            <div>
-              <p class="section-label">Session</p>
-              <h2>Current Account</h2>
-            </div>
-            <p class="panel-note">The dashboard is only shown while a valid session is active.</p>
-          </div>
-
-          <div class="status-card app-status-card">
-            <p class="section-label">Current Session</p>
-            <h3 id="session-email">Not signed in</h3>
-            <p id="session-role" class="record-meta">Role: guest</p>
-            <button id="logout-button" type="button" class="secondary-action">Sign Out</button>
-          </div>
-        </section>
-
-        <section class="panel panel-wide">
-          <div class="workspace-tabs">
-            <button id="main-tab-home" type="button" class="workspace-tab active-workspace-tab">Home</button>
-            <button id="main-tab-database" type="button" class="workspace-tab">Data Base</button>
-            <button id="main-tab-matches" type="button" class="workspace-tab">Match Centre</button>
-            <button id="main-tab-results" type="button" class="workspace-tab">Completed Matches</button>
-            <button id="main-tab-poster" type="button" class="workspace-tab">AI Graphics</button>
-            <button id="main-tab-admin" type="button" class="workspace-tab hidden">User Management</button>
-          </div>
-        </section>
-
         <section id="main-pane-home" class="main-pane pane-grid">
           <section class="panel panel-wide">
             <div class="panel-head">
