@@ -149,6 +149,15 @@ const elements = {
   homeClubsList: document.getElementById('home-clubs-list'),
   homePlayersList: document.getElementById('home-players-list'),
   homeWelcomeEmail: document.getElementById('home-welcome-email'),
+  homeHeroBanner: document.querySelector('.home-hero-banner'),
+  homeHeroLogo: document.getElementById('home-hero-logo'),
+  homeHeroTitle: document.getElementById('home-hero-title'),
+  homeHeroQuote: document.getElementById('home-hero-quote'),
+  homeHeroGround: document.getElementById('home-hero-ground'),
+  homeHeroVenueNote: document.getElementById('home-hero-venue-note'),
+  homeActionPlayer: document.getElementById('home-action-player'),
+  homeActionMatch: document.getElementById('home-action-match'),
+  homeActionPoster: document.getElementById('home-action-poster'),
   topbarEmail: document.getElementById('topbar-email'),
   confirmModal: document.getElementById('confirm-modal'),
   confirmTitle: document.getElementById('confirm-title'),
@@ -964,6 +973,9 @@ const renderHomeDashboard = () => {
     return;
   }
 
+  const homeClub = getHomeTeams()[0] || null;
+  const homeGround = state.venues[0] || null;
+  const homeGroundImage = Array.isArray(homeGround?.image_urls) && homeGround.image_urls.length ? homeGround.image_urls[0] : './ground-photo.jfif';
   const upcomingMatches = state.matches.filter(isUpcomingMatch).slice(0, 5);
   const completedResults = state.results.slice(0, 5);
   const savedClubs = state.teams.slice(0, 5);
@@ -981,6 +993,39 @@ const renderHomeDashboard = () => {
       <strong>${htmlEscape(stat.value)}</strong>
     </article>
   `).join('');
+
+  if (elements.homeHeroBanner) {
+    elements.homeHeroBanner.style.background = `
+      linear-gradient(180deg, rgba(17, 24, 39, 0.28), rgba(17, 24, 39, 0.58)),
+      url("${homeGroundImage}") center/cover no-repeat
+    `;
+  }
+
+  if (elements.homeHeroLogo) {
+    elements.homeHeroLogo.src = homeClub?.logo_url || './logo.svg';
+  }
+
+  if (elements.homeHeroTitle) {
+    elements.homeHeroTitle.innerHTML = `${htmlEscape(homeClub?.name || 'Grammer')} <span>Cricket Club</span>`;
+  }
+
+  if (elements.homeHeroQuote) {
+    elements.homeHeroQuote.textContent = homeClub?.notes
+      ? `"${homeClub.notes}"`
+      : '"Excellence in every stroke, integrity in every play."';
+  }
+
+  if (elements.homeHeroGround) {
+    elements.homeHeroGround.textContent = homeGround?.name
+      ? `${homeGround.name}${homeGround.address ? ` | ${homeGround.address}` : ''}`
+      : 'Save your main ground to feature it here.';
+  }
+
+  if (elements.homeHeroVenueNote) {
+    elements.homeHeroVenueNote.textContent = Array.isArray(homeGround?.image_urls) && homeGround.image_urls.length
+      ? `${homeGround.image_urls.length} saved ground pictures ready for posters and results.`
+      : 'Add venue pictures to bring posters and results to life.';
+  }
 
   if (!upcomingMatches.length) {
     setEmptyState(elements.homeUpcomingList, 'No upcoming matches yet.');
@@ -3567,6 +3612,12 @@ const init = async () => {
   addListener(elements.mainTabResults, 'click', () => switchMainTab('results'));
   addListener(elements.mainTabPoster, 'click', () => switchMainTab('poster'));
   addListener(elements.mainTabAdmin, 'click', () => switchMainTab('admin'));
+  addListener(elements.homeActionPlayer, 'click', () => {
+    switchMainTab('database');
+    switchDatabaseTab('players');
+  });
+  addListener(elements.homeActionMatch, 'click', () => switchMainTab('matches'));
+  addListener(elements.homeActionPoster, 'click', () => switchMainTab('poster'));
   addListener(elements.databaseTabPlayers, 'click', () => switchDatabaseTab('players'));
   addListener(elements.databaseTabClubs, 'click', () => switchDatabaseTab('clubs'));
   addListener(elements.databaseTabGrounds, 'click', () => switchDatabaseTab('grounds'));

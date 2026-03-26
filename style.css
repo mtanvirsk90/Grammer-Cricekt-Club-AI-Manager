@@ -382,6 +382,22 @@ textarea {
   color: #f8fafc;
 }
 
+.home-hero-brand {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+}
+
+.home-hero-logo {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 0.35rem;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
 .home-hero-pill {
   align-self: flex-start;
   min-height: 28px;
@@ -413,6 +429,25 @@ textarea {
   color: rgba(248, 250, 252, 0.84);
 }
 
+.home-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.home-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(248, 250, 252, 0.92);
+  font-size: 0.84rem;
+}
+
 .home-intro-row {
   display: flex;
   align-items: end;
@@ -437,6 +472,37 @@ textarea {
   border-radius: 22px;
   display: grid;
   align-content: center;
+}
+
+.home-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.home-action-card {
+  min-height: 108px;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  text-align: left;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.14), transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #0f172a;
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.06);
+}
+
+.home-action-card strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+}
+
+.home-action-card span {
+  display: block;
+  font-size: 0.9rem;
+  color: #64748b;
 }
 
 .home-dashboard-grid {
@@ -2205,7 +2271,8 @@ code {
 
   .app-layout,
   .home-stats-grid,
-  .home-dashboard-grid {
+  .home-dashboard-grid,
+  .home-quick-actions {
     grid-template-columns: 1fr;
   }
 
@@ -2262,6 +2329,11 @@ code {
 
   .home-hero-overlay {
     padding: 1.35rem;
+  }
+
+  .home-hero-brand {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .home-hero-overlay h2 {
