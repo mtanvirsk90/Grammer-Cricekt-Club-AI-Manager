@@ -275,6 +275,38 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.players-feature-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.4fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.players-form-panel,
+.players-table-panel {
+  min-width: 0;
+}
+
+.players-table-panel {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 238, 0.92)),
+    radial-gradient(circle at top right, rgba(57, 68, 167, 0.08), transparent 28%);
+}
+
+.player-filter-grid {
+  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.active-chip {
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  color: #fff;
+  border-color: transparent;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1426,6 +1458,10 @@ code {
 
   .app-topbar-main {
     flex-direction: column;
+  }
+
+  .players-feature-layout {
+    grid-template-columns: 1fr;
   }
 
   .pane-grid {

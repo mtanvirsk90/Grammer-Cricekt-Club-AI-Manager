@@ -204,111 +204,134 @@
           </section>
 
           <section id="database-pane-players" class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="section-label">Players</p>
-                <h2>Player Registration</h2>
-              </div>
-              <p class="panel-note">Register each player with cricket role, jersey number, batting and bowling types, and a profile picture.</p>
-            </div>
+            <div class="players-feature-layout">
+              <div class="players-form-panel">
+                <div class="panel-head">
+                  <div>
+                    <p class="section-label">Players</p>
+                    <h2>Player Registration</h2>
+                  </div>
+                  <p class="panel-note">Register each player with cricket role, jersey number, batting and bowling types, and a profile picture.</p>
+                </div>
 
-            <form id="player-form" class="form-grid" onsubmit="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); } return false;">
-              <input type="hidden" id="player-edit-id" />
-              <input type="hidden" id="player-team" />
-              <label class="field">
-                <span>Player Name</span>
-                <input type="text" id="player-name" placeholder="Virat Kohli" required />
-              </label>
-              <div class="field field-note">
-                <span>Home Club</span>
-                <p>Players are linked to your first saved Home Club automatically.</p>
+                <form id="player-form" class="form-grid" onsubmit="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); } return false;">
+                  <input type="hidden" id="player-edit-id" />
+                  <input type="hidden" id="player-team" />
+                  <label class="field">
+                    <span>Player Name</span>
+                    <input type="text" id="player-name" placeholder="Virat Kohli" required />
+                  </label>
+                  <div class="field field-note">
+                    <span>Home Club</span>
+                    <p>Players are linked to your first saved Home Club automatically.</p>
+                  </div>
+                  <label class="field">
+                    <span>Jersey Number</span>
+                    <input type="number" id="player-jersey-number" min="0" placeholder="18" required />
+                  </label>
+                  <label class="field">
+                    <span>Batsman Type</span>
+                    <select id="player-batting-style" required>
+                      <option value="">Select batsman type</option>
+                      <option value="Right-hand bat">Right-hand bat</option>
+                      <option value="Left-hand bat">Left-hand bat</option>
+                      <option value="Right-hand aggressive bat">Right-hand aggressive bat</option>
+                      <option value="Left-hand aggressive bat">Left-hand aggressive bat</option>
+                      <option value="Right-hand anchor bat">Right-hand anchor bat</option>
+                      <option value="Left-hand anchor bat">Left-hand anchor bat</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Bowler Type</span>
+                    <select id="player-bowling-style" required>
+                      <option value="">Select bowler type</option>
+                      <option value="Right-arm fast">Right-arm fast</option>
+                      <option value="Right-arm fast-medium">Right-arm fast-medium</option>
+                      <option value="Right-arm medium">Right-arm medium</option>
+                      <option value="Right-arm off spin">Right-arm off spin</option>
+                      <option value="Right-arm leg spin">Right-arm leg spin</option>
+                      <option value="Left-arm fast">Left-arm fast</option>
+                      <option value="Left-arm fast-medium">Left-arm fast-medium</option>
+                      <option value="Left-arm medium">Left-arm medium</option>
+                      <option value="Left-arm orthodox spin">Left-arm orthodox spin</option>
+                      <option value="Left-arm wrist spin">Left-arm wrist spin</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Player Category</span>
+                    <select id="player-category" required>
+                      <option value="">Select category</option>
+                      <option value="Batsman">Batsman</option>
+                      <option value="Bowler">Bowler</option>
+                      <option value="All-Rounder">All-Rounder</option>
+                      <option value="Wicketkeeper">Wicketkeeper</option>
+                      <option value="Wicketkeeper-Batsman">Wicketkeeper-Batsman</option>
+                    </select>
+                  </label>
+                  <label class="field field-wide">
+                    <span>Upload Profile Picture</span>
+                    <input type="file" id="player-profile-file" accept="image/*" />
+                  </label>
+                  <button type="button" id="player-submit-button" class="primary-action" onclick="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); }">Register Player</button>
+                  <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
+                </form>
               </div>
-              <label class="field">
-                <span>Jersey Number</span>
-                <input type="number" id="player-jersey-number" min="0" placeholder="18" required />
-              </label>
-              <label class="field">
-                <span>Batsman Type</span>
-                <select id="player-batting-style" required>
-                  <option value="">Select batsman type</option>
-                  <option value="Right-hand bat">Right-hand bat</option>
-                  <option value="Left-hand bat">Left-hand bat</option>
-                  <option value="Right-hand aggressive bat">Right-hand aggressive bat</option>
-                  <option value="Left-hand aggressive bat">Left-hand aggressive bat</option>
-                  <option value="Right-hand anchor bat">Right-hand anchor bat</option>
-                  <option value="Left-hand anchor bat">Left-hand anchor bat</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Bowler Type</span>
-                <select id="player-bowling-style" required>
-                  <option value="">Select bowler type</option>
-                  <option value="Right-arm fast">Right-arm fast</option>
-                  <option value="Right-arm fast-medium">Right-arm fast-medium</option>
-                  <option value="Right-arm medium">Right-arm medium</option>
-                  <option value="Right-arm off spin">Right-arm off spin</option>
-                  <option value="Right-arm leg spin">Right-arm leg spin</option>
-                  <option value="Left-arm fast">Left-arm fast</option>
-                  <option value="Left-arm fast-medium">Left-arm fast-medium</option>
-                  <option value="Left-arm medium">Left-arm medium</option>
-                  <option value="Left-arm orthodox spin">Left-arm orthodox spin</option>
-                  <option value="Left-arm wrist spin">Left-arm wrist spin</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Player Category</span>
-                <select id="player-category" required>
-                  <option value="">Select category</option>
-                  <option value="Batsman">Batsman</option>
-                  <option value="Bowler">Bowler</option>
-                  <option value="All-Rounder">All-Rounder</option>
-                  <option value="Wicketkeeper">Wicketkeeper</option>
-                  <option value="Wicketkeeper-Batsman">Wicketkeeper-Batsman</option>
-                </select>
-              </label>
-              <label class="field field-wide">
-                <span>Upload Profile Picture</span>
-                <input type="file" id="player-profile-file" accept="image/*" />
-              </label>
-              <button type="button" id="player-submit-button" class="primary-action" onclick="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); }">Register Player</button>
-              <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
-            </form>
 
-            <label class="field field-wide list-search">
-              <span>Search Players</span>
-              <input type="search" id="players-search" placeholder="Search by player, club, category, jersey, batting, or bowling type" />
-            </label>
-            <div class="import-export-row">
-              <button type="button" id="players-export" class="secondary-action">Export Players CSV</button>
-              <button type="button" id="players-template" class="secondary-action">Download Player Excel Template</button>
-              <label class="import-label secondary-action">
-                <input type="file" id="players-import-file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
-                <span>Import Players Excel</span>
-              </label>
+              <div class="players-table-panel">
+                <div class="panel-head">
+                  <div>
+                    <p class="section-label">Squad Table</p>
+                    <h2>Saved Players</h2>
+                  </div>
+                  <p class="panel-note">Filter the saved squad by role and work directly from the table.</p>
+                </div>
+
+                <div id="players-category-filters" class="selection-grid player-filter-grid">
+                  <button type="button" class="selection-chip active-chip" data-player-category-filter="all">All</button>
+                  <button type="button" class="selection-chip" data-player-category-filter="Batsman">Batsmen</button>
+                  <button type="button" class="selection-chip" data-player-category-filter="Bowler">Bowlers</button>
+                  <button type="button" class="selection-chip" data-player-category-filter="All-Rounder">All-Rounders</button>
+                  <button type="button" class="selection-chip" data-player-category-filter="Wicketkeeper">Keepers</button>
+                  <button type="button" class="selection-chip" data-player-category-filter="Wicketkeeper-Batsman">Keeper-Batsmen</button>
+                </div>
+
+                <label class="field field-wide list-search">
+                  <span>Search Players</span>
+                  <input type="search" id="players-search" placeholder="Search by player, club, category, jersey, batting, or bowling type" />
+                </label>
+                <div class="import-export-row">
+                  <button type="button" id="players-export" class="secondary-action">Export Players CSV</button>
+                  <button type="button" id="players-template" class="secondary-action">Download Player Excel Template</button>
+                  <label class="import-label secondary-action">
+                    <input type="file" id="players-import-file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                    <span>Import Players Excel</span>
+                  </label>
+                </div>
+                <div class="table-toolbar">
+                  <label class="field">
+                    <span>View</span>
+                    <select id="players-view-mode">
+                      <option value="cards">Cards</option>
+                      <option value="table" selected>Table</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Sort By</span>
+                    <select id="players-sort">
+                      <option value="name-asc">Name A-Z</option>
+                      <option value="name-desc">Name Z-A</option>
+                      <option value="jersey-asc">Jersey Low-High</option>
+                      <option value="jersey-desc">Jersey High-Low</option>
+                      <option value="club-asc">Club A-Z</option>
+                    </select>
+                  </label>
+                  <button type="button" id="players-select-page" class="secondary-action">Select Page</button>
+                  <button type="button" id="players-bulk-delete" class="danger-action" disabled>Delete Selected</button>
+                </div>
+                <div id="players-list" class="stack-list"></div>
+                <div id="players-pagination" class="pagination-row"></div>
+              </div>
             </div>
-            <div class="table-toolbar">
-              <label class="field">
-                <span>View</span>
-                <select id="players-view-mode">
-                  <option value="cards">Cards</option>
-                  <option value="table">Table</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Sort By</span>
-                <select id="players-sort">
-                  <option value="name-asc">Name A-Z</option>
-                  <option value="name-desc">Name Z-A</option>
-                  <option value="jersey-asc">Jersey Low-High</option>
-                  <option value="jersey-desc">Jersey High-Low</option>
-                  <option value="club-asc">Club A-Z</option>
-                </select>
-              </label>
-              <button type="button" id="players-select-page" class="secondary-action">Select Page</button>
-              <button type="button" id="players-bulk-delete" class="danger-action" disabled>Delete Selected</button>
-            </div>
-            <div id="players-list" class="stack-list"></div>
-            <div id="players-pagination" class="pagination-row"></div>
           </section>
 
           <section id="database-pane-clubs" class="panel hidden">

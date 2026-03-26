@@ -78,6 +78,7 @@ const elements = {
   playerSubmitButton: document.getElementById('player-submit-button'),
   playerCancelEdit: document.getElementById('player-cancel-edit'),
   playersList: document.getElementById('players-list'),
+  playersCategoryFilters: document.getElementById('players-category-filters'),
   playersSearch: document.getElementById('players-search'),
   playersExport: document.getElementById('players-export'),
   playersTemplate: document.getElementById('players-template'),
@@ -186,10 +187,11 @@ const state = {
     results: 1,
   },
   ui: {
-    playersViewMode: 'cards',
+    playersViewMode: 'table',
     playersSort: 'name-asc',
     teamsViewMode: 'table',
     teamsSort: 'name-asc',
+    playersCategoryFilter: 'all',
   },
   selectedRows: {
     players: new Set(),
@@ -1243,11 +1245,15 @@ const renderPlayers = () => {
   const query = normaliseQuery(state.filters.players);
   const filteredPlayers = sortByMode(state.players.filter((player) => {
     const team = findTeam(player.team_id);
+    const category = player.player_category || player.role || 'Player';
+    if (state.ui.playersCategoryFilter !== 'all' && category !== state.ui.playersCategoryFilter) {
+      return false;
+    }
+
     return matchesFilter(query, [
       player.name,
       player.jersey_number,
-      player.player_category,
-      player.role,
+      category,
       player.batsman_type,
       player.bowler_type,
       team?.name,
@@ -1318,6 +1324,12 @@ const renderPlayers = () => {
   }
   renderPagination(elements.playersPagination, 'players', filteredPlayers.length);
   updateBulkActionState();
+
+  if (elements.playersCategoryFilters) {
+    elements.playersCategoryFilters.querySelectorAll('[data-player-category-filter]').forEach((button) => {
+      button.classList.toggle('active-chip', button.dataset.playerCategoryFilter === state.ui.playersCategoryFilter);
+    });
+  }
 };
 
 const renderMatches = () => {
@@ -3384,6 +3396,7 @@ const setSignedOutState = () => {
   state.filters.venues = '';
   state.filters.matches = '';
   state.filters.results = '';
+  state.ui.playersCategoryFilter = 'all';
   state.pagination.players = 1;
   state.pagination.teams = 1;
   state.pagination.venues = 1;
@@ -3501,6 +3514,13 @@ const init = async () => {
   addListener(elements.playersSearch, 'input', (event) => {
     state.pagination.players = 1;
     state.filters.players = event.target.value;
+    renderPlayers();
+  });
+  addListener(elements.playersCategoryFilters, 'click', (event) => {
+    const button = event.target.closest('[data-player-category-filter]');
+    if (!button) return;
+    state.pagination.players = 1;
+    state.ui.playersCategoryFilter = button.dataset.playerCategoryFilter || 'all';
     renderPlayers();
   });
   addListener(elements.playersExport, 'click', exportPlayersCsv);
