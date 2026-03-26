@@ -49,8 +49,17 @@ const elements = {
   venueImageUrls: byId('venue-image-urls'),
   venueNotes: byId('venue-notes'),
   venuesList: byId('venues-list'),
+  matchForm: byId('match-form'),
+  matchEditId: byId('match-edit-id'),
+  matchSubmitButton: byId('match-submit-button'),
+  matchCancelEdit: byId('match-cancel-edit'),
   matchTeam1: byId('match-team1'),
   matchTeam2: byId('match-team2'),
+  matchDate: byId('match-date'),
+  matchTime: byId('match-time'),
+  matchVenue: byId('match-venue'),
+  matchVenueDatalist: byId('match-venue-datalist'),
+  matchesList: byId('matches-list'),
 };
 
 const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
@@ -84,6 +93,7 @@ const CLUB_TYPE_PREFIX = 'club_type:';
 let teamsCache = [];
 let playersCache = [];
 let venuesCache = [];
+let matchesCache = [];
 
 const buildSquadLabels = (teamCount) => Array.from({ length: Math.max(1, Number(teamCount) || 1) }, (_, index) => `T${index + 1}`);
 
@@ -225,6 +235,8 @@ const renderTeams = () => {
     elements.matchTeam2.innerHTML = '<option value="">Select opponent club</option>' + opponentTeams.map((team) => `<option value="${team.id}">${htmlEscape(team.name)}</option>`).join('');
     if (opponentTeams.some((team) => String(team.id) === current)) elements.matchTeam2.value = current;
   }
+
+  renderMatches();
 };
 
 const renderPlayers = () => {
@@ -292,6 +304,52 @@ const renderVenues = () => {
       </div>
     </article>
   `).join('');
+
+  if (elements.matchVenueDatalist) {
+    elements.matchVenueDatalist.innerHTML = venuesCache
+      .map((venue) => `<option value="${htmlEscape(venue.name)}">${htmlEscape(`${venue.city}, ${venue.country}${venue.address ? ` | ${venue.address}` : ''}`)}</option>`)
+      .join('');
+  }
+
+  renderMatches();
+};
+
+const getTeamName = (id) => teamsCache.find((team) => String(team.id) === String(id))?.name || 'Unknown club';
+
+const getVenueByName = (value) => {
+  const query = String(value || '').trim().toLowerCase();
+  if (!query) return null;
+  return venuesCache.find((venue) => String(venue.name || '').trim().toLowerCase() === query) || null;
+};
+
+const renderMatches = () => {
+  if (!elements.matchesList) return;
+
+  if (!matchesCache.length) {
+    renderEmptyState(elements.matchesList, 'No matches saved yet.');
+    return;
+  }
+
+  elements.matchesList.innerHTML = matchesCache.map((match) => {
+    const venue = venuesCache.find((entry) => String(entry.id) === String(match.venue_id));
+    const venueImage = Array.isArray(venue?.image_urls) ? venue.image_urls[0] : '';
+    return `
+      <article class="record-card">
+        <div class="record-row">
+          <div>
+            <h3>${htmlEscape(getTeamName(match.team1_id))} vs ${htmlEscape(getTeamName(match.team2_id))}</h3>
+            <p class="record-meta">${htmlEscape(match.match_date || '')}${match.match_time ? ` | ${htmlEscape(match.match_time.slice(0, 5))}` : ''}</p>
+            <p class="record-meta">${htmlEscape(venue?.name || 'Unknown ground')}${venue?.address ? ` | ${htmlEscape(venue.address)}` : ''}</p>
+            ${venueImage ? `<img src="${htmlEscape(venueImage)}" alt="${htmlEscape(venue?.name || 'Ground')} picture" class="venue-preview-thumb" />` : ''}
+          </div>
+          <div class="record-actions">
+            <button type="button" class="secondary-action" data-fallback-action="edit-match" data-id="${match.id}">Edit</button>
+            <button type="button" class="danger-action" data-fallback-action="delete-match" data-id="${match.id}">Delete</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
 };
 
 const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
@@ -504,8 +562,15 @@ const loadVenues = async () => {
   renderVenues();
 };
 
+const loadMatches = async () => {
+  const { data, error } = await supabase.from('matches').select('*').order('match_date', { ascending: true }).order('match_time', { ascending: true });
+  if (error) throw error;
+  matchesCache = data || [];
+  renderMatches();
+};
+
 const refreshBaseData = async () => {
-  await Promise.all([loadTeams(), loadPlayers(), loadVenues()]);
+  await Promise.all([loadTeams(), loadPlayers(), loadVenues(), loadMatches()]);
 };
 
 const resetTeamForm = () => {
@@ -530,6 +595,13 @@ const resetVenueForm = () => {
   if (elements.venueEditId) elements.venueEditId.value = '';
   if (elements.venueSubmitButton) elements.venueSubmitButton.textContent = 'Save Ground';
   toggleHidden(elements.venueCancelEdit, true);
+};
+
+const resetMatchForm = () => {
+  elements.matchForm?.reset();
+  if (elements.matchEditId) elements.matchEditId.value = '';
+  if (elements.matchSubmitButton) elements.matchSubmitButton.textContent = 'Create Match';
+  toggleHidden(elements.matchCancelEdit, true);
 };
 
 const startTeamEdit = (team) => {
@@ -569,6 +641,19 @@ const startVenueEdit = (venue) => {
   elements.venueNotes.value = venue.notes || '';
   elements.venueSubmitButton.textContent = 'Update Ground';
   toggleHidden(elements.venueCancelEdit, false);
+};
+
+const startMatchEdit = (match) => {
+  if (!match) return;
+  const venue = venuesCache.find((entry) => String(entry.id) === String(match.venue_id));
+  elements.matchEditId.value = String(match.id);
+  elements.matchTeam1.value = String(match.team1_id || '');
+  elements.matchTeam2.value = String(match.team2_id || '');
+  elements.matchDate.value = match.match_date || '';
+  elements.matchTime.value = match.match_time || '';
+  elements.matchVenue.value = venue?.name || '';
+  elements.matchSubmitButton.textContent = 'Update Match';
+  toggleHidden(elements.matchCancelEdit, false);
 };
 
 const handleTeamSubmit = async (event) => {
@@ -716,6 +801,51 @@ const handleVenueSubmit = async (event) => {
   showMessage(editingId ? 'Ground updated successfully.' : 'Ground saved successfully.');
 };
 
+const handleMatchSubmit = async (event) => {
+  event?.preventDefault?.();
+  const session = await getSession();
+  const editingId = String(elements.matchEditId?.value || '');
+  const homeTeamId = String(elements.matchTeam1?.value || '');
+  const opponentTeamId = String(elements.matchTeam2?.value || '');
+  const venue = getVenueByName(elements.matchVenue?.value || '');
+  const payload = {
+    team1_id: homeTeamId,
+    team2_id: opponentTeamId,
+    venue_id: venue?.id || '',
+    match_date: String(elements.matchDate?.value || '').trim(),
+    match_time: String(elements.matchTime?.value || '').trim(),
+    created_by: session.user.id,
+  };
+
+  if (!payload.team1_id || !payload.team2_id || !payload.venue_id || !payload.match_date || !payload.match_time) {
+    showMessage('Choose a saved Home Club, Opponent Club, Ground, date, and time before saving the match.', 'error');
+    return;
+  }
+
+  if (payload.team1_id === payload.team2_id) {
+    showMessage('Home Club and Opponent Club must be different.', 'error');
+    return;
+  }
+
+  const homeTeam = teamsCache.find((team) => String(team.id) === payload.team1_id);
+  const opponentTeam = teamsCache.find((team) => String(team.id) === payload.team2_id);
+  if (!homeTeam || getTeamType(homeTeam) !== 'home' || !opponentTeam || getTeamType(opponentTeam) !== 'opponent') {
+    showMessage('Match Centre only allows saved Home Clubs versus saved Opponent Clubs.', 'error');
+    return;
+  }
+
+  const query = editingId
+    ? supabase.from('matches').update(payload).eq('id', editingId)
+    : supabase.from('matches').insert([payload]);
+  const { error } = await query;
+  if (error) throw error;
+
+  resetMatchForm();
+  await loadMatches();
+  window.dispatchEvent(new Event('gcc:refresh-data'));
+  showMessage(editingId ? 'Match updated successfully. Results and posters will use the saved venue pictures from this ground.' : 'Match saved successfully. Results and posters will use the saved venue pictures from this ground.');
+};
+
 const handlePlayersImport = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -817,12 +947,19 @@ const handleListAction = async (event) => {
     return;
   }
 
+  if (fallbackAction === 'edit-match') {
+    startMatchEdit(matchesCache.find((match) => String(match.id) === String(id)));
+    return;
+  }
+
   const table = fallbackAction === 'delete-team'
     ? 'teams'
     : fallbackAction === 'delete-player'
       ? 'players'
       : fallbackAction === 'delete-venue'
         ? 'venues'
+        : fallbackAction === 'delete-match'
+          ? 'matches'
         : '';
 
   if (!table) return;
@@ -847,19 +984,33 @@ const handleListAction = async (event) => {
     await loadVenues();
     showMessage('Ground deleted successfully.');
   }
+
+  if (table === 'matches') {
+    resetMatchForm();
+    await loadMatches();
+    window.dispatchEvent(new Event('gcc:refresh-data'));
+    showMessage('Match deleted successfully.');
+  }
 };
 
 const bindHandlers = () => {
   window.__appHandleTeamSubmit = createSafeHandler(handleTeamSubmit);
   window.__appHandlePlayerSubmit = createSafeHandler(handlePlayerSubmit);
   window.__appHandleVenueSubmit = createSafeHandler(handleVenueSubmit);
+  window.__appHandleMatchSubmit = createSafeHandler(handleMatchSubmit);
 
   elements.teamSubmitButton?.addEventListener?.('click', window.__appHandleTeamSubmit);
   elements.playerSubmitButton?.addEventListener?.('click', window.__appHandlePlayerSubmit);
   elements.venueSubmitButton?.addEventListener?.('click', window.__appHandleVenueSubmit);
+  elements.matchSubmitButton?.addEventListener?.('click', window.__appHandleMatchSubmit);
+  elements.teamForm?.addEventListener?.('submit', window.__appHandleTeamSubmit);
+  elements.playerForm?.addEventListener?.('submit', window.__appHandlePlayerSubmit);
+  elements.venueForm?.addEventListener?.('submit', window.__appHandleVenueSubmit);
+  elements.matchForm?.addEventListener?.('submit', window.__appHandleMatchSubmit);
   elements.teamCancelEdit?.addEventListener?.('click', resetTeamForm);
   elements.playerCancelEdit?.addEventListener?.('click', resetPlayerForm);
   elements.venueCancelEdit?.addEventListener?.('click', resetVenueForm);
+  elements.matchCancelEdit?.addEventListener?.('click', resetMatchForm);
   elements.playersExport?.addEventListener?.('click', exportPlayersCsv);
   elements.playersTemplate?.addEventListener?.('click', downloadPlayersTemplate);
   elements.teamsTemplate?.addEventListener?.('click', () => createSafeHandler(createClubTemplateWorkbook)());
@@ -868,6 +1019,7 @@ const bindHandlers = () => {
   elements.teamsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.venuesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
+  elements.matchesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
 };
 
 const init = async () => {
