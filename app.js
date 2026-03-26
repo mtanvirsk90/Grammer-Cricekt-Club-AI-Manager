@@ -3293,6 +3293,8 @@ window.__appHandlePlayerSubmit = createSafeWindowHandler(handlePlayerSubmit);
 window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
 
 const init = async () => {
+  window.__gccAppReady = true;
+
   if (elements.schemaSql) elements.schemaSql.textContent = schemaSQL;
   updateAuthAvailability();
 
@@ -3533,12 +3535,12 @@ const init = async () => {
     await bootstrapSession(session);
   });
 
-  window.__gccAppReady = true;
 };
 
 initAuthUi();
 
 init().catch((error) => {
   console.error(error);
+  window.__gccAppReady = true;
   showMessage('Some dashboard features failed to load, but auth is still available. Please try signup or login again.', 'error');
 });
