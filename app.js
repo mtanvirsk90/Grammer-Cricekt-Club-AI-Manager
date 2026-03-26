@@ -1445,6 +1445,7 @@ const renderMatches = () => {
         const venue = findVenue(match.venue_id);
         const homeTeam = findTeam(match.team1_id);
         const awayTeam = findTeam(match.team2_id);
+        const lineupCount = getLineupForMatchSide(match.id, 'home').length;
         const formatTeamLogo = (team) => team?.logo_url
           ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="match-team-logo" />`
           : `<div class="match-team-logo match-team-logo-fallback"><img src="./logo.svg" alt="Club crest" class="match-team-logo-crest" /></div>`;
@@ -1475,8 +1476,13 @@ const renderMatches = () => {
                   <small>Venue</small>
                   <strong>${htmlEscape(venue?.name || 'Unknown venue')}</strong>
                 </div>
+                <div class="match-meta-item">
+                  <small>Home XI</small>
+                  <strong>${lineupCount} / 11 selected</strong>
+                </div>
               </div>
               <div class="match-card-actions">
+                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}">Select Lineup</button>
                 <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}">Match Poster</button>
                 <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}">Lineup Poster</button>
                 <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
@@ -1850,6 +1856,20 @@ const openPosterStudio = (matchId, posterType = 'match') => {
   const checkbox = elements.posterMatchPicker?.querySelector(`input[value="${String(matchId)}"]`);
   if (checkbox) checkbox.checked = true;
   renderPoster();
+};
+
+const openLineupSelector = (matchId) => {
+  switchMainTab('matches');
+  if (elements.lineupMatch) {
+    elements.lineupMatch.value = String(matchId || '');
+  }
+  if (elements.lineupTeamSide) {
+    elements.lineupTeamSide.value = 'home';
+  }
+  updateLineupTeamOptions();
+  updateLineupPlayerOptions();
+  renderLineup();
+  elements.lineupForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 const buildFixtureCaption = (match) => {
@@ -3490,6 +3510,11 @@ const handleListActions = async (event) => {
 
   if (action === 'open-match-poster') {
     openPosterStudio(id, 'match');
+    return;
+  }
+
+  if (action === 'open-lineup-selector') {
+    openLineupSelector(id);
     return;
   }
 
