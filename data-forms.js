@@ -47,6 +47,7 @@ const elements = {
   venueCountry: byId('venue-country'),
   venueAddress: byId('venue-address'),
   venueImageUrls: byId('venue-image-urls'),
+  venueImageFiles: byId('venue-image-files'),
   venueNotes: byId('venue-notes'),
   venuesList: byId('venues-list'),
   matchForm: byId('match-form'),
@@ -204,6 +205,22 @@ const uploadImageFile = async (file, bucket, folder) => {
     console.warn(`Storage upload failed for ${bucket}/${path}. Falling back to local data URL.`, error);
     return readLocalImage(file);
   }
+};
+
+const uploadImageFiles = async (fileList, bucket, folder) => {
+  const files = [...(fileList || [])];
+  return Promise.all(files.map((file) => uploadImageFile(file, bucket, folder)));
+};
+
+const toTextList = (value) =>
+  String(value || '')
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const mergeStoredImageSources = async (textValue, fileList, bucket, folder) => {
+  const uploadedImages = await uploadImageFiles(fileList, bucket, folder);
+  return [...toTextList(textValue), ...uploadedImages.filter(Boolean)];
 };
 
 const renderTeams = () => {
@@ -369,21 +386,36 @@ const renderVenues = () => {
     return;
   }
 
-  elements.venuesList.innerHTML = venuesCache.map((venue) => `
-    <article class="record-card">
-      <div class="record-row">
-        <div>
-          <h3>${htmlEscape(venue.name)}</h3>
-          <p class="record-meta">${htmlEscape(venue.city)}, ${htmlEscape(venue.country)}</p>
-          <p class="record-meta">${htmlEscape(venue.address || 'No address added')}</p>
-        </div>
-        <div class="record-actions">
-          <button type="button" class="secondary-action" data-fallback-action="edit-venue" data-id="${venue.id}">Edit</button>
-          <button type="button" class="danger-action" data-fallback-action="delete-venue" data-id="${venue.id}">Delete</button>
-        </div>
-      </div>
-    </article>
-  `).join('');
+  elements.venuesList.innerHTML = `
+    <div class="venue-card-grid">
+      ${venuesCache.map((venue) => {
+        const imageUrls = Array.isArray(venue.image_urls) ? venue.image_urls : [];
+        const heroImage = imageUrls[0] || '';
+        const locationLine = venue.address || `${venue.city || ''}${venue.country ? `, ${venue.country}` : ''}`.trim() || 'Address not added';
+        return `
+          <article class="venue-card">
+            <div class="venue-card-media">
+              ${
+                heroImage
+                  ? `<img src="${htmlEscape(heroImage)}" alt="${htmlEscape(venue.name)} ground view" class="venue-card-photo" />`
+                  : `<div class="venue-card-photo venue-card-photo-fallback"><img src="./logo.svg" alt="Club crest" class="venue-card-fallback-crest" /></div>`
+              }
+              <div class="venue-card-badge">${imageUrls.length ? 'Saved Photos' : 'No Photo Yet'}</div>
+            </div>
+            <div class="venue-card-body">
+              <h3>${htmlEscape(venue.name)}</h3>
+              <p class="record-meta">${htmlEscape(locationLine)}</p>
+              ${venue.notes ? `<p class="record-meta">${htmlEscape(venue.notes)}</p>` : ''}
+            </div>
+            <div class="venue-card-actions">
+              <button type="button" class="secondary-action" data-fallback-action="edit-venue" data-id="${venue.id}">Edit</button>
+              <button type="button" class="danger-action" data-fallback-action="delete-venue" data-id="${venue.id}">Delete</button>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
 
   if (elements.matchVenueDatalist) {
     elements.matchVenueDatalist.innerHTML = venuesCache
@@ -855,13 +887,20 @@ const handleVenueSubmit = async (event) => {
   event?.preventDefault?.();
   const session = await getSession();
   const editingId = String(elements.venueEditId?.value || '');
+  const existingVenue = venuesCache.find((venue) => String(venue.id) === editingId);
+  const mergedImages = await mergeStoredImageSources(
+    elements.venueImageUrls?.value || '',
+    elements.venueImageFiles?.files,
+    'venue-assets',
+    'grounds',
+  );
 
   const payload = {
     name: elements.venueName?.value.trim() || '',
     city: elements.venueCity?.value.trim() || '',
     country: elements.venueCountry?.value.trim() || '',
     address: elements.venueAddress?.value.trim() || '',
-    image_urls: String(elements.venueImageUrls?.value || '').split('\n').map((item) => item.trim()).filter(Boolean),
+    image_urls: editingId ? [...new Set([...(existingVenue?.image_urls || []), ...mergedImages])] : mergedImages,
     notes: elements.venueNotes?.value.trim() || '',
     created_by: session.user.id,
   };
