@@ -277,9 +277,10 @@ textarea {
 
 .players-feature-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+  width: 100%;
 }
 
 .players-form-panel,
@@ -288,7 +289,7 @@ textarea {
 }
 
 .players-table-panel {
-  padding: 1rem;
+  padding: 1rem 1rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 22px;
   background:
@@ -297,14 +298,27 @@ textarea {
 }
 
 .player-filter-grid {
-  margin-bottom: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 0 0 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(110px, max-content));
+  justify-content: start;
 }
 
 .active-chip {
   background: linear-gradient(135deg, var(--accent), var(--primary));
   color: #fff;
   border-color: transparent;
+}
+
+#database-pane-players .table-toolbar {
+  margin-top: 0.35rem;
+}
+
+#database-pane-players .players-table-panel .list-search {
+  margin-bottom: 0.75rem;
+}
+
+#database-pane-players .players-table-panel .import-export-row {
+  margin-bottom: 0.75rem;
 }
 
 .stats-grid {
