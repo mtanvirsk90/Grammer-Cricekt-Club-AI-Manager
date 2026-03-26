@@ -1244,7 +1244,6 @@ const renderSocialLinks = () => {
 const renderPlayers = () => {
   const query = normaliseQuery(state.filters.players);
   const filteredPlayers = sortByMode(state.players.filter((player) => {
-    const team = findTeam(player.team_id);
     const category = player.player_category || player.role || 'Player';
     if (state.ui.playersCategoryFilter !== 'all' && category !== state.ui.playersCategoryFilter) {
       return false;
@@ -1256,12 +1255,9 @@ const renderPlayers = () => {
       category,
       player.batsman_type,
       player.bowler_type,
-      team?.name,
-      team?.short_name,
     ]);
   }), state.ui.playersSort, (player, mode) => {
     if (mode.startsWith('jersey')) return Number(player.jersey_number) || 0;
-    if (mode.startsWith('club')) return findTeam(player.team_id)?.name || '';
     return player.name || '';
   });
 
@@ -1274,18 +1270,15 @@ const renderPlayers = () => {
   const paginated = getPaginatedItems(filteredPlayers, 'players');
   if (state.ui.playersViewMode === 'table') {
     elements.playersList.innerHTML = renderTable(
-      ['Select', 'Player', 'Club', 'Jersey', 'Category', 'Batting', 'Bowling', 'Actions'],
+      ['Select', 'Player', 'Jersey', 'Type', 'Actions'],
       paginated.items.map((player) => {
-        const team = findTeam(player.team_id);
+        const category = player.player_category || player.role || 'Player';
         return `
           <tr>
             <td><input type="checkbox" data-action="toggle-player-select" data-id="${player.id}" ${state.selectedRows.players.has(String(player.id)) ? 'checked' : ''} /></td>
             <td>${htmlEscape(player.name)}</td>
-            <td>${htmlEscape(team?.name || 'Unknown')}</td>
             <td>${htmlEscape(player.jersey_number || 0)}</td>
-            <td>${htmlEscape(player.player_category || player.role || 'Player')}</td>
-            <td>${htmlEscape(player.batsman_type || player.batting_style || 'Not added')}</td>
-            <td>${htmlEscape(player.bowler_type || player.bowling_style || 'Not added')}</td>
+            <td>${htmlEscape(category)}</td>
             <td class="table-actions">
               <button type="button" class="secondary-action" data-action="edit-player" data-id="${player.id}">Edit</button>
               <button type="button" class="danger-action" data-action="delete-player" data-id="${player.id}">Delete</button>
@@ -1296,7 +1289,7 @@ const renderPlayers = () => {
     );
   } else {
     elements.playersList.innerHTML = paginated.items.map((player) => {
-    const team = findTeam(player.team_id);
+    const category = player.player_category || player.role || 'Player';
 
     return `
       <article class="record-card">
@@ -1304,9 +1297,8 @@ const renderPlayers = () => {
           <div>
           <h3>${htmlEscape(player.name)}</h3>
           <p class="record-meta">
-              ${htmlEscape(team?.name || 'Unknown team')} | #${htmlEscape(player.jersey_number || '0')} | ${htmlEscape(player.player_category || player.role || 'Player')}
+              #${htmlEscape(player.jersey_number || '0')} | ${htmlEscape(category)}
           </p>
-          <p class="record-meta">${htmlEscape(player.batsman_type || player.batting_style || 'Not added')} | ${htmlEscape(player.bowler_type || player.bowling_style || 'Not added')}</p>
         </div>
         ${player.profile_image_url ? `<img src="${htmlEscape(player.profile_image_url)}" alt="${htmlEscape(player.name)} profile" class="list-logo" />` : ''}
         <div class="record-actions">
