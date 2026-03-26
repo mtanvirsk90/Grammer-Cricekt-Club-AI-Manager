@@ -275,6 +275,15 @@
                   <button type="button" id="player-submit-button" class="primary-action" onclick="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); }">Register Player</button>
                   <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
                 </form>
+
+                <div class="import-export-row compact-import-row">
+                  <button type="button" id="players-template" class="secondary-action">Download Player Excel Template</button>
+                  <label class="import-label secondary-action">
+                    <input type="file" id="players-import-file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                    <span>Import Players Excel</span>
+                  </label>
+                  <button type="button" id="players-export" class="secondary-action">Export Players CSV</button>
+                </div>
               </div>
 
               <div class="players-table-panel">
@@ -286,28 +295,22 @@
                   <p class="panel-note">Filter the saved squad by role and work directly from the table.</p>
                 </div>
 
-                <div id="players-category-filters" class="selection-grid player-filter-grid">
-                  <button type="button" class="selection-chip active-chip" data-player-category-filter="all">All</button>
-                  <button type="button" class="selection-chip" data-player-category-filter="Batsman">Batsmen</button>
-                  <button type="button" class="selection-chip" data-player-category-filter="Bowler">Bowlers</button>
-                  <button type="button" class="selection-chip" data-player-category-filter="All-Rounder">All-Rounders</button>
-                  <button type="button" class="selection-chip" data-player-category-filter="Wicketkeeper">Keepers</button>
-                  <button type="button" class="selection-chip" data-player-category-filter="Wicketkeeper-Batsman">Keeper-Batsmen</button>
-                </div>
-
-                <label class="field field-wide list-search">
-                  <span>Search Players</span>
-                  <input type="search" id="players-search" placeholder="Search by player, club, category, jersey, batting, or bowling type" />
-                </label>
-                <div class="import-export-row">
-                  <button type="button" id="players-export" class="secondary-action">Export Players CSV</button>
-                  <button type="button" id="players-template" class="secondary-action">Download Player Excel Template</button>
-                  <label class="import-label secondary-action">
-                    <input type="file" id="players-import-file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
-                    <span>Import Players Excel</span>
-                  </label>
-                </div>
                 <div class="table-toolbar">
+                  <label class="field field-grow">
+                    <span>Search Players</span>
+                    <input type="search" id="players-search" placeholder="Search by player, jersey, type, batting, or bowling type" />
+                  </label>
+                  <label class="field">
+                    <span>Filter Type</span>
+                    <select id="players-category-filter">
+                      <option value="all">All Players</option>
+                      <option value="Batsman">Batsmen</option>
+                      <option value="Bowler">Bowlers</option>
+                      <option value="All-Rounder">All-Rounders</option>
+                      <option value="Wicketkeeper">Keepers</option>
+                      <option value="Wicketkeeper-Batsman">Keeper-Batsmen</option>
+                    </select>
+                  </label>
                   <label class="field">
                     <span>View</span>
                     <select id="players-view-mode">

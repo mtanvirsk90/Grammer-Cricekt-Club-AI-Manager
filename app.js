@@ -78,7 +78,7 @@ const elements = {
   playerSubmitButton: document.getElementById('player-submit-button'),
   playerCancelEdit: document.getElementById('player-cancel-edit'),
   playersList: document.getElementById('players-list'),
-  playersCategoryFilters: document.getElementById('players-category-filters'),
+  playersCategoryFilter: document.getElementById('players-category-filter'),
   playersSearch: document.getElementById('players-search'),
   playersExport: document.getElementById('players-export'),
   playersTemplate: document.getElementById('players-template'),
@@ -1317,10 +1317,8 @@ const renderPlayers = () => {
   renderPagination(elements.playersPagination, 'players', filteredPlayers.length);
   updateBulkActionState();
 
-  if (elements.playersCategoryFilters) {
-    elements.playersCategoryFilters.querySelectorAll('[data-player-category-filter]').forEach((button) => {
-      button.classList.toggle('active-chip', button.dataset.playerCategoryFilter === state.ui.playersCategoryFilter);
-    });
+  if (elements.playersCategoryFilter) {
+    elements.playersCategoryFilter.value = state.ui.playersCategoryFilter;
   }
 };
 
@@ -3508,11 +3506,9 @@ const init = async () => {
     state.filters.players = event.target.value;
     renderPlayers();
   });
-  addListener(elements.playersCategoryFilters, 'click', (event) => {
-    const button = event.target.closest('[data-player-category-filter]');
-    if (!button) return;
+  addListener(elements.playersCategoryFilter, 'change', (event) => {
     state.pagination.players = 1;
-    state.ui.playersCategoryFilter = button.dataset.playerCategoryFilter || 'all';
+    state.ui.playersCategoryFilter = event.target.value || 'all';
     renderPlayers();
   });
   addListener(elements.playersExport, 'click', exportPlayersCsv);

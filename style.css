@@ -297,28 +297,17 @@ textarea {
     radial-gradient(circle at top right, rgba(57, 68, 167, 0.08), transparent 28%);
 }
 
-.player-filter-grid {
-  margin: 0 0 0.8rem;
-  grid-template-columns: repeat(auto-fit, minmax(110px, max-content));
-  justify-content: start;
-}
-
-.active-chip {
-  background: linear-gradient(135deg, var(--accent), var(--primary));
-  color: #fff;
-  border-color: transparent;
-}
-
 #database-pane-players .table-toolbar {
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
+  align-items: end;
 }
 
-#database-pane-players .players-table-panel .list-search {
+#database-pane-players .compact-import-row {
   margin-bottom: 0.75rem;
 }
 
-#database-pane-players .players-table-panel .import-export-row {
-  margin-bottom: 0.75rem;
+.field-grow {
+  flex: 1 1 260px;
 }
 
 .stats-grid {
