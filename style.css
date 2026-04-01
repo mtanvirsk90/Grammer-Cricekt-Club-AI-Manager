@@ -1590,6 +1590,13 @@ button:disabled {
   gap: 0.65rem;
 }
 
+.match-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
 .match-versus-block strong {
   font-size: 2rem;
   letter-spacing: -0.04em;
@@ -1609,6 +1616,24 @@ button:disabled {
   font-weight: 900;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+}
+
+.match-status-pill-success {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.34);
+  color: #86efac;
+}
+
+.match-status-pill-info {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.32);
+  color: #93c5fd;
+}
+
+.match-status-pill-neutral {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #e2e8f0;
 }
 
 .match-card-body {

@@ -956,6 +956,24 @@ const getCompletedPosterMatches = () =>
     .map((result) => findMatch(result.match_id))
     .filter(Boolean);
 
+const getMatchStatusPills = (match) => {
+  const hasResult = state.results.some((result) => String(result.match_id) === String(match.id));
+  const lineupCount = getLineupForMatchSide(match.id, 'home').length;
+  const statuses = [
+    {
+      label: hasResult ? 'Result Added' : 'No Result',
+      tone: hasResult ? 'success' : 'warning',
+    },
+    {
+      label: lineupCount >= 11 ? 'Lineup Ready' : `XI ${lineupCount}/11`,
+      tone: lineupCount >= 11 ? 'info' : 'neutral',
+    },
+  ];
+
+  return statuses.map((status) =>
+    `<span class="match-status-pill match-status-pill-${status.tone}">${htmlEscape(status.label)}</span>`).join('');
+};
+
 const getAllowedPlayersForMatch = (matchId) => {
   const match = findMatch(matchId);
   if (!match) return [];
@@ -1467,7 +1485,7 @@ const renderMatches = () => {
                 <span>${htmlEscape(homeTeam?.name || 'Unknown home')}</span>
               </div>
               <div class="match-versus-block">
-                <div class="match-status-pill">Scheduled</div>
+                <div class="match-status-row">${getMatchStatusPills(match)}</div>
                 <strong>VS</strong>
               </div>
               <div class="match-team-block">
