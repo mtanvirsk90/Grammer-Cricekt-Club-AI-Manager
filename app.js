@@ -217,6 +217,8 @@ const state = {
     teamsViewMode: 'cards',
     teamsSort: 'name-asc',
     playersCategoryFilter: 'all',
+    inlineLineupPlayerId: '',
+    inlineLineupRole: 'player',
   },
   selectedRows: {
     players: new Set(),
@@ -990,6 +992,21 @@ const getMatchStatusPills = (match) => {
     `<span class="match-status-pill match-status-pill-${status.tone}">${htmlEscape(status.label)}</span>`).join('');
 };
 
+const getAvailableHomePlayersForMatch = (matchId) => {
+  const matchLineup = getLineupForMatch(matchId);
+  const selectedIds = new Set(matchLineup.map((entry) => String(entry.player_id)));
+  const unavailableIds = matchId ? getUnavailablePlayerIdsForWeek(matchId) : new Set();
+  const match = findMatch(matchId);
+  const sideTeamId = match ? match.team1_id : '';
+
+  return matchId
+    ? getAllowedPlayersForMatch(matchId).filter((player) =>
+      String(player.team_id) === String(sideTeamId) &&
+      !selectedIds.has(String(player.id)) &&
+      !unavailableIds.has(String(player.id)))
+    : [];
+};
+
 const getAllowedPlayersForMatch = (matchId) => {
   const match = findMatch(matchId);
   if (!match) return [];
@@ -1492,6 +1509,7 @@ const renderMatches = () => {
         const lineupEntries = getLineupForMatchSide(match.id, 'home');
         const lineupPreview = lineupEntries.slice(0, 4).map((entry) => entry.players?.name).filter(Boolean);
         const isActiveLineupMatch = String(elements.lineupMatch?.value || '') === String(match.id);
+        const availablePlayers = isActiveLineupMatch ? getAvailableHomePlayersForMatch(match.id) : [];
         const formatTeamLogo = (team) => team?.logo_url
           ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="match-team-logo" />`
           : `<div class="match-team-logo match-team-logo-fallback"><img src="./logo.svg" alt="Club crest" class="match-team-logo-crest" /></div>`;
@@ -1547,6 +1565,53 @@ const renderMatches = () => {
                 <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
                 <button type="button" class="danger-action" data-action="delete-match" data-id="${match.id}">Delete</button>
               </div>
+              ${isActiveLineupMatch ? `
+                <div class="match-lineup-drawer">
+                  <div class="match-lineup-drawer-head">
+                    <div>
+                      <small>Playing XI Manager</small>
+                      <strong>${htmlEscape(homeTeam?.name || 'Home Club')} vs ${htmlEscape(awayTeam?.name || 'Opponent')}</strong>
+                    </div>
+                    <button type="button" class="secondary-action" data-action="close-lineup-selector" data-id="${match.id}">Close</button>
+                  </div>
+                  <div class="match-lineup-inline-controls">
+                    <label class="field">
+                      <span>Registered Player</span>
+                      <select data-action="change-inline-lineup-player" data-id="${match.id}">
+                        <option value="">${availablePlayers.length ? 'Select available player' : 'No available players this week'}</option>
+                        ${availablePlayers.map((player) => `
+                          <option value="${player.id}" ${String(state.ui.inlineLineupPlayerId || '') === String(player.id) ? 'selected' : ''}>
+                            ${htmlEscape(`${player.name}${player.jersey_number ? ` | #${player.jersey_number}` : ''}${player.player_category ? ` | ${player.player_category}` : ''}`)}
+                          </option>
+                        `).join('')}
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Match Role</span>
+                      <select data-action="change-inline-lineup-role" data-id="${match.id}">
+                        <option value="player" ${state.ui.inlineLineupRole === 'player' ? 'selected' : ''}>Player</option>
+                        <option value="captain" ${state.ui.inlineLineupRole === 'captain' ? 'selected' : ''}>Captain</option>
+                        <option value="vice_captain" ${state.ui.inlineLineupRole === 'vice_captain' ? 'selected' : ''}>Vice Captain</option>
+                        <option value="wicketkeeper" ${state.ui.inlineLineupRole === 'wicketkeeper' ? 'selected' : ''}>Wicketkeeper</option>
+                      </select>
+                    </label>
+                    <button type="button" class="primary-action" data-action="add-inline-lineup" data-id="${match.id}">Add To Playing XI</button>
+                  </div>
+                  <div class="match-lineup-inline-list">
+                    ${lineupEntries.length ? lineupEntries.map((entry, index) => `
+                      <div class="record-row lineup-row">
+                        <div>
+                          <p><strong>${index + 1}. ${htmlEscape(entry.players?.name || 'Player')}</strong></p>
+                          <p class="record-meta">${htmlEscape(entry.players?.player_category || entry.players?.role || 'Player')} | ${htmlEscape(getLineupRoleLabel(entry.match_role))}</p>
+                        </div>
+                        <div class="record-actions">
+                          <button type="button" class="danger-action" data-action="delete-lineup" data-id="${entry.id}" data-match-id="${entry.match_id}">Remove</button>
+                        </div>
+                      </div>
+                    `).join('') : '<p class="record-meta">No players selected yet. Add registered home players here and the same XI will be used in results and posters.</p>'}
+                  </div>
+                </div>
+              ` : ''}
             </div>
           </article>
         `;
@@ -1716,23 +1781,7 @@ const renderPosterMatchChoices = () => {
 
 const updateLineupPlayerOptions = () => {
   const matchId = elements.lineupMatch.value;
-  const teamSide = 'home';
-  const matchLineup = getLineupForMatch(matchId);
-  const selectedIds = new Set(matchLineup.map((entry) => String(entry.player_id)));
-  const unavailableIds = matchId ? getUnavailablePlayerIdsForWeek(matchId) : new Set();
-  const match = findMatch(matchId);
-  const sideTeamId = match
-    ? teamSide === 'home'
-      ? match.team1_id
-      : teamSide === 'away'
-        ? match.team2_id
-        : ''
-    : '';
-  const allowedPlayers = matchId
-    ? getAllowedPlayersForMatch(matchId).filter((player) =>
-      String(player.team_id) === String(sideTeamId) &&
-      !selectedIds.has(String(player.id)) && !unavailableIds.has(String(player.id)))
-    : [];
+  const allowedPlayers = getAvailableHomePlayersForMatch(matchId);
 
   const placeholder = matchId
     ? allowedPlayers.length
@@ -1756,6 +1805,52 @@ const updateLineupTeamOptions = () => {
   const match = findMatch(elements.lineupMatch.value);
   if (!elements.lineupTeamSide) return;
   elements.lineupTeamSide.value = match ? 'home' : '';
+};
+
+const addLineupEntry = async (matchId, playerId, matchRole) => {
+  if (!isAdmin()) {
+    showMessage('Only admins can change the playing XI and match roles.', 'error');
+    return;
+  }
+
+  if (!matchId || !playerId || !matchRole) {
+    showMessage('Choose a match, player, and match role.', 'error');
+    return;
+  }
+
+  const matchLineup = getLineupForMatch(matchId);
+  const currentSideLineup = getLineupForMatchSide(matchId, 'home');
+  if (currentSideLineup.length >= 11) {
+    showMessage('Home XI can only contain 11 players.', 'error');
+    return;
+  }
+
+  if (matchLineup.some((entry) => String(entry.player_id) === String(playerId))) {
+    showMessage('That player is already in the lineup.', 'error');
+    return;
+  }
+
+  if (matchRole !== 'player' && currentSideLineup.some((entry) => entry.match_role === matchRole)) {
+    showMessage(`Home XI already has a ${getLineupRoleLabel(matchRole)}.`, 'error');
+    return;
+  }
+
+  const session = await ensureSession();
+  await withRequest(async () => {
+    const { error } = await supabase.from('lineups').insert([{
+      match_id: matchId,
+      player_id: playerId,
+      team_side: 'home',
+      match_role: matchRole,
+      created_by: session.user.id,
+    }]);
+    if (error) throw error;
+    state.ui.inlineLineupPlayerId = '';
+    state.ui.inlineLineupRole = 'player';
+    elements.lineupPlayer.value = '';
+    elements.lineupRole.value = 'player';
+    await loadLineups();
+  }, `${getLineupRoleLabel(matchRole)} added to the playing XI.`);
 };
 
 const getRoleHolder = (matchId, teamSide, roleKey) =>
@@ -1942,11 +2037,13 @@ const openLineupSelector = (matchId) => {
   if (elements.lineupTeamSide) {
     elements.lineupTeamSide.value = 'home';
   }
+  state.ui.inlineLineupPlayerId = '';
+  state.ui.inlineLineupRole = 'player';
   updateLineupTeamOptions();
   updateLineupPlayerOptions();
   renderMatches();
   renderLineup();
-  elements.lineupForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelector('.match-card-active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
 const buildFixtureCaption = (match) => {
@@ -3131,51 +3228,11 @@ const handleMatchSubmit = async (event) => {
 const handleLineupSubmit = async (event) => {
   event.preventDefault();
 
-  if (!isAdmin()) {
-    showMessage('Only admins can change the playing XI and match roles.', 'error');
-    return;
-  }
-
   const matchId = elements.lineupMatch.value;
-  const teamSide = 'home';
   const playerId = elements.lineupPlayer.value;
   const matchRole = elements.lineupRole.value;
 
-  if (!matchId || !playerId || !matchRole) {
-    showMessage('Choose a match, player, and match role.', 'error');
-    return;
-  }
-
-  const matchLineup = getLineupForMatch(matchId);
-  const currentSideLineup = getLineupForMatchSide(matchId, teamSide);
-  if (currentSideLineup.length >= 11) {
-    showMessage(`${getTeamSideLabel(teamSide)} can only contain 11 players.`, 'error');
-    return;
-  }
-
-  if (matchLineup.some((entry) => String(entry.player_id) === String(playerId))) {
-    showMessage('That player is already in the lineup.', 'error');
-    return;
-  }
-
-  if (matchRole !== 'player' && currentSideLineup.some((entry) => entry.match_role === matchRole)) {
-    showMessage(`${getTeamSideLabel(teamSide)} already has a ${getLineupRoleLabel(matchRole)}.`, 'error');
-    return;
-  }
-
-  await withRequest(async () => {
-    const { error } = await supabase.from('lineups').insert([{
-      match_id: matchId,
-      player_id: playerId,
-      team_side: teamSide,
-      match_role: matchRole,
-      created_by: state.session.user.id,
-    }]);
-    if (error) throw error;
-    elements.lineupPlayer.value = '';
-    elements.lineupRole.value = 'player';
-    await loadLineups();
-  }, `${getLineupRoleLabel(matchRole)} added to the playing XI.`);
+  await addLineupEntry(matchId, playerId, matchRole);
 };
 
 const handleResultSubmit = async (event) => {
@@ -3595,6 +3652,32 @@ const handleListActions = async (event) => {
 
   if (action === 'open-lineup-selector') {
     openLineupSelector(id);
+    return;
+  }
+
+  if (action === 'close-lineup-selector') {
+    if (elements.lineupMatch) elements.lineupMatch.value = '';
+    state.ui.inlineLineupPlayerId = '';
+    state.ui.inlineLineupRole = 'player';
+    renderMatches();
+    renderLineup();
+    return;
+  }
+
+  if (action === 'change-inline-lineup-player') {
+    state.ui.inlineLineupPlayerId = button.value || '';
+    renderMatches();
+    return;
+  }
+
+  if (action === 'change-inline-lineup-role') {
+    state.ui.inlineLineupRole = button.value || 'player';
+    renderMatches();
+    return;
+  }
+
+  if (action === 'add-inline-lineup') {
+    await addLineupEntry(id, state.ui.inlineLineupPlayerId, state.ui.inlineLineupRole);
     return;
   }
 
