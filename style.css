@@ -1728,9 +1728,11 @@ button:disabled {
   display: flex;
   gap: 0.75rem;
   padding-top: 0.9rem;
+  flex-wrap: wrap;
 }
 
-.match-card-actions button {
+.match-card-actions button,
+.match-card-actions .button-link {
   flex: 1 1 0;
   min-width: 0;
   border-radius: 14px;
@@ -1775,7 +1777,7 @@ button:disabled {
 
 .match-lineup-inline-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.85rem;
   align-items: end;
 }
@@ -1783,6 +1785,106 @@ button:disabled {
 .match-lineup-inline-list {
   display: grid;
   gap: 0.7rem;
+}
+
+.match-lineup-inline-controls select[multiple] {
+  min-height: 12rem;
+  padding: 0.75rem;
+}
+
+.lineup-review-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 0.25rem;
+}
+
+.lineup-review-head strong {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.lineup-review-head span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.lineup-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+}
+
+.lineup-player-card {
+  border: 1px solid rgba(57, 68, 167, 0.12);
+  border-radius: 18px;
+  padding: 0.9rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.lineup-player-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.lineup-player-card-top small {
+  display: inline-block;
+  margin-bottom: 0.22rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.lineup-player-card-top strong {
+  display: block;
+  font-size: 1rem;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.lineup-player-card-top span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.lineup-player-remove {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-inline: 0.8rem;
+}
+
+.lineup-role-field {
+  margin: 0;
+}
+
+.lineup-role-summary {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.lineup-role-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(57, 68, 167, 0.12);
+  color: #1e3a8a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 900px) {

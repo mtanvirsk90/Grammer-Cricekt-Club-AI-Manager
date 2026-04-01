@@ -218,8 +218,7 @@ const state = {
     teamsViewMode: 'cards',
     teamsSort: 'name-asc',
     playersCategoryFilter: 'all',
-    inlineLineupPlayerId: '',
-    inlineLineupRole: 'player',
+    inlineLineupPlayerIds: [],
   },
   selectedRows: {
     players: new Set(),
@@ -1600,40 +1599,58 @@ const renderMatches = () => {
                     <button type="button" class="secondary-action" data-action="close-lineup-selector" data-id="${match.id}">Close</button>
                   </div>
                   <div class="match-lineup-inline-controls">
-                    <label class="field">
-                      <span>Registered Player</span>
-                      <select data-action="change-inline-lineup-player" data-id="${match.id}">
-                        <option value="">${availablePlayers.length ? 'Select available player' : 'No available players this week'}</option>
+                    <label class="field field-wide">
+                      <span>Select Registered Players</span>
+                      <select
+                        multiple
+                        size="${Math.min(Math.max(availablePlayers.length, 4), 8)}"
+                        data-action="change-inline-lineup-player"
+                        data-id="${match.id}"
+                        onchange="if (window.__gccSetInlineLineupPlayers) window.__gccSetInlineLineupPlayers('${match.id}', Array.from(this.selectedOptions).map((option) => option.value));"
+                      >
                         ${availablePlayers.map((player) => `
-                          <option value="${player.id}" ${String(state.ui.inlineLineupPlayerId || '') === String(player.id) ? 'selected' : ''}>
+                          <option value="${player.id}" ${state.ui.inlineLineupPlayerIds.includes(String(player.id)) ? 'selected' : ''}>
                             ${htmlEscape(`${player.name}${player.jersey_number ? ` | #${player.jersey_number}` : ''}${player.player_category ? ` | ${player.player_category}` : ''}`)}
                           </option>
                         `).join('')}
                       </select>
+                      <small class="field-hint">Hold Ctrl or Command to select multiple players, then add them in one go.</small>
                     </label>
-                    <label class="field">
-                      <span>Match Role</span>
-                      <select data-action="change-inline-lineup-role" data-id="${match.id}">
-                        <option value="player" ${state.ui.inlineLineupRole === 'player' ? 'selected' : ''}>Player</option>
-                        <option value="captain" ${state.ui.inlineLineupRole === 'captain' ? 'selected' : ''}>Captain</option>
-                        <option value="vice_captain" ${state.ui.inlineLineupRole === 'vice_captain' ? 'selected' : ''}>Vice Captain</option>
-                        <option value="wicketkeeper" ${state.ui.inlineLineupRole === 'wicketkeeper' ? 'selected' : ''}>Wicketkeeper</option>
-                      </select>
-                    </label>
-                    <button type="button" class="primary-action" data-action="add-inline-lineup" data-id="${match.id}">Add To Playing XI</button>
+                    <button type="button" class="primary-action" data-action="add-inline-lineup" data-id="${match.id}">Add Selected Players</button>
                   </div>
                   <div class="match-lineup-inline-list">
-                    ${lineupEntries.length ? lineupEntries.map((entry, index) => `
-                      <div class="record-row lineup-row">
-                        <div>
-                          <p><strong>${index + 1}. ${htmlEscape(entry.players?.name || 'Player')}</strong></p>
-                          <p class="record-meta">${htmlEscape(entry.players?.player_category || entry.players?.role || 'Player')} | ${htmlEscape(getLineupRoleLabel(entry.match_role))}</p>
-                        </div>
-                        <div class="record-actions">
-                          <button type="button" class="danger-action" data-action="delete-lineup" data-id="${entry.id}" data-match-id="${entry.match_id}">Remove</button>
-                        </div>
+                    ${lineupEntries.length ? `
+                      <div class="lineup-review-head">
+                        <strong>Playing XI Review</strong>
+                        <span>${lineupEntries.length} / 11 selected</span>
                       </div>
-                    `).join('') : '<p class="record-meta">No players selected yet. Add registered home players here and the same XI will be used in results and posters.</p>'}
+                      <div class="lineup-review-grid">
+                        ${lineupEntries.map((entry, index) => `
+                          <article class="lineup-player-card">
+                            <div class="lineup-player-card-top">
+                              <div>
+                                <small>${index + 1 < 10 ? `0${index + 1}` : index + 1}</small>
+                                <strong>${htmlEscape(entry.players?.name || 'Player')}</strong>
+                                <span>${htmlEscape(entry.players?.player_category || entry.players?.role || 'Player')}${entry.players?.jersey_number ? ` | #${htmlEscape(entry.players.jersey_number)}` : ''}</span>
+                              </div>
+                              <button type="button" class="danger-action lineup-player-remove" data-action="delete-lineup" data-id="${entry.id}" data-match-id="${entry.match_id}">Remove</button>
+                            </div>
+                            <label class="field lineup-role-field">
+                              <span>Assign Role</span>
+                              <select onchange="if (window.__gccUpdateLineupRole) window.__gccUpdateLineupRole('${entry.id}', '${entry.match_id}', this.value);">
+                                <option value="player" ${entry.match_role === 'player' ? 'selected' : ''}>Player</option>
+                                <option value="captain" ${entry.match_role === 'captain' ? 'selected' : ''}>Captain</option>
+                                <option value="vice_captain" ${entry.match_role === 'vice_captain' ? 'selected' : ''}>Vice Captain</option>
+                                <option value="wicketkeeper" ${entry.match_role === 'wicketkeeper' ? 'selected' : ''}>Wicketkeeper</option>
+                              </select>
+                            </label>
+                            <div class="lineup-role-summary">
+                              <span class="lineup-role-pill">${htmlEscape(getLineupRoleLabel(entry.match_role))}</span>
+                            </div>
+                          </article>
+                        `).join('')}
+                      </div>
+                    ` : '<p class="record-meta">No players selected yet. Choose multiple registered home players above, add them, then assign Captain, VC, and Wicketkeeper inside the review cards.</p>'}
                   </div>
                 </div>
               ` : ''}
@@ -1870,12 +1887,79 @@ const addLineupEntry = async (matchId, playerId, matchRole) => {
       created_by: session.user.id,
     }]);
     if (error) throw error;
-    state.ui.inlineLineupPlayerId = '';
-    state.ui.inlineLineupRole = 'player';
+    state.ui.inlineLineupPlayerIds = [];
     elements.lineupPlayer.value = '';
     elements.lineupRole.value = 'player';
     await loadLineups();
   }, `${getLineupRoleLabel(matchRole)} added to the playing XI.`);
+};
+
+const addMultipleLineupEntries = async (matchId, playerIds = []) => {
+  if (!isAdmin()) {
+    showMessage('Only admins can change the playing XI and match roles.', 'error');
+    return;
+  }
+
+  const uniquePlayerIds = [...new Set((playerIds || []).map(String).filter(Boolean))];
+  if (!matchId || !uniquePlayerIds.length) {
+    showMessage('Select one or more registered players first.', 'error');
+    return;
+  }
+
+  const currentSideLineup = getLineupForMatchSide(matchId, 'home');
+  const remainingSlots = Math.max(0, 11 - currentSideLineup.length);
+  if (!remainingSlots) {
+    showMessage('Home XI already has 11 players.', 'error');
+    return;
+  }
+
+  const session = await ensureSession();
+  const selectedIds = uniquePlayerIds.slice(0, remainingSlots);
+  const payload = selectedIds.map((playerId) => ({
+    match_id: matchId,
+    player_id: playerId,
+    team_side: 'home',
+    match_role: 'player',
+    created_by: session.user.id,
+  }));
+
+  await withRequest(async () => {
+    const { error } = await supabase.from('lineups').insert(payload);
+    if (error) throw error;
+    state.ui.inlineLineupPlayerIds = [];
+    await loadLineups();
+  }, `${payload.length} player${payload.length === 1 ? '' : 's'} added to the Playing XI.`);
+};
+
+const updateLineupEntryRole = async (entryId, matchId, nextRole) => {
+  if (!isAdmin()) {
+    showMessage('Only admins can change the playing XI and match roles.', 'error');
+    return;
+  }
+
+  const lineupEntries = getLineupForMatchSide(matchId, 'home');
+  const currentEntry = lineupEntries.find((entry) => String(entry.id) === String(entryId));
+  if (!currentEntry) {
+    showMessage('That lineup player could not be found.', 'error');
+    return;
+  }
+
+  if (!nextRole) {
+    showMessage('Choose a valid Playing XI role.', 'error');
+    return;
+  }
+
+  if (nextRole !== 'player' && lineupEntries.some((entry) => String(entry.id) !== String(entryId) && entry.match_role === nextRole)) {
+    showMessage(`Home XI already has a ${getLineupRoleLabel(nextRole)}.`, 'error');
+    renderMatches();
+    return;
+  }
+
+  await withRequest(async () => {
+    const { error } = await supabase.from('lineups').update({ match_role: nextRole }).eq('id', entryId);
+    if (error) throw error;
+    await loadLineups();
+  }, `${currentEntry.players?.name || 'Player'} updated as ${getLineupRoleLabel(nextRole)}.`);
 };
 
 const getRoleHolder = (matchId, teamSide, roleKey) =>
@@ -2062,8 +2146,7 @@ const openLineupSelector = (matchId) => {
   if (elements.lineupTeamSide) {
     elements.lineupTeamSide.value = 'home';
   }
-  state.ui.inlineLineupPlayerId = '';
-  state.ui.inlineLineupRole = 'player';
+  state.ui.inlineLineupPlayerIds = [];
   updateLineupTeamOptions();
   updateLineupPlayerOptions();
   renderMatches();
@@ -2624,6 +2707,7 @@ const loadLineups = async () => {
 
   renderMatches();
   renderLineup();
+  updateResultPlayerOptions();
 
   if (state.activePosterMatchIds.length) {
     renderPoster();
@@ -3285,10 +3369,8 @@ const handleLineupSubmit = async (event) => {
   event.preventDefault();
 
   const matchId = elements.lineupMatch.value;
-  const playerId = elements.lineupPlayer.value;
-  const matchRole = elements.lineupRole.value;
-
-  await addLineupEntry(matchId, playerId, matchRole);
+  const selectedPlayers = [...elements.lineupPlayer.selectedOptions].map((option) => option.value).filter(Boolean);
+  await addMultipleLineupEntries(matchId, selectedPlayers);
 };
 
 const handleResultSubmit = async (event) => {
@@ -3722,27 +3804,20 @@ const handleListActions = async (event) => {
 
   if (action === 'close-lineup-selector') {
     if (elements.lineupMatch) elements.lineupMatch.value = '';
-    state.ui.inlineLineupPlayerId = '';
-    state.ui.inlineLineupRole = 'player';
+    state.ui.inlineLineupPlayerIds = [];
     renderMatches();
     renderLineup();
     return;
   }
 
   if (action === 'change-inline-lineup-player') {
-    state.ui.inlineLineupPlayerId = button.value || '';
-    renderMatches();
-    return;
-  }
-
-  if (action === 'change-inline-lineup-role') {
-    state.ui.inlineLineupRole = button.value || 'player';
+    state.ui.inlineLineupPlayerIds = [...button.selectedOptions].map((option) => option.value).filter(Boolean);
     renderMatches();
     return;
   }
 
   if (action === 'add-inline-lineup') {
-    await addLineupEntry(id, state.ui.inlineLineupPlayerId, state.ui.inlineLineupRole);
+    await addMultipleLineupEntries(id, state.ui.inlineLineupPlayerIds);
     return;
   }
 
@@ -3942,6 +4017,16 @@ window.__appHandlePlayerSubmit = createSafeWindowHandler(handlePlayerSubmit);
 window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
 window.__gccOpenLineupSelector = openLineupSelector;
 window.__gccOpenPosterStudio = openPosterStudio;
+window.__gccSetInlineLineupPlayers = (_matchId, playerIds = []) => {
+  state.ui.inlineLineupPlayerIds = [...new Set((playerIds || []).map(String).filter(Boolean))];
+  renderMatches();
+};
+window.__gccUpdateLineupRole = (entryId, matchId, nextRole) => {
+  Promise.resolve(updateLineupEntryRole(entryId, matchId, nextRole)).catch((error) => {
+    console.error(error);
+    showMessage(error.message || 'Could not update the Playing XI role.', 'error');
+  });
+};
 
 const init = async () => {
   window.__gccAppReady = true;
