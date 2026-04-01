@@ -2600,6 +2600,57 @@ button:disabled {
   border-color: rgba(111, 168, 255, 0.28);
 }
 
+.lineup-poster-card.lineup-layout-1 .lineup-poster-top {
+  align-items: flex-start;
+  padding-bottom: 0.35rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-title-lineup {
+  font-size: clamp(3.5rem, 6vw, 5.8rem);
+  letter-spacing: -0.05em;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-versus {
+  font-size: 0.92rem;
+  letter-spacing: 0.14em;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-meta-row {
+  grid-template-columns: 1fr;
+  max-width: 48%;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-poster-grid {
+  grid-template-columns: 0.84fr 1.16fr;
+  gap: 1.1rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-list-box {
+  padding: 1.1rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-xi {
+  gap: 0.32rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-xi li {
+  padding: 0.34rem 0.48rem;
+  background: rgba(248, 250, 252, 0.08);
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-xi li strong {
+  font-size: 1.02rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-visual-box {
+  grid-template-rows: minmax(460px, 1fr) auto;
+}
+
+.lineup-poster-card.lineup-layout-1 .poster-venue-visual {
+  min-height: 460px;
+  border-radius: 28px;
+}
+
 .match-poster-card.match-layout-2 .poster-top,
 .lineup-poster-card.lineup-layout-2 .poster-top {
   align-items: flex-start;
@@ -2769,6 +2820,63 @@ button:disabled {
   background-position: center;
   border: 1px solid rgba(248, 250, 252, 0.18);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.lineup-visual-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: linear-gradient(180deg, rgba(7, 11, 23, 0.04), rgba(7, 11, 23, 0.78));
+}
+
+.lineup-visual-club-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 0.55rem;
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+}
+
+.lineup-visual-copy {
+  display: grid;
+  gap: 0.28rem;
+  justify-items: end;
+  text-align: right;
+}
+
+.lineup-visual-copy span {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.76);
+}
+
+.lineup-visual-copy strong {
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-visual-overlay {
+  padding: 1.5rem;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-visual-club-logo {
+  width: 102px;
+  height: 102px;
+}
+
+.lineup-poster-card.lineup-layout-1 .lineup-visual-copy strong {
+  font-size: 1.8rem;
 }
 
 .poster-info-compact {
@@ -3180,6 +3288,19 @@ code {
 
   .match-poster-title-wrap {
     max-width: none;
+  }
+
+  .lineup-poster-card.lineup-layout-1 .lineup-meta-row {
+    max-width: none;
+  }
+
+  .lineup-poster-card.lineup-layout-1 .lineup-poster-grid,
+  .lineup-poster-card.lineup-layout-3 .lineup-poster-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lineup-poster-card.lineup-layout-1 .poster-venue-visual {
+    min-height: 320px;
   }
 
   .poster-host {

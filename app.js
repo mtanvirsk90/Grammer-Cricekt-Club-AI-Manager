@@ -2726,7 +2726,15 @@ const renderPoster = () => {
                 <div
                   class="poster-venue-visual"
                   style="${getPosterVenueImage(venue, index) ? `background-image: linear-gradient(180deg, rgba(8, 15, 13, 0.12), rgba(8, 15, 13, 0.35)), url('${htmlEscape(getPosterVenueImage(venue, index))}');` : ''}"
-                ></div>
+                >
+                  <div class="lineup-visual-overlay">
+                    ${team1.logo_url ? `<img src="${htmlEscape(team1.logo_url)}" alt="${htmlEscape(team1.name)} logo" class="lineup-visual-club-logo" />` : ''}
+                    <div class="lineup-visual-copy">
+                      <span>${htmlEscape(venue.name)}</span>
+                      <strong>${htmlEscape(team1.short_name || team1.name)}</strong>
+                    </div>
+                  </div>
+                </div>
                 <div class="poster-info poster-info-compact">
                   <div>
                     <strong>Club</strong>
