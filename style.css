@@ -2004,6 +2004,61 @@ button:disabled {
   z-index: 1;
 }
 
+.poster-sponsored-by {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.2rem 1.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(8, 15, 13, 0.24);
+  border: 1px solid rgba(248, 250, 252, 0.14);
+  backdrop-filter: blur(8px);
+}
+
+.poster-sponsored-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.76);
+}
+
+.poster-sponsored-logos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.poster-sponsored-logo-shell {
+  min-width: 3rem;
+  height: 2.2rem;
+  padding: 0.25rem 0.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.poster-sponsored-logo {
+  max-width: 3rem;
+  max-height: 1.5rem;
+  object-fit: contain;
+}
+
+.poster-sponsored-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.poster-sponsored-by-empty {
+  color: rgba(248, 250, 252, 0.64);
+}
+
 .poster-logos {
   display: flex;
   gap: 0.7rem;

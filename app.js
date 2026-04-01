@@ -2148,6 +2148,29 @@ const getSponsorCatchLine = (sponsors, tone = 'none', context = 'matchday') => {
   return `Powered by ${sponsorNames}, proudly driving every matchday moment.`;
 };
 
+const getSponsorHeaderMarkup = (sponsors, emptyText = '') => {
+  const headerSponsors = (sponsors || []).slice(0, 2);
+  if (!headerSponsors.length) {
+    return emptyText ? `<div class="poster-sponsored-by poster-sponsored-by-empty">${htmlEscape(emptyText)}</div>` : '';
+  }
+
+  return `
+    <div class="poster-sponsored-by">
+      <span class="poster-sponsored-label">Presented By</span>
+      <div class="poster-sponsored-logos">
+        ${headerSponsors.map((sponsor) => `
+          <div class="poster-sponsored-logo-shell">
+            ${sponsor.logo_url
+              ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="poster-sponsored-logo" />`
+              : `<span class="poster-sponsored-name">${htmlEscape(sponsor.name)}</span>`
+            }
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+};
+
 const getSponsorMarkup = (sponsors, emptyText, catchLine = '') =>
   sponsors.length
     ? `
@@ -2373,6 +2396,7 @@ const renderPoster = () => {
   const sponsorCatchLine = getSponsorCatchLine(sponsors, elements.posterSponsorTone?.value || 'none', posterType === 'lineup' ? 'lineup' : 'matchday');
   const socialLinks = getSelectedSocialLinks(elements.posterSocialLinks);
   const sponsorMarkup = getSponsorMarkup(sponsors, 'Select saved sponsors to show partner branding here.', sponsorCatchLine);
+  const sponsorHeaderMarkup = getSponsorHeaderMarkup(sponsors);
   const posters = [];
   const captions = [];
 
@@ -2435,6 +2459,7 @@ const renderPoster = () => {
             "
           >
             <div class="poster-overlay"></div>
+            ${index > 0 ? sponsorHeaderMarkup : ''}
             <div class="poster-top lineup-poster-top">
               <div class="lineup-heading">
                 <span class="poster-badge">Home XI</span>
@@ -2508,6 +2533,7 @@ const renderPoster = () => {
         >
           <div class="poster-overlay"></div>
           <div class="match-poster-frame"></div>
+          ${index > 0 ? sponsorHeaderMarkup : ''}
           <div class="poster-top match-poster-top">
             <div class="match-poster-kicker">Match Day</div>
             <div class="poster-logos lineup-poster-logos">
