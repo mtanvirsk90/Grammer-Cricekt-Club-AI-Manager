@@ -554,9 +554,9 @@ const renderMatches = () => {
                 </div>
               </div>
               <div class="match-card-actions">
-                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}">Select Playing XI</button>
-                <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}">Match Poster</button>
-                <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}">Lineup Poster</button>
+                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}" onclick="if (window.__gccOpenLineupSelector) window.__gccOpenLineupSelector('${match.id}')">Select Playing XI</button>
+                <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'match')">Match Poster</button>
+                <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'lineup')">Lineup Poster</button>
                 <button type="button" class="secondary-action" data-fallback-action="edit-match" data-id="${match.id}">Edit</button>
                 <button type="button" class="danger-action" data-fallback-action="delete-match" data-id="${match.id}">Delete</button>
               </div>
