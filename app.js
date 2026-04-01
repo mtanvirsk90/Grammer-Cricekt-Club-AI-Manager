@@ -2831,8 +2831,8 @@ const renderPoster = () => {
               ></div>
               <div class="poster-info poster-info-compact">
                 <div>
-                  <strong>Address</strong>
-                  <span>${htmlEscape(venue.address || `${venue.city}, ${venue.country}`)}</span>
+                  <strong>Ground</strong>
+                  <span>${htmlEscape(venue.name)}</span>
                 </div>
                 <div>
                   <strong>Captain</strong>
@@ -2847,8 +2847,8 @@ const renderPoster = () => {
                   <span>${htmlEscape(lineupSummary.homeWicketkeeper || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>Sponsors</strong>
-                  <span>${sponsors.length || 0}</span>
+                  <strong>Address</strong>
+                  <span>${htmlEscape(venue.address || `${venue.city}, ${venue.country}`)}</span>
                 </div>
               </div>
             </aside>
