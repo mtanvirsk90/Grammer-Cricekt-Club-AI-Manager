@@ -133,6 +133,7 @@ const elements = {
   downloadResultPoster: document.getElementById('download-result-poster'),
   resultPosterSponsors: document.getElementById('result-poster-sponsors'),
   resultPosterSponsorTone: document.getElementById('result-poster-sponsor-tone'),
+  resultPosterSponsorLayout: document.getElementById('result-poster-sponsor-layout'),
   resultPosterSocialLinks: document.getElementById('result-poster-social-links'),
   resultCaptionOutput: document.getElementById('result-caption-output'),
   posterMatch: document.getElementById('poster-match'),
@@ -143,6 +144,7 @@ const elements = {
   posterVenueImage: document.getElementById('poster-venue-image'),
   posterSponsors: document.getElementById('poster-sponsors'),
   posterSponsorTone: document.getElementById('poster-sponsor-tone'),
+  posterSponsorLayout: document.getElementById('poster-sponsor-layout'),
   posterSocialLinks: document.getElementById('poster-social-links'),
   posterSelection: document.getElementById('poster-selection'),
   posterSelectionLabel: document.getElementById('poster-selection-label'),
@@ -2300,6 +2302,13 @@ const getSponsorCatchLine = (sponsors, tone = 'none', context = 'matchday') => {
   return `Powered by ${sponsorNames}, proudly driving every matchday moment.`;
 };
 
+const resolveSponsorLayoutMode = (requestedMode = 'auto', context = 'match', variantIndex = 0) => {
+  if (requestedMode && requestedMode !== 'auto') return requestedMode;
+  if (context === 'result') return 'premium';
+  if (context === 'lineup') return variantIndex % 2 === 0 ? 'wall' : 'premium';
+  return variantIndex % 2 === 0 ? 'premium' : 'wall';
+};
+
 const getSponsorHeaderMarkup = (sponsors, emptyText = '') => {
   const headerSponsors = (sponsors || []).slice(0, 2);
   if (!headerSponsors.length) {
@@ -2323,19 +2332,47 @@ const getSponsorHeaderMarkup = (sponsors, emptyText = '') => {
   `;
 };
 
-const getSponsorMarkup = (sponsors, emptyText, catchLine = '') =>
-  sponsors.length
-    ? `
-      <div class="poster-sponsor-grid">
-        ${sponsors.map((sponsor, index) => `
-          <div class="poster-sponsor-slot">
+const getSponsorMarkup = (sponsors, emptyText, catchLine = '', layoutMode = 'wall', heading = 'Partners') => {
+  if (!sponsors.length) {
+    return `<div class="poster-sponsor-empty">${htmlEscape(emptyText)}</div>`;
+  }
+
+  if (layoutMode === 'premium') {
+    return `
+      <div class="poster-sponsor-premium">
+        <div class="poster-sponsor-premium-head">
+          <span class="poster-sponsor-premium-kicker">${htmlEscape(heading)}</span>
+          <strong>Presented with partner backing</strong>
+        </div>
+        <div class="poster-sponsor-grid poster-sponsor-grid-premium">
+          ${sponsors.slice(0, 3).map((sponsor) => `
+            <div class="poster-sponsor-slot poster-sponsor-slot-premium">
+              ${sponsor.logo_url ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="poster-sponsor-image" />` : `<strong class="poster-sponsor-text">${htmlEscape(sponsor.name)}</strong>`}
+            </div>
+          `).join('')}
+        </div>
+        ${catchLine ? `<p class="poster-sponsor-catchline poster-sponsor-catchline-premium">${htmlEscape(catchLine)}</p>` : ''}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="poster-sponsor-wall">
+      <div class="poster-sponsor-wall-head">
+        <span class="poster-sponsor-wall-kicker">${htmlEscape(heading)}</span>
+        <strong>Official partner wall</strong>
+      </div>
+      <div class="poster-sponsor-grid poster-sponsor-grid-wall">
+        ${sponsors.map((sponsor) => `
+          <div class="poster-sponsor-slot poster-sponsor-slot-wall">
             ${sponsor.logo_url ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="poster-sponsor-image" />` : `<strong class="poster-sponsor-text">${htmlEscape(sponsor.name)}</strong>`}
           </div>
         `).join('')}
       </div>
       ${catchLine ? `<p class="poster-sponsor-catchline">${htmlEscape(catchLine)}</p>` : ''}
-    `
-    : `<div class="poster-sponsor-empty">${htmlEscape(emptyText)}</div>`;
+    </div>
+  `;
+};
 
 const updatePosterVenueImageOptions = () => {
   const match = findMatch(elements.posterMatch.value);
@@ -2549,8 +2586,6 @@ const renderPoster = () => {
   const sponsors = getSelectedSponsors(elements.posterSponsors);
   const sponsorCatchLine = getSponsorCatchLine(sponsors, elements.posterSponsorTone?.value || 'none', posterType === 'lineup' ? 'lineup' : 'matchday');
   const socialLinks = getSelectedSocialLinks(elements.posterSocialLinks);
-  const sponsorMarkup = getSponsorMarkup(sponsors, 'Select saved sponsors to show partner branding here.', sponsorCatchLine);
-  const sponsorHeaderMarkup = getSponsorHeaderMarkup(sponsors);
   const posters = [];
   const captions = [];
 
@@ -2583,6 +2618,15 @@ const renderPoster = () => {
       const sourceMode = visualMode === 'mixed' ? (index < 3 ? 'saved' : 'generated') : visualMode;
       const variantKey = `${match.id}-${posterType}-${sourceMode}-${theme.id}`;
       const layoutClass = getPosterLayoutClass(posterType, index, sourceMode);
+      const sponsorLayoutMode = resolveSponsorLayoutMode(elements.posterSponsorLayout?.value || 'auto', posterType, index);
+      const sponsorHeaderMarkup = sponsorLayoutMode === 'premium' ? getSponsorHeaderMarkup(sponsors) : '';
+      const sponsorMarkup = getSponsorMarkup(
+        sponsors,
+        'Select saved sponsors to show partner branding here.',
+        sponsorCatchLine,
+        sponsorLayoutMode,
+        sponsorLayoutMode === 'premium' ? 'Presented By' : 'Official Partners',
+      );
 
       if (posterType === 'lineup') {
         const lineupEntries = getPrimaryLineupEntries(match.id);
@@ -2613,7 +2657,7 @@ const renderPoster = () => {
             "
           >
             <div class="poster-overlay"></div>
-            ${index > 0 ? sponsorHeaderMarkup : ''}
+            ${sponsorHeaderMarkup}
             <div class="poster-top lineup-poster-top">
               <div class="lineup-heading">
                 <span class="poster-badge">Home XI</span>
@@ -2659,7 +2703,7 @@ const renderPoster = () => {
                 </div>
               </aside>
             </div>
-            <section class="poster-box sponsor-box">
+            <section class="poster-box sponsor-box sponsor-box-${sponsorLayoutMode}">
               <h3>Partners</h3>
               ${sponsorMarkup}
             </section>
@@ -2778,10 +2822,10 @@ const renderPoster = () => {
                 </div>
               </div>
             </aside>
-            <section class="poster-box sponsor-box">
-              <h3>Partners</h3>
-              ${sponsorMarkup}
-            </section>
+          <section class="poster-box sponsor-box sponsor-box-${sponsorLayoutMode}">
+            <h3>Partners</h3>
+            ${sponsorMarkup}
+          </section>
           </div>
           <section class="poster-box poster-social-box">
             <h3>Watch And Follow</h3>
@@ -3777,7 +3821,15 @@ const renderResultPoster = () => {
   const transientMedia = state.transientResultMedia.get(String(matchId)) || {};
   const resultSponsors = getSelectedSponsors(elements.resultPosterSponsors);
   const resultSponsorCatchLine = getSponsorCatchLine(resultSponsors, elements.resultPosterSponsorTone?.value || 'none', 'result');
-  const sponsorMarkup = getSponsorMarkup(resultSponsors, 'Select saved sponsors to show partner branding on this result poster.', resultSponsorCatchLine);
+  const resultSponsorLayoutMode = resolveSponsorLayoutMode(elements.resultPosterSponsorLayout?.value || 'auto', 'result', 0);
+  const resultSponsorHeaderMarkup = resultSponsorLayoutMode === 'premium' ? getSponsorHeaderMarkup(resultSponsors) : '';
+  const sponsorMarkup = getSponsorMarkup(
+    resultSponsors,
+    'Select saved sponsors to show partner branding on this result poster.',
+    resultSponsorCatchLine,
+    resultSponsorLayoutMode,
+    resultSponsorLayoutMode === 'premium' ? 'Presented By' : 'Official Partners',
+  );
   const socialLinks = getSelectedSocialLinks(elements.resultPosterSocialLinks);
 
   if (!match || !result || !team1 || !team2 || !venue) {
@@ -3809,6 +3861,7 @@ const renderResultPoster = () => {
           linear-gradient(135deg, #11152f 0%, #3944a7 48%, #d32027 100%);
       "
     >
+      ${resultSponsorHeaderMarkup}
       <div class="poster-top">
         <div>
           <span class="poster-badge">Match Result</span>
@@ -3921,7 +3974,7 @@ const renderResultPoster = () => {
           })}
         </div>
       </div>
-      <section class="poster-box sponsor-box result-sponsor-box">
+      <section class="poster-box sponsor-box sponsor-box-${resultSponsorLayoutMode} result-sponsor-box">
         <h3>Partners</h3>
         ${sponsorMarkup}
       </section>
@@ -4573,6 +4626,12 @@ const init = async () => {
     elements.resultCaptionOutput.value = '';
     setEmptyState(elements.resultPosterHost, 'Click "Generate Result Poster" to rebuild the completed-match graphic with the sponsor catch line.');
   });
+  addListener(elements.resultPosterSponsorLayout, 'change', () => {
+    state.activeResultPosterMatchId = '';
+    elements.downloadResultPoster.disabled = true;
+    elements.resultCaptionOutput.value = '';
+    setEmptyState(elements.resultPosterHost, 'Click "Generate Result Poster" to rebuild the completed-match graphic with the sponsor layout.');
+  });
   addListener(elements.resultPosterSocialLinks, 'change', () => {
     state.activeResultPosterMatchId = '';
     elements.downloadResultPoster.disabled = true;
@@ -4629,6 +4688,13 @@ const init = async () => {
     toggleHidden(elements.posterSelection, true);
     elements.posterCaptionOutput.value = '';
     setEmptyState(elements.posterHost, 'Click "Generate Poster" to rebuild the match graphic with the sponsor catch line.');
+  });
+  addListener(elements.posterSponsorLayout, 'change', () => {
+    state.selectedPosterVariantKey = '';
+    elements.downloadPoster.disabled = true;
+    toggleHidden(elements.posterSelection, true);
+    elements.posterCaptionOutput.value = '';
+    setEmptyState(elements.posterHost, 'Click "Generate Poster" to rebuild the match graphic with the sponsor layout.');
   });
   addListener(elements.posterSocialLinks, 'change', () => {
     state.selectedPosterVariantKey = '';
