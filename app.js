@@ -2796,17 +2796,20 @@ const renderPoster = () => {
               <h2 class="poster-title match-poster-title">${htmlEscape(team1.short_name || team1.name)}</h2>
               <p class="match-poster-subtitle">vs</p>
               <h2 class="poster-title match-poster-title match-poster-title-away">${htmlEscape(team2.short_name || team2.name)}</h2>
+              <div class="match-hero-meta">
+                <span>${formatDate(match.match_date)}</span>
+                <span>${formatTime(match.match_time)}</span>
+                <span>${htmlEscape(venue.name)}</span>
+              </div>
             </div>
           </div>
           <div class="match-versus-row">
             <div class="match-team-card match-team-home">
               <strong>${htmlEscape(team1.name)}</strong>
-              <small>${htmlEscape(team1.short_name || '')}</small>
             </div>
             <div class="match-versus-badge">VS</div>
             <div class="match-team-card match-team-away">
               <strong>${htmlEscape(team2.name)}</strong>
-              <small>${htmlEscape(team2.short_name || '')}</small>
             </div>
           </div>
           <div class="match-fixture-info">
