@@ -950,6 +950,12 @@ const isUpcomingMatch = (match) => {
 const isPosterEligibleMatch = (match) =>
   Boolean(match) && !state.results.some((result) => String(result.match_id) === String(match.id));
 
+const getPreMatchPosterMatches = () => state.matches.filter(isPosterEligibleMatch);
+const getCompletedPosterMatches = () =>
+  state.results
+    .map((result) => findMatch(result.match_id))
+    .filter(Boolean);
+
 const getAllowedPlayersForMatch = (matchId) => {
   const match = findMatch(matchId);
   if (!match) return [];
@@ -1612,7 +1618,7 @@ const populateCoreSelectors = () => {
   fillSelect(elements.matchTeam2, 'Select opponent club', getOpponentTeams(), (team) => team.name);
   fillSelect(elements.lineupMatch, 'Select match', state.matches, getMatchLabel);
   fillSelect(elements.resultMatch, 'Select match', state.matches, getMatchLabel);
-  fillSelect(elements.posterMatch, 'Select saved match', state.matches.filter(isPosterEligibleMatch), getMatchLabel);
+  fillSelect(elements.posterMatch, 'Select upcoming / no-result match', getPreMatchPosterMatches(), getMatchLabel);
   if (elements.matchVenueDatalist) fillDatalist(elements.matchVenueDatalist, state.venues, (venue) => venue.name);
   renderPosterMatchChoices();
   updateLineupTeamOptions();
@@ -1623,10 +1629,10 @@ const populateCoreSelectors = () => {
 };
 
 const renderPosterMatchChoices = () => {
-  const upcomingMatches = state.matches.filter(isPosterEligibleMatch);
+  const upcomingMatches = getPreMatchPosterMatches();
 
   if (!upcomingMatches.length) {
-    setEmptyState(elements.posterMatchPicker, 'No saved matches available for posters yet.');
+    setEmptyState(elements.posterMatchPicker, 'No upcoming or no-result matches are available for pre-match posters yet.');
     return;
   }
 
@@ -1749,9 +1755,7 @@ const syncResultPlayerImages = () => {
 };
 
 const updateResultPosterOptions = () => {
-  const completedMatches = state.results
-    .map((result) => findMatch(result.match_id))
-    .filter(Boolean);
+  const completedMatches = getCompletedPosterMatches();
 
   fillSelect(elements.resultPosterMatch, 'Select completed match', completedMatches, getMatchLabel);
 };

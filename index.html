@@ -892,14 +892,14 @@
               <p class="section-label">Result Poster</p>
               <h2>Post-Match Graphic</h2>
             </div>
-            <p class="panel-note">Generate a result poster from completed match data, summary, player of the match, best score, and player photo.</p>
+            <p class="panel-note">Use completed matches with saved results here. Result posters pull the summary, player awards, scores, and result-linked media.</p>
           </div>
 
           <div class="form-grid compact-grid">
             <label class="field">
               <span>Completed Match</span>
               <select id="result-poster-match">
-                <option value="">Select completed match</option>
+                <option value="">Select completed / result-added match</option>
               </select>
             </label>
             <button id="generate-result-poster" type="button" class="primary-action">Generate Result Poster</button>
@@ -931,14 +931,14 @@
               <p class="section-label">AI Graphics</p>
               <h2>Match Poster Studio</h2>
             </div>
-            <p class="panel-note">Select one or multiple upcoming matches and generate 6 fixture posters per match using club colors, logos, and venue visuals.</p>
+            <p class="panel-note">Use upcoming or no-result matches here and generate 6 pre-match posters per fixture using club colors, logos, and venue visuals.</p>
           </div>
 
           <div class="form-grid poster-controls">
             <label class="field">
               <span>Quick Match Select</span>
               <select id="poster-match" required>
-                <option value="">Select saved match</option>
+                <option value="">Select upcoming / no-result match</option>
               </select>
             </label>
             <label class="field">
@@ -976,7 +976,7 @@
           </div>
 
           <div class="field field-wide poster-extra-field">
-            <span>Select Single Or Multiple Upcoming Matches</span>
+            <span>Select Single Or Multiple Upcoming / No-Result Matches</span>
             <div id="poster-match-picker" class="selection-grid"></div>
           </div>
 
@@ -998,7 +998,7 @@
             <h3>Poster Variants</h3>
             <span id="poster-selection-label" class="pill">Select one design</span>
           </div>
-          <div id="poster" class="poster-host empty-state">Your 6 upcoming match poster designs will appear here.</div>
+          <div id="poster" class="poster-host empty-state">Your 6 pre-match poster designs will appear here.</div>
           <label class="field field-wide caption-field">
             <span>AI Social Caption</span>
             <textarea id="poster-caption-output" rows="6" readonly placeholder="Generate posters to create the social caption here."></textarea>
