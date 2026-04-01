@@ -103,6 +103,7 @@ const elements = {
   lineupRole: document.getElementById('lineup-role'),
   lineupList: document.getElementById('lineup-list'),
   lineupCount: document.getElementById('lineup-count'),
+  lineupMatchSummary: document.getElementById('lineup-match-summary'),
   resultForm: document.getElementById('result-form'),
   resultEditId: document.getElementById('result-edit-id'),
   resultSubmitButton: document.getElementById('result-submit-button'),
@@ -1488,12 +1489,15 @@ const renderMatches = () => {
         const homeTeam = findTeam(match.team1_id);
         const awayTeam = findTeam(match.team2_id);
         const lineupCount = getLineupForMatchSide(match.id, 'home').length;
+        const lineupEntries = getLineupForMatchSide(match.id, 'home');
+        const lineupPreview = lineupEntries.slice(0, 4).map((entry) => entry.players?.name).filter(Boolean);
+        const isActiveLineupMatch = String(elements.lineupMatch?.value || '') === String(match.id);
         const formatTeamLogo = (team) => team?.logo_url
           ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="match-team-logo" />`
           : `<div class="match-team-logo match-team-logo-fallback"><img src="./logo.svg" alt="Club crest" class="match-team-logo-crest" /></div>`;
 
         return `
-          <article class="match-card">
+          <article class="match-card ${isActiveLineupMatch ? 'match-card-active' : ''}">
             <div class="match-card-header">
               <div class="match-team-block">
                 ${formatTeamLogo(homeTeam)}
@@ -1523,8 +1527,21 @@ const renderMatches = () => {
                   <strong>${lineupCount} / 11 selected</strong>
                 </div>
               </div>
+              <div class="match-lineup-preview">
+                <small>Playing XI Preview</small>
+                ${
+                  lineupPreview.length
+                    ? `
+                      <div class="match-lineup-chips">
+                        ${lineupPreview.map((name) => `<span class="match-lineup-chip">${htmlEscape(name)}</span>`).join('')}
+                        ${lineupCount > lineupPreview.length ? `<span class="match-lineup-chip match-lineup-chip-more">+${lineupCount - lineupPreview.length} more</span>` : ''}
+                      </div>
+                    `
+                    : '<p class="record-meta">No players selected yet. Open this match and add the home Playing XI.</p>'
+                }
+              </div>
               <div class="match-card-actions">
-                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}">Select Lineup</button>
+                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}">${lineupCount ? 'Edit Playing XI' : 'Select Playing XI'}</button>
                 <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}">Match Poster</button>
                 <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}">Lineup Poster</button>
                 <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
@@ -1544,20 +1561,32 @@ const renderLineup = () => {
 
   if (!matchId) {
     elements.lineupCount.textContent = 'Home XI 0 / 11';
+    if (elements.lineupMatchSummary) {
+      elements.lineupMatchSummary.textContent = 'Choose a saved match card above, then build its Playing XI from your registered home players.';
+    }
     setEmptyState(elements.lineupList, 'Select a match to view its lineup.');
-    return;
-  }
-
-  const homeLineup = getLineupForMatchSide(matchId, 'home');
-  elements.lineupCount.textContent = `Home XI ${homeLineup.length} / 11`;
-
-  if (!homeLineup.length) {
-    setEmptyState(elements.lineupList, 'No players selected for this match yet.');
     return;
   }
 
   const match = findMatch(matchId);
   const homeTeam = match ? findTeam(match.team1_id) : null;
+  const awayTeam = match ? findTeam(match.team2_id) : null;
+  const venue = match ? findVenue(match.venue_id) : null;
+  const homeLineup = getLineupForMatchSide(matchId, 'home');
+  elements.lineupCount.textContent = `Home XI ${homeLineup.length} / 11`;
+  if (elements.lineupMatchSummary) {
+    elements.lineupMatchSummary.innerHTML = `
+      <strong>${htmlEscape(homeTeam?.name || 'Home Club')} vs ${htmlEscape(awayTeam?.name || 'Opponent')}</strong>
+      <span> | ${htmlEscape(formatDate(match?.match_date))}${match?.match_time ? ` | ${htmlEscape(formatTime(match.match_time))}` : ''}</span>
+      <span> | ${htmlEscape(venue?.name || 'Ground not set')}</span>
+      <span> | Registered home players feed this same XI into results, match posters, and Playing XI posters.</span>
+    `;
+  }
+
+  if (!homeLineup.length) {
+    setEmptyState(elements.lineupList, 'No players selected for this match yet.');
+    return;
+  }
 
   elements.lineupList.innerHTML = `
     <article class="record-card">
@@ -1712,8 +1741,7 @@ const updateLineupPlayerOptions = () => {
     : 'Select player';
 
   fillSelect(elements.lineupPlayer, placeholder, allowedPlayers, (player) => {
-    const team = findTeam(player.team_id);
-    return `${player.name} | ${team?.short_name || team?.name || 'Team'}`;
+    return `${player.name}${player.jersey_number ? ` | #${player.jersey_number}` : ''}${player.player_category ? ` | ${player.player_category}` : ''}`;
   });
 };
 
@@ -1916,6 +1944,7 @@ const openLineupSelector = (matchId) => {
   }
   updateLineupTeamOptions();
   updateLineupPlayerOptions();
+  renderMatches();
   renderLineup();
   elements.lineupForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
@@ -2443,6 +2472,7 @@ const loadLineups = async () => {
     state.lineupsByMatch.set(key, current);
   });
 
+  renderMatches();
   renderLineup();
 
   if (state.activePosterMatchIds.length) {
@@ -3917,6 +3947,7 @@ const init = async () => {
   addListener(elements.lineupMatch, 'change', () => {
     updateLineupTeamOptions();
     updateLineupPlayerOptions();
+    renderMatches();
     renderLineup();
   });
   addListener(elements.lineupTeamSide, 'change', updateLineupPlayerOptions);

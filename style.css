@@ -1532,6 +1532,11 @@ button:disabled {
   box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
 }
 
+.match-card-active {
+  border-color: rgba(211, 32, 39, 0.34);
+  box-shadow: 0 24px 40px rgba(211, 32, 39, 0.14);
+}
+
 .match-card-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -1638,6 +1643,49 @@ button:disabled {
 
 .match-card-body {
   padding: 1rem 1.2rem 1.2rem;
+}
+
+.match-lineup-preview {
+  margin-top: 0.9rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  border: 1px solid #e7edf6;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.match-lineup-preview small {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.match-lineup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.match-lineup-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #d8e0ee;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.match-lineup-chip-more {
+  background: rgba(57, 68, 167, 0.08);
+  border-color: rgba(57, 68, 167, 0.16);
+  color: #3944a7;
 }
 
 .match-card-meta {
