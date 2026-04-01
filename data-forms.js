@@ -33,6 +33,8 @@ const elements = {
   playerBattingStyle: byId('player-batting-style'),
   playerBowlingStyle: byId('player-bowling-style'),
   playerCategory: byId('player-category'),
+  playerProfileFile: byId('player-profile-file'),
+  playerImageStyleMode: byId('player-image-style-mode'),
   playersList: byId('players-list'),
   playersExport: byId('players-export'),
   playersTemplate: byId('players-template'),
@@ -93,6 +95,7 @@ const BOWLER_TYPE_OPTIONS = [
 const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Wicketkeeper-Batsman'];
 const STORAGE_BUCKETS = {
   team: 'club-assets',
+  player: 'player-assets',
 };
 
 const CLUB_TYPE_PREFIX = 'club_type:';
@@ -224,6 +227,30 @@ const toTextList = (value) =>
 const mergeStoredImageSources = async (textValue, fileList, bucket, folder) => {
   const uploadedImages = await uploadImageFiles(fileList, bucket, folder);
   return [...toTextList(textValue), ...uploadedImages.filter(Boolean)];
+};
+
+const PLAYER_IMAGE_MODE_STORAGE_KEY = 'gcc-player-image-modes';
+const readPlayerImageModes = () => {
+  try {
+    return JSON.parse(window.localStorage.getItem(PLAYER_IMAGE_MODE_STORAGE_KEY) || '{}');
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+};
+const writePlayerImageModes = (modes) => {
+  try {
+    window.localStorage.setItem(PLAYER_IMAGE_MODE_STORAGE_KEY, JSON.stringify(modes));
+  } catch (error) {
+    console.error(error);
+  }
+};
+const getPlayerImageMode = (playerId) => readPlayerImageModes()[String(playerId)] || 'original';
+const setPlayerImageMode = (playerId, mode) => {
+  if (!playerId) return;
+  const next = readPlayerImageModes();
+  next[String(playerId)] = mode || 'original';
+  writePlayerImageModes(next);
 };
 
 const renderTeams = () => {
@@ -487,26 +514,58 @@ const renderMatches = () => {
     return;
   }
 
-  elements.matchesList.innerHTML = matchesCache.map((match) => {
-    const venue = venuesCache.find((entry) => String(entry.id) === String(match.venue_id));
-    const venueImage = Array.isArray(venue?.image_urls) ? venue.image_urls[0] : '';
-    return `
-      <article class="record-card">
-        <div class="record-row">
-          <div>
-            <h3>${htmlEscape(getTeamName(match.team1_id))} vs ${htmlEscape(getTeamName(match.team2_id))}</h3>
-            <p class="record-meta">${htmlEscape(match.match_date || '')}${match.match_time ? ` | ${htmlEscape(match.match_time.slice(0, 5))}` : ''}</p>
-            <p class="record-meta">${htmlEscape(venue?.name || 'Unknown ground')}${venue?.address ? ` | ${htmlEscape(venue.address)}` : ''}</p>
-            ${venueImage ? `<img src="${htmlEscape(venueImage)}" alt="${htmlEscape(venue?.name || 'Ground')} picture" class="venue-preview-thumb" />` : ''}
-          </div>
-          <div class="record-actions">
-            <button type="button" class="secondary-action" data-fallback-action="edit-match" data-id="${match.id}">Edit</button>
-            <button type="button" class="danger-action" data-fallback-action="delete-match" data-id="${match.id}">Delete</button>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join('');
+  elements.matchesList.innerHTML = `
+    <div class="match-card-grid">
+      ${matchesCache.map((match) => {
+        const venue = venuesCache.find((entry) => String(entry.id) === String(match.venue_id));
+        const homeTeam = teamsCache.find((entry) => String(entry.id) === String(match.team1_id));
+        const awayTeam = teamsCache.find((entry) => String(entry.id) === String(match.team2_id));
+        const formatTeamLogo = (team) => team?.logo_url
+          ? `<img src="${htmlEscape(team.logo_url)}" alt="${htmlEscape(team.name)} logo" class="match-team-logo" />`
+          : `<div class="match-team-logo match-team-logo-fallback"><img src="./logo.svg" alt="Club crest" class="match-team-logo-crest" /></div>`;
+
+        return `
+          <article class="match-card">
+            <div class="match-card-header">
+              <div class="match-team-block">
+                ${formatTeamLogo(homeTeam)}
+                <span>${htmlEscape(homeTeam?.name || 'Unknown home')}</span>
+              </div>
+              <div class="match-versus-block">
+                <div class="match-status-row">
+                  <span class="match-status-pill">Saved Match</span>
+                </div>
+                <strong>VS</strong>
+              </div>
+              <div class="match-team-block">
+                ${formatTeamLogo(awayTeam)}
+                <span>${htmlEscape(awayTeam?.name || 'Unknown away')}</span>
+              </div>
+            </div>
+            <div class="match-card-body">
+              <div class="match-card-meta">
+                <div class="match-meta-item">
+                  <small>Date</small>
+                  <strong>${htmlEscape(match.match_date || '')}${match.match_time ? ` | ${htmlEscape(match.match_time.slice(0, 5))}` : ''}</strong>
+                </div>
+                <div class="match-meta-item">
+                  <small>Venue</small>
+                  <strong>${htmlEscape(venue?.name || 'Unknown ground')}</strong>
+                </div>
+              </div>
+              <div class="match-card-actions">
+                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}">Select Playing XI</button>
+                <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}">Match Poster</button>
+                <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}">Lineup Poster</button>
+                <button type="button" class="secondary-action" data-fallback-action="edit-match" data-id="${match.id}">Edit</button>
+                <button type="button" class="danger-action" data-fallback-action="delete-match" data-id="${match.id}">Delete</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
 };
 
 const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
@@ -745,6 +804,7 @@ const resetPlayerForm = () => {
   elements.playerForm?.reset();
   if (elements.playerEditId) elements.playerEditId.value = '';
   if (elements.playerSubmitButton) elements.playerSubmitButton.textContent = 'Register Player';
+  if (elements.playerImageStyleMode) elements.playerImageStyleMode.value = 'original';
   toggleHidden(elements.playerCancelEdit, true);
 };
 
@@ -784,6 +844,7 @@ const startPlayerEdit = (player) => {
   elements.playerBattingStyle.value = player.batsman_type || player.batting_style || '';
   elements.playerBowlingStyle.value = player.bowler_type || player.bowling_style || '';
   elements.playerCategory.value = player.player_category || player.role || '';
+  if (elements.playerImageStyleMode) elements.playerImageStyleMode.value = getPlayerImageMode(player.id);
   elements.playerSubmitButton.textContent = 'Update Player';
   toggleHidden(elements.playerCancelEdit, false);
 };
@@ -893,6 +954,7 @@ const handlePlayerSubmit = async (event) => {
   const editingId = String(elements.playerEditId?.value || '');
   const homeTeam = getHomeTeams()[0];
   const existingPlayer = playersCache.find((player) => String(player.id) === editingId);
+  const uploadedProfile = await uploadImageFile(elements.playerProfileFile?.files?.[0], STORAGE_BUCKETS.player, 'profiles');
 
   if (!homeTeam) {
     showMessage('Save at least one Home Club first so players can be linked automatically.', 'error');
@@ -909,7 +971,7 @@ const handlePlayerSubmit = async (event) => {
     batting_style: elements.playerBattingStyle?.value.trim() || '',
     bowling_style: elements.playerBowlingStyle?.value.trim() || '',
     player_category: elements.playerCategory?.value || '',
-    profile_image_url: existingPlayer?.profile_image_url || '',
+    profile_image_url: uploadedProfile || existingPlayer?.profile_image_url || '',
     created_by: session.user.id,
   };
 
@@ -919,10 +981,11 @@ const handlePlayerSubmit = async (event) => {
   }
 
   const query = editingId
-    ? supabase.from('players').update(payload).eq('id', editingId)
-    : supabase.from('players').insert([payload]);
-  const { error } = await query;
+    ? supabase.from('players').update(payload).eq('id', editingId).select('*').single()
+    : supabase.from('players').insert([payload]).select('*').single();
+  const { data, error } = await query;
   if (error) throw error;
+  setPlayerImageMode(data?.id || editingId, elements.playerImageStyleMode?.value || 'original');
 
   resetPlayerForm();
   await loadPlayers();

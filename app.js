@@ -89,6 +89,7 @@ const elements = {
   playersSelectPage: document.getElementById('players-select-page'),
   playersBulkDelete: document.getElementById('players-bulk-delete'),
   playerProfileFile: document.getElementById('player-profile-file'),
+  playerImageStyleMode: document.getElementById('player-image-style-mode'),
   matchForm: document.getElementById('match-form'),
   matchEditId: document.getElementById('match-edit-id'),
   matchSubmitButton: document.getElementById('match-submit-button'),
@@ -234,6 +235,30 @@ const state = {
 };
 
 window.__gccAppState = state;
+
+const PLAYER_IMAGE_MODE_STORAGE_KEY = 'gcc-player-image-modes';
+const readPlayerImageModes = () => {
+  try {
+    return JSON.parse(window.localStorage.getItem(PLAYER_IMAGE_MODE_STORAGE_KEY) || '{}');
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+};
+const writePlayerImageModes = (modes) => {
+  try {
+    window.localStorage.setItem(PLAYER_IMAGE_MODE_STORAGE_KEY, JSON.stringify(modes));
+  } catch (error) {
+    console.error(error);
+  }
+};
+const getPlayerImageMode = (playerId) => readPlayerImageModes()[String(playerId)] || 'original';
+const setPlayerImageMode = (playerId, mode) => {
+  if (!playerId) return;
+  const next = readPlayerImageModes();
+  next[String(playerId)] = mode || 'original';
+  writePlayerImageModes(next);
+};
 
 const getMainTabStorageKey = (session = state.session) => `gcc-active-main-tab:${session?.user?.id || 'guest'}`;
 const getDatabaseTabStorageKey = (session = state.session) => `gcc-active-database-tab:${session?.user?.id || 'guest'}`;
@@ -2622,6 +2647,7 @@ const resetPlayerForm = () => {
   elements.playerEditId.value = '';
   elements.playerSubmitButton.textContent = 'Register Player';
   toggleHidden(elements.playerCancelEdit, true);
+  if (elements.playerImageStyleMode) elements.playerImageStyleMode.value = 'original';
   setEditMode('player', '', false);
 };
 
@@ -2685,6 +2711,7 @@ const startPlayerEdit = (player) => {
   document.getElementById('player-batting-style').value = player.batsman_type || player.batting_style || '';
   document.getElementById('player-bowling-style').value = player.bowler_type || player.bowling_style || '';
   document.getElementById('player-category').value = player.player_category || player.role || '';
+  if (elements.playerImageStyleMode) elements.playerImageStyleMode.value = getPlayerImageMode(player.id);
   elements.playerSubmitButton.textContent = 'Update Player';
   toggleHidden(elements.playerCancelEdit, false);
   setEditMode('player', player.id, true);
@@ -3166,6 +3193,7 @@ const handlePlayerSubmit = async (event) => {
     resetListSearch('players', elements.playersSearch);
 
     if (data) {
+      setPlayerImageMode(data.id, elements.playerImageStyleMode?.value || 'original');
       state.players = upsertStateItem(state.players, data, (player) => player.name);
       renderPlayers();
       updateLineupPlayerOptions();
@@ -3297,18 +3325,20 @@ const handleResultSubmit = async (event) => {
   }, editingId ? 'Result updated successfully.' : 'Result saved successfully.');
 };
 
-const renderStyledPlayerCard = ({ title, name, imageUrl, styleKey, fallbackText, accentClass }) => `
+const renderStyledPlayerCard = ({ title, name, imageUrl, styleKey, fallbackText, accentClass, imageMode = 'original' }) => `
   <aside class="poster-box player-highlight ${accentClass}">
     <div class="player-highlight-top">
       <h3>${htmlEscape(title)}</h3>
       <span class="style-chip">${htmlEscape(getStyleLabel(styleKey))}</span>
     </div>
-    <div class="player-image-shell style-${htmlEscape(styleKey || 'hero')}">
+    <div class="player-image-shell style-${htmlEscape(styleKey || 'hero')} image-mode-${htmlEscape(imageMode)}">
       ${imageUrl ? `<img src="${htmlEscape(imageUrl)}" alt="${htmlEscape(name || title)}" class="player-highlight-image" />` : `<div class="player-placeholder">${htmlEscape(fallbackText)}</div>`}
-      <div class="club-shirt-badge">
-        <img src="./logo.svg" alt="Club crest" class="club-shirt-logo" />
-      </div>
-      <div class="kit-overlay">White Kit</div>
+      ${imageMode === 'white-kit' ? `
+        <div class="club-shirt-badge">
+          <img src="./logo.svg" alt="Club crest" class="club-shirt-logo" />
+        </div>
+        <div class="kit-overlay">White Kit</div>
+      ` : '<div class="kit-overlay original-photo">Original Photo</div>'}
     </div>
     <p class="player-highlight-name">${htmlEscape(name || 'Not added')}</p>
   </aside>
@@ -3342,10 +3372,16 @@ const renderResultPoster = () => {
     return;
   }
 
+  const playerOfMatchRecord = state.players.find((player) => player.name === result.player_of_match);
+  const bestScorerRecord = state.players.find((player) => player.name === result.best_scorer_name);
+  const bestBowlerRecord = state.players.find((player) => player.name === result.best_bowler_name);
   const venueImage = Array.isArray(venue.image_urls) && venue.image_urls.length ? venue.image_urls[0] : '';
   const playerOfMatchImage = transientMedia.playerOfMatchImage || result.player_image_url || '';
   const bestScorerImage = transientMedia.bestScorerImage || result.best_scorer_image_url || '';
   const bestBowlerImage = transientMedia.bestBowlerImage || result.best_bowler_image_url || '';
+  const playerOfMatchMode = playerOfMatchRecord ? getPlayerImageMode(playerOfMatchRecord.id) : 'original';
+  const bestScorerMode = bestScorerRecord ? getPlayerImageMode(bestScorerRecord.id) : 'original';
+  const bestBowlerMode = bestBowlerRecord ? getPlayerImageMode(bestBowlerRecord.id) : 'original';
   const winningCaptainName = getWinningCaptainName(match, result);
 
   elements.resultPosterHost.innerHTML = `
@@ -3451,6 +3487,7 @@ const renderResultPoster = () => {
             styleKey: result.player_of_match_style || 'hero',
             fallbackText: 'Add or upload a player-of-the-match picture to feature the player here.',
             accentClass: 'player-card-primary',
+            imageMode: playerOfMatchMode,
           })}
           ${renderStyledPlayerCard({
             title: 'Top Run Scorer',
@@ -3459,6 +3496,7 @@ const renderResultPoster = () => {
             styleKey: result.best_scorer_style || 'batting',
             fallbackText: 'Add or upload a best-scorer picture to feature the player here.',
             accentClass: 'player-card-secondary',
+            imageMode: bestScorerMode,
           })}
           ${renderStyledPlayerCard({
             title: 'Best Bowler',
@@ -3467,6 +3505,7 @@ const renderResultPoster = () => {
             styleKey: result.best_bowler_style || 'bowling',
             fallbackText: 'Add or upload a best-bowler picture to feature the player here.',
             accentClass: 'player-card-secondary',
+            imageMode: bestBowlerMode,
           })}
         </div>
       </div>

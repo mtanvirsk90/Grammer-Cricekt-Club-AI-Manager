@@ -304,6 +304,13 @@
                     <span>Upload Profile Picture</span>
                     <input type="file" id="player-profile-file" accept="image/*" />
                   </label>
+                  <label class="field field-wide">
+                    <span>Poster Image Mode</span>
+                    <select id="player-image-style-mode">
+                      <option value="original">Use Original Photo</option>
+                      <option value="white-kit">Style As White Cricket Kit For Posters</option>
+                    </select>
+                  </label>
                   <button type="button" id="player-submit-button" class="primary-action" onclick="if (window.__appHandlePlayerSubmit) { window.__appHandlePlayerSubmit(window.event || null); }">Register Player</button>
                   <button type="button" id="player-cancel-edit" class="secondary-action hidden">Cancel Edit</button>
                 </form>

@@ -2424,6 +2424,11 @@ button:disabled {
   text-transform: uppercase;
 }
 
+.original-photo {
+  background: rgba(15, 23, 42, 0.82);
+  color: #f8fafc;
+}
+
 .player-highlight-name {
   margin: 0;
   font-size: 1.15rem;
