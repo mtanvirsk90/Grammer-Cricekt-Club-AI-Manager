@@ -1797,7 +1797,7 @@ const renderMatches = () => {
                       <strong>${lineupCount} / 11 chosen</strong>
                       <p class="record-meta">${hasUnsavedChanges ? 'You have unsaved lineup changes for this match.' : 'Saved lineup is up to date for this match.'}</p>
                     </div>
-                    <button type="button" class="primary-action" data-action="save-pending-lineup" data-id="${match.id}" ${lineupCount ? '' : 'disabled'}>Save Playing XI</button>
+                    <button type="button" class="primary-action" data-action="save-pending-lineup" data-id="${match.id}" onclick="if (window.__gccSavePendingLineup) window.__gccSavePendingLineup('${match.id}')" ${lineupCount ? '' : 'disabled'}>Save Playing XI</button>
                   </div>
                   <div class="match-lineup-inline-list">
                     ${lineupEntries.length ? `
@@ -1809,22 +1809,22 @@ const renderMatches = () => {
                         ${lineupEntries.map((entry, index) => `
                           <article class="lineup-player-card ${String(state.ui.activePendingRolePlayerId || '') === String(entry.player_id) ? 'lineup-player-card-active' : ''}">
                             <div class="lineup-player-card-top">
-                              <button type="button" class="lineup-player-select" data-action="activate-pending-role-menu" data-id="${match.id}" data-player-id="${entry.player_id}">
+                              <button type="button" class="lineup-player-select" data-action="activate-pending-role-menu" data-id="${match.id}" data-player-id="${entry.player_id}" onclick="if (window.__gccActivatePendingRoleMenu) window.__gccActivatePendingRoleMenu('${entry.player_id}')">
                                 <small>${index + 1 < 10 ? `0${index + 1}` : index + 1}</small>
                                 <strong>${htmlEscape(entry.players?.name || 'Player')}</strong>
                                 <span>${htmlEscape(entry.players?.player_category || entry.players?.role || 'Player')}${entry.players?.jersey_number ? ` | #${htmlEscape(entry.players.jersey_number)}` : ''}</span>
                               </button>
-                              <button type="button" class="danger-action lineup-player-remove" data-action="remove-pending-lineup-player" data-id="${match.id}" data-player-id="${entry.player_id}">Remove</button>
+                              <button type="button" class="danger-action lineup-player-remove" data-action="remove-pending-lineup-player" data-id="${match.id}" data-player-id="${entry.player_id}" onclick="if (window.__gccRemovePendingLineupPlayer) window.__gccRemovePendingLineupPlayer('${match.id}', '${entry.player_id}')">Remove</button>
                             </div>
                             <div class="lineup-role-summary">
                               <span class="lineup-role-pill">${htmlEscape(getLineupRoleLabel(entry.match_role))}</span>
                             </div>
                             ${String(state.ui.activePendingRolePlayerId || '') === String(entry.player_id) ? `
                               <div class="lineup-role-actions">
-                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="captain">Captain</button>
-                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="vice_captain">VC</button>
-                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="wicketkeeper">Wicket Keeper</button>
-                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="player">Clear Role</button>
+                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="captain" onclick="if (window.__gccSetPendingLineupRole) window.__gccSetPendingLineupRole('${match.id}', '${entry.player_id}', 'captain')">Captain</button>
+                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="vice_captain" onclick="if (window.__gccSetPendingLineupRole) window.__gccSetPendingLineupRole('${match.id}', '${entry.player_id}', 'vice_captain')">VC</button>
+                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="wicketkeeper" onclick="if (window.__gccSetPendingLineupRole) window.__gccSetPendingLineupRole('${match.id}', '${entry.player_id}', 'wicketkeeper')">Wicket Keeper</button>
+                                <button type="button" class="secondary-action" data-action="set-pending-lineup-role" data-id="${match.id}" data-player-id="${entry.player_id}" data-role="player" onclick="if (window.__gccSetPendingLineupRole) window.__gccSetPendingLineupRole('${match.id}', '${entry.player_id}', 'player')">Clear Role</button>
                               </div>
                             ` : ''}
                           </article>
@@ -1839,7 +1839,7 @@ const renderMatches = () => {
                       ${availablePlayers.length ? `
                         <div class="lineup-available-grid">
                           ${availablePlayers.map((player) => `
-                            <button type="button" class="lineup-available-player" data-action="add-pending-lineup-player" data-id="${match.id}" data-player-id="${player.id}">
+                            <button type="button" class="lineup-available-player" data-action="add-pending-lineup-player" data-id="${match.id}" data-player-id="${player.id}" onclick="if (window.__gccAddPendingLineupPlayer) window.__gccAddPendingLineupPlayer('${match.id}', '${player.id}')">
                               <strong>${htmlEscape(player.name)}</strong>
                               <span>${htmlEscape(player.player_category || player.role || 'Player')}${player.jersey_number ? ` | #${htmlEscape(player.jersey_number)}` : ''}</span>
                             </button>
@@ -4353,6 +4353,25 @@ window.__appHandlePlayerSubmit = createSafeWindowHandler(handlePlayerSubmit);
 window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
 window.__gccOpenLineupSelector = openLineupSelector;
 window.__gccOpenPosterStudio = openPosterStudio;
+window.__gccAddPendingLineupPlayer = (matchId, playerId) => {
+  addPendingLineupPlayer(matchId, playerId);
+};
+window.__gccRemovePendingLineupPlayer = (matchId, playerId) => {
+  removePendingLineupPlayer(matchId, playerId);
+};
+window.__gccActivatePendingRoleMenu = (playerId) => {
+  state.ui.activePendingRolePlayerId = String(playerId || '');
+  renderMatches();
+};
+window.__gccSetPendingLineupRole = (matchId, playerId, role) => {
+  setPendingLineupRole(matchId, playerId, role);
+};
+window.__gccSavePendingLineup = (matchId) => {
+  Promise.resolve(savePendingLineup(matchId)).catch((error) => {
+    console.error(error);
+    showMessage(error.message || 'Could not save the Playing XI.', 'error');
+  });
+};
 window.__gccSetInlineLineupPlayers = (_matchId, playerIds = []) => {
   state.ui.inlineLineupPlayerIds = [...new Set((playerIds || []).map(String).filter(Boolean))];
   renderMatches();
