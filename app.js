@@ -226,8 +226,11 @@ const state = {
   activePosterMatchIds: [],
   selectedPosterVariantKey: '',
   activeResultPosterMatchId: '',
+  lastSavedMatchId: '',
   pendingConfirm: null,
 };
+
+window.__gccAppState = state;
 
 const getMainTabStorageKey = (session = state.session) => `gcc-active-main-tab:${session?.user?.id || 'guest'}`;
 const getDatabaseTabStorageKey = (session = state.session) => `gcc-active-database-tab:${session?.user?.id || 'guest'}`;
@@ -916,6 +919,16 @@ const fillSelect = (select, placeholder, items, labelBuilder) => {
   }
 };
 
+const setSelectValueIfPresent = (select, value, items) => {
+  if (!select || !value) return false;
+  const exists = items.some((item) => String(item.id) === String(value));
+  if (exists) {
+    select.value = String(value);
+    return true;
+  }
+  return false;
+};
+
 const fillDatalist = (datalist, items, labelBuilder) => {
   datalist.innerHTML = items.map((item) => `<option value="${htmlEscape(labelBuilder(item))}"></option>`).join('');
 };
@@ -955,6 +968,8 @@ const getCompletedPosterMatches = () =>
   state.results
     .map((result) => findMatch(result.match_id))
     .filter(Boolean);
+const getResultEligibleMatches = () =>
+  state.matches.filter((match) => !state.results.some((result) => String(result.match_id) === String(match.id)));
 
 const getMatchStatusPills = (match) => {
   const hasResult = state.results.some((result) => String(result.match_id) === String(match.id));
@@ -1632,11 +1647,19 @@ const renderResults = () => {
 
 const populateCoreSelectors = () => {
   syncPlayerHomeClubValue();
+  const allMatches = state.matches;
+  const resultEligibleMatches = getResultEligibleMatches();
+  const posterEligibleMatches = getPreMatchPosterMatches();
   fillSelect(elements.matchTeam1, 'Select home club', getHomeTeams(), (team) => team.name);
   fillSelect(elements.matchTeam2, 'Select opponent club', getOpponentTeams(), (team) => team.name);
-  fillSelect(elements.lineupMatch, 'Select match', state.matches, getMatchLabel);
-  fillSelect(elements.resultMatch, 'Select match', state.matches, getMatchLabel);
-  fillSelect(elements.posterMatch, 'Select upcoming / no-result match', getPreMatchPosterMatches(), getMatchLabel);
+  fillSelect(elements.lineupMatch, 'Select match', allMatches, getMatchLabel);
+  fillSelect(elements.resultMatch, 'Select no-result match', resultEligibleMatches, getMatchLabel);
+  fillSelect(elements.posterMatch, 'Select upcoming / no-result match', posterEligibleMatches, getMatchLabel);
+  if (state.lastSavedMatchId) {
+    setSelectValueIfPresent(elements.lineupMatch, state.lastSavedMatchId, allMatches);
+    setSelectValueIfPresent(elements.resultMatch, state.lastSavedMatchId, resultEligibleMatches);
+    setSelectValueIfPresent(elements.posterMatch, state.lastSavedMatchId, posterEligibleMatches);
+  }
   if (elements.matchVenueDatalist) fillDatalist(elements.matchVenueDatalist, state.venues, (venue) => venue.name);
   renderPosterMatchChoices();
   updateLineupTeamOptions();
@@ -3063,12 +3086,14 @@ const handleMatchSubmit = async (event) => {
 
   await withRequest(async () => {
     const query = editingId
-      ? supabase.from('matches').update(payload).eq('id', editingId)
-      : supabase.from('matches').insert([payload]);
-    const { error } = await query;
+      ? supabase.from('matches').update(payload).eq('id', editingId).select('*').single()
+      : supabase.from('matches').insert([payload]).select('*').single();
+    const { data, error } = await query;
     if (error) throw error;
+    state.lastSavedMatchId = String(data?.id || editingId || '');
     resetMatchForm();
     await Promise.all([loadMatches(), loadResults()]);
+    populateCoreSelectors();
     renderLineup();
   }, editingId ? 'Match updated successfully.' : 'Match created successfully.');
 };
@@ -3740,6 +3765,21 @@ window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
 
 const init = async () => {
   window.__gccAppReady = true;
+
+  window.addEventListener('gcc:refresh-data', async (event) => {
+    try {
+      await refreshData();
+      const matchId = event?.detail?.matchId;
+      if (matchId) {
+        state.lastSavedMatchId = String(matchId);
+        populateCoreSelectors();
+        renderLineup();
+      }
+    } catch (error) {
+      console.error(error);
+      showMessage(error.message || 'Could not refresh the app data.', 'error');
+    }
+  });
 
   if (elements.schemaSql) elements.schemaSql.textContent = schemaSQL;
   updateAuthAvailability();

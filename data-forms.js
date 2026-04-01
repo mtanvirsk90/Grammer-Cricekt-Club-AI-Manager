@@ -61,6 +61,9 @@ const elements = {
   matchVenue: byId('match-venue'),
   matchVenueDatalist: byId('match-venue-datalist'),
   matchesList: byId('matches-list'),
+  lineupMatch: byId('lineup-match'),
+  resultMatch: byId('result-match'),
+  posterMatch: byId('poster-match'),
 };
 
 const PLAYER_TEMPLATE_HEADERS = ['name', 'jersey_number', 'batsman_type', 'bowler_type', 'player_category'];
@@ -434,6 +437,48 @@ const getVenueByName = (value) => {
   return venuesCache.find((venue) => String(venue.name || '').trim().toLowerCase() === query) || null;
 };
 
+const getMatchLabel = (match) => {
+  const team1Name = getTeamName(match.team1_id);
+  const team2Name = getTeamName(match.team2_id);
+  const dateLabel = String(match.match_date || '').trim();
+  const timeLabel = match.match_time ? ` | ${String(match.match_time).slice(0, 5)}` : '';
+  return `${team1Name} vs ${team2Name}${dateLabel ? ` | ${dateLabel}${timeLabel}` : ''}`;
+};
+
+const syncMatchSelectors = (preferredMatchId = '') => {
+  const resultMatchIds = new Set();
+  const lineupCurrent = String(elements.lineupMatch?.value || '');
+  const resultCurrent = String(elements.resultMatch?.value || '');
+  const posterCurrent = String(elements.posterMatch?.value || '');
+  const nextPreferred = String(preferredMatchId || '');
+
+  if (window.__gccAppState?.results?.length) {
+    window.__gccAppState.results.forEach((result) => resultMatchIds.add(String(result.match_id)));
+  }
+
+  if (elements.lineupMatch) {
+    elements.lineupMatch.innerHTML = '<option value="">Select match</option>' + matchesCache.map((match) => `<option value="${match.id}">${htmlEscape(getMatchLabel(match))}</option>`).join('');
+    elements.lineupMatch.value = matchesCache.some((match) => String(match.id) === nextPreferred)
+      ? nextPreferred
+      : (matchesCache.some((match) => String(match.id) === lineupCurrent) ? lineupCurrent : '');
+  }
+
+  const resultEligibleMatches = matchesCache.filter((match) => !resultMatchIds.has(String(match.id)));
+  if (elements.resultMatch) {
+    elements.resultMatch.innerHTML = '<option value="">Select no-result match</option>' + resultEligibleMatches.map((match) => `<option value="${match.id}">${htmlEscape(getMatchLabel(match))}</option>`).join('');
+    elements.resultMatch.value = resultEligibleMatches.some((match) => String(match.id) === nextPreferred)
+      ? nextPreferred
+      : (resultEligibleMatches.some((match) => String(match.id) === resultCurrent) ? resultCurrent : '');
+  }
+
+  if (elements.posterMatch) {
+    elements.posterMatch.innerHTML = '<option value="">Select upcoming / no-result match</option>' + resultEligibleMatches.map((match) => `<option value="${match.id}">${htmlEscape(getMatchLabel(match))}</option>`).join('');
+    elements.posterMatch.value = resultEligibleMatches.some((match) => String(match.id) === nextPreferred)
+      ? nextPreferred
+      : (resultEligibleMatches.some((match) => String(match.id) === posterCurrent) ? posterCurrent : '');
+  }
+};
+
 const renderMatches = () => {
   if (!elements.matchesList) return;
 
@@ -678,6 +723,7 @@ const loadMatches = async () => {
   const { data, error } = await supabase.from('matches').select('*').order('match_date', { ascending: true }).order('match_time', { ascending: true });
   if (error) throw error;
   matchesCache = data || [];
+  syncMatchSelectors();
   renderMatches();
 };
 
@@ -955,14 +1001,15 @@ const handleMatchSubmit = async (event) => {
   }
 
   const query = editingId
-    ? supabase.from('matches').update(payload).eq('id', editingId)
-    : supabase.from('matches').insert([payload]);
-  const { error } = await query;
+    ? supabase.from('matches').update(payload).eq('id', editingId).select('*').single()
+    : supabase.from('matches').insert([payload]).select('*').single();
+  const { data, error } = await query;
   if (error) throw error;
 
   resetMatchForm();
   await loadMatches();
-  window.dispatchEvent(new Event('gcc:refresh-data'));
+  syncMatchSelectors(String(data?.id || editingId || ''));
+  window.dispatchEvent(new CustomEvent('gcc:refresh-data', { detail: { matchId: String(data?.id || editingId || '') } }));
   showMessage(editingId ? 'Match updated successfully. Results and posters will use the saved venue pictures from this ground.' : 'Match saved successfully. Results and posters will use the saved venue pictures from this ground.');
 };
 
