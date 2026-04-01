@@ -1156,6 +1156,27 @@ const createSafeHandler = (handler) => (event) => {
 };
 
 const handleListAction = async (event) => {
+  const appActionButton = event.target.closest('[data-action]');
+  if (appActionButton) {
+    const { action, id } = appActionButton.dataset;
+    if (!id) return;
+
+    if (action === 'open-lineup-selector' && typeof window.__gccOpenLineupSelector === 'function') {
+      window.__gccOpenLineupSelector(id);
+      return;
+    }
+
+    if (action === 'open-match-poster' && typeof window.__gccOpenPosterStudio === 'function') {
+      window.__gccOpenPosterStudio(id, 'match');
+      return;
+    }
+
+    if (action === 'open-lineup-poster' && typeof window.__gccOpenPosterStudio === 'function') {
+      window.__gccOpenPosterStudio(id, 'lineup');
+      return;
+    }
+  }
+
   const button = event.target.closest('[data-fallback-action]');
   if (!button) return;
 

@@ -3914,6 +3914,8 @@ window.__appHandleTeamSubmit = createSafeWindowHandler(handleTeamSubmit);
 window.__appHandleVenueSubmit = createSafeWindowHandler(handleVenueSubmit);
 window.__appHandlePlayerSubmit = createSafeWindowHandler(handlePlayerSubmit);
 window.__appHandleMatchSubmit = createSafeWindowHandler(handleMatchSubmit);
+window.__gccOpenLineupSelector = openLineupSelector;
+window.__gccOpenPosterStudio = openPosterStudio;
 
 const init = async () => {
   window.__gccAppReady = true;
