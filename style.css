@@ -1841,6 +1841,33 @@ button:disabled {
   gap: 0.7rem;
 }
 
+.lineup-selection-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(57, 68, 167, 0.06);
+  border: 1px solid rgba(57, 68, 167, 0.12);
+}
+
+.lineup-selection-summary small {
+  display: block;
+  margin-bottom: 0.22rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.lineup-selection-summary strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
 .match-lineup-inline-controls select[multiple] {
   min-height: 12rem;
   padding: 0.75rem;
@@ -1881,6 +1908,11 @@ button:disabled {
   gap: 0.7rem;
 }
 
+.lineup-player-card-active {
+  border-color: rgba(57, 68, 167, 0.34);
+  box-shadow: 0 14px 30px rgba(57, 68, 167, 0.14);
+}
+
 .lineup-player-card-top {
   display: flex;
   justify-content: space-between;
@@ -1912,14 +1944,21 @@ button:disabled {
   color: #475569;
 }
 
+.lineup-player-select {
+  display: grid;
+  gap: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
 .lineup-player-remove {
   flex: 0 0 auto;
   min-width: 0;
   padding-inline: 0.8rem;
-}
-
-.lineup-role-field {
-  margin: 0;
 }
 
 .lineup-role-summary {
@@ -1941,9 +1980,54 @@ button:disabled {
   text-transform: uppercase;
 }
 
+.lineup-role-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.lineup-role-actions .secondary-action {
+  flex: 1 1 120px;
+}
+
+.lineup-available-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.4rem;
+}
+
+.lineup-available-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.lineup-available-player {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.lineup-available-player strong {
+  font-size: 0.98rem;
+  color: #0f172a;
+}
+
+.lineup-available-player span {
+  font-size: 0.82rem;
+  color: #475569;
+}
+
 @media (max-width: 900px) {
+  .lineup-selection-summary,
   .match-lineup-inline-controls {
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }
 
