@@ -2239,6 +2239,153 @@ button:disabled {
   align-items: stretch;
 }
 
+.match-poster-card.match-layout-2 .poster-top,
+.lineup-poster-card.lineup-layout-2 .poster-top {
+  align-items: flex-start;
+}
+
+.match-poster-card.match-layout-2 .match-poster-frame {
+  inset: 5% 6%;
+  border-radius: 36px;
+  background: linear-gradient(180deg, rgba(8, 15, 13, 0.14), rgba(8, 15, 13, 0.04));
+}
+
+.match-poster-card.match-layout-2 .match-poster-hero {
+  padding-top: 1.1rem;
+  text-align: center;
+}
+
+.match-poster-card.match-layout-2 .match-poster-title-wrap {
+  max-width: 100%;
+}
+
+.match-poster-card.match-layout-2 .match-poster-title {
+  font-size: clamp(2.8rem, 5vw, 5rem);
+}
+
+.match-poster-card.match-layout-2 .match-versus-row {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.match-poster-card.match-layout-2 .match-versus-badge {
+  order: -1;
+}
+
+.match-poster-card.match-layout-2 .match-team-card {
+  width: 100%;
+  text-align: center;
+}
+
+.match-poster-card.match-layout-2 .match-fixture-info {
+  grid-template-columns: 1fr;
+}
+
+.match-poster-card.match-layout-2 .match-poster-grid {
+  grid-template-columns: 1fr;
+}
+
+.match-poster-card.match-layout-3 .match-poster-frame {
+  inset: 0;
+  border-radius: 0;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 15, 13, 0.05), rgba(8, 15, 13, 0.2)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 32%, transparent 32% 100%);
+}
+
+.match-poster-card.match-layout-3 .poster-top {
+  padding-bottom: 0;
+}
+
+.match-poster-card.match-layout-3 .match-poster-hero {
+  padding-top: 0.4rem;
+}
+
+.match-poster-card.match-layout-3 .match-poster-title {
+  max-width: 58%;
+}
+
+.match-poster-card.match-layout-3 .match-versus-row {
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+  align-items: stretch;
+}
+
+.match-poster-card.match-layout-3 .match-team-card {
+  grid-template-columns: auto;
+}
+
+.match-poster-card.match-layout-3 .match-versus-badge {
+  width: auto;
+  height: auto;
+  padding: 0.8rem 1.4rem;
+}
+
+.match-poster-card.match-layout-3 .match-fixture-info {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.match-poster-card.match-layout-3 .match-poster-grid {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.lineup-poster-card.lineup-layout-2 .lineup-poster-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
+.lineup-poster-card.lineup-layout-2 .lineup-meta-row {
+  grid-template-columns: 1fr;
+}
+
+.lineup-poster-card.lineup-layout-2 .lineup-poster-grid {
+  grid-template-columns: 1fr;
+}
+
+.lineup-poster-card.lineup-layout-2 .poster-xi {
+  grid-template-columns: 1fr;
+}
+
+.lineup-poster-card.lineup-layout-2 .poster-visual-box {
+  grid-template-rows: auto auto;
+}
+
+.lineup-poster-card.lineup-layout-3 .lineup-poster-top {
+  padding-bottom: 0.2rem;
+}
+
+.lineup-poster-card.lineup-layout-3 .lineup-heading {
+  max-width: 100%;
+}
+
+.lineup-poster-card.lineup-layout-3 .lineup-meta-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lineup-poster-card.lineup-layout-3 .lineup-poster-grid {
+  grid-template-columns: 0.85fr 1.15fr;
+}
+
+.lineup-poster-card.lineup-layout-3 .lineup-list-box {
+  order: 2;
+}
+
+.lineup-poster-card.lineup-layout-3 .poster-visual-box {
+  order: 1;
+}
+
+.lineup-poster-card.lineup-layout-3 .poster-xi {
+  grid-template-columns: 1fr;
+}
+
+.poster-source-generated .match-poster-kicker,
+.poster-source-generated .poster-badge,
+.poster-source-generated .lineup-versus {
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
 .lineup-list-box {
   background: rgba(8, 15, 13, 0.32);
 }

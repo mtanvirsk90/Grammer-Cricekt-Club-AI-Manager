@@ -2252,6 +2252,11 @@ const getPosterVenueImage = (venue, variantIndex) => {
     : '';
 };
 
+const getPosterLayoutClass = (posterType, variantIndex, sourceMode) => {
+  const family = (variantIndex % 3) + 1;
+  return `${posterType}-layout-${family} poster-source-${sourceMode}`;
+};
+
 const getSponsorImages = () =>
   elements.posterSponsorImages.value
     .split('\n')
@@ -2321,8 +2326,8 @@ const renderPoster = () => {
 
     getVariantThemes(team1, team2).forEach((theme, index) => {
       const sourceMode = visualMode === 'mixed' ? (index < 3 ? 'saved' : 'generated') : visualMode;
-      const variantLabel = index < 3 ? 'Venue Based' : 'AI Style';
       const variantKey = `${match.id}-${posterType}-${sourceMode}-${theme.id}`;
+      const layoutClass = getPosterLayoutClass(posterType, index, sourceMode);
 
       if (posterType === 'lineup') {
         const lineupEntries = getPrimaryLineupEntries(match.id);
@@ -2341,7 +2346,7 @@ const renderPoster = () => {
 
         posters.push(`
           <article
-            class="poster-card poster-variant lineup-poster-card theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
+            class="poster-card poster-variant lineup-poster-card ${layoutClass} theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
             data-variant-key="${variantKey}"
             data-match-id="${match.id}"
             style="
@@ -2355,7 +2360,7 @@ const renderPoster = () => {
             <div class="poster-overlay"></div>
             <div class="poster-top lineup-poster-top">
               <div class="lineup-heading">
-                <span class="poster-badge">${platformSpec.label} | ${variantLabel}</span>
+                <span class="poster-badge">Home XI</span>
                 <h2 class="poster-title poster-title-lineup">Playing XI</h2>
                 <p class="lineup-versus">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
               </div>
@@ -2365,10 +2370,10 @@ const renderPoster = () => {
               </div>
             </div>
             <div class="lineup-meta-row">
-              <span>${formatDate(match.match_date)}</span>
-              <span>${formatTime(match.match_time)}</span>
-              <span>${htmlEscape(venue.name)}</span>
-            </div>
+                <span>${formatDate(match.match_date)}</span>
+                <span>${formatTime(match.match_time)}</span>
+                <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
+              </div>
             <div class="poster-grid lineup-poster-grid">
               <section class="poster-box lineup-list-box">
                 ${lineupMarkup}
@@ -2413,9 +2418,9 @@ const renderPoster = () => {
         return;
       }
 
-      posters.push(`
+        posters.push(`
         <article
-          class="poster-card poster-variant match-poster-card theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
+          class="poster-card poster-variant match-poster-card ${layoutClass} theme-${theme.id} ${matchIndex === 0 && index === 0 ? 'selected-poster' : ''}"
           data-variant-key="${variantKey}"
           data-match-id="${match.id}"
           style="
@@ -2429,7 +2434,7 @@ const renderPoster = () => {
           <div class="poster-overlay"></div>
           <div class="match-poster-frame"></div>
           <div class="poster-top match-poster-top">
-            <div class="match-poster-kicker">Exciting</div>
+            <div class="match-poster-kicker">Match Day</div>
             <div class="poster-logos lineup-poster-logos">
               ${team1.logo_url ? `<img src="${htmlEscape(team1.logo_url)}" alt="${htmlEscape(team1.name)} logo" class="poster-logo" />` : ''}
               ${team2.logo_url ? `<img src="${htmlEscape(team2.logo_url)}" alt="${htmlEscape(team2.name)} logo" class="poster-logo" />` : ''}
@@ -2437,9 +2442,9 @@ const renderPoster = () => {
           </div>
           <div class="match-poster-hero">
             <div class="match-poster-title-wrap">
-              <span class="poster-badge">${platformSpec.label} | ${variantLabel}</span>
+              <span class="poster-badge">Fixture Poster</span>
               <h2 class="poster-title match-poster-title">Cricket Match</h2>
-              <p class="match-poster-subtitle">Upcoming club fixture poster</p>
+              <p class="match-poster-subtitle">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
             </div>
           </div>
           <div class="match-versus-row">
@@ -2466,7 +2471,7 @@ const renderPoster = () => {
             </div>
             <div>
               <strong>Venue</strong>
-              <span>${htmlEscape(venue.name)}</span>
+              <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
             </div>
           </div>
           <div class="poster-grid match-poster-grid">
@@ -2547,7 +2552,7 @@ const renderPoster = () => {
 
   state.activePosterMatchIds = matchIds;
   state.selectedPosterVariantKey = elements.posterHost.querySelector('.poster-variant')?.dataset.variantKey || '';
-  elements.posterSelectionLabel.textContent = `Selected: ${elements.posterHost.querySelector('.poster-badge')?.textContent || 'Design'}`;
+  elements.posterSelectionLabel.textContent = 'Selected design ready';
   toggleHidden(elements.posterSelection, false);
   elements.downloadPoster.disabled = false;
 };
@@ -3717,8 +3722,7 @@ const handlePosterSelection = (event) => {
 
   posterCard.classList.add('selected-poster');
   state.selectedPosterVariantKey = posterCard.dataset.variantKey || '';
-  const badge = posterCard.querySelector('.poster-badge');
-  elements.posterSelectionLabel.textContent = `Selected: ${badge ? badge.textContent : 'Design'}`;
+  elements.posterSelectionLabel.textContent = 'Selected design ready';
 };
 
 const handleDelete = async (table, id, successMessage, afterLoaders = []) => {
