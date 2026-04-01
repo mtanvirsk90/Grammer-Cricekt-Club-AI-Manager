@@ -2592,7 +2592,7 @@ const renderPoster = () => {
               ${lineupEntries.slice(0, 11).map((entry, playerIndex) => `
                 <li>
                   <strong>${playerIndex + 1}. ${htmlEscape(entry.players?.name || 'Player')}</strong>
-                  <small>${htmlEscape(getRoleLabel(entry.match_role))}</small>
+                  <small>${htmlEscape(getLineupRoleLabel(entry.match_role))}</small>
                 </li>
               `).join('')}
             </ol>
@@ -2687,7 +2687,7 @@ const renderPoster = () => {
         >
           <div class="poster-overlay"></div>
           <div class="match-poster-frame"></div>
-          ${index > 0 ? sponsorHeaderMarkup : ''}
+          ${sponsorHeaderMarkup}
           <div class="poster-top match-poster-top">
             <div class="match-poster-kicker">Match Day</div>
             <div class="poster-logos lineup-poster-logos">
