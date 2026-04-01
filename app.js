@@ -947,6 +947,9 @@ const isUpcomingMatch = (match) => {
   return matchDate >= todayKey && !hasResult;
 };
 
+const isPosterEligibleMatch = (match) =>
+  Boolean(match) && !state.results.some((result) => String(result.match_id) === String(match.id));
+
 const getAllowedPlayersForMatch = (matchId) => {
   const match = findMatch(matchId);
   if (!match) return [];
@@ -1609,7 +1612,7 @@ const populateCoreSelectors = () => {
   fillSelect(elements.matchTeam2, 'Select opponent club', getOpponentTeams(), (team) => team.name);
   fillSelect(elements.lineupMatch, 'Select match', state.matches, getMatchLabel);
   fillSelect(elements.resultMatch, 'Select match', state.matches, getMatchLabel);
-  fillSelect(elements.posterMatch, 'Select upcoming match', state.matches.filter(isUpcomingMatch), getMatchLabel);
+  fillSelect(elements.posterMatch, 'Select saved match', state.matches.filter(isPosterEligibleMatch), getMatchLabel);
   if (elements.matchVenueDatalist) fillDatalist(elements.matchVenueDatalist, state.venues, (venue) => venue.name);
   renderPosterMatchChoices();
   updateLineupTeamOptions();
@@ -1620,10 +1623,10 @@ const populateCoreSelectors = () => {
 };
 
 const renderPosterMatchChoices = () => {
-  const upcomingMatches = state.matches.filter(isUpcomingMatch);
+  const upcomingMatches = state.matches.filter(isPosterEligibleMatch);
 
   if (!upcomingMatches.length) {
-    setEmptyState(elements.posterMatchPicker, 'No upcoming matches available yet.');
+    setEmptyState(elements.posterMatchPicker, 'No saved matches available for posters yet.');
     return;
   }
 
