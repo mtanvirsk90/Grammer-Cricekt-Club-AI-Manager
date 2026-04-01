@@ -2305,8 +2305,32 @@ const getSponsorCatchLine = (sponsors, tone = 'none', context = 'matchday') => {
 const resolveSponsorLayoutMode = (requestedMode = 'auto', context = 'match', variantIndex = 0) => {
   if (requestedMode && requestedMode !== 'auto') return requestedMode;
   if (context === 'result') return 'premium';
-  if (context === 'lineup') return variantIndex % 2 === 0 ? 'wall' : 'premium';
-  return variantIndex % 2 === 0 ? 'premium' : 'wall';
+  if (context === 'lineup') return 'wall';
+  return 'premium';
+};
+
+const getSponsorLayoutHeading = (context = 'match', layoutMode = 'wall') => {
+  if (context === 'result') {
+    return layoutMode === 'premium' ? 'Winner Partner' : 'Result Partners';
+  }
+
+  if (context === 'lineup') {
+    return layoutMode === 'premium' ? 'Squad Partner' : 'Squad Partners';
+  }
+
+  return layoutMode === 'premium' ? 'Presented By' : 'Match Partners';
+};
+
+const getSponsorLayoutSubhead = (context = 'match', layoutMode = 'wall') => {
+  if (context === 'result') {
+    return layoutMode === 'premium' ? 'Backed by the partner behind the result' : 'Official partners behind the match result';
+  }
+
+  if (context === 'lineup') {
+    return layoutMode === 'premium' ? 'Squad reveal presented with partner backing' : 'Official partner wall for the playing XI release';
+  }
+
+  return layoutMode === 'premium' ? 'Headline sponsor powering the fixture' : 'Official partner wall for matchday visibility';
 };
 
 const getSponsorHeaderMarkup = (sponsors, emptyText = '') => {
@@ -2332,24 +2356,34 @@ const getSponsorHeaderMarkup = (sponsors, emptyText = '') => {
   `;
 };
 
-const getSponsorMarkup = (sponsors, emptyText, catchLine = '', layoutMode = 'wall', heading = 'Partners') => {
+const getSponsorMarkup = (sponsors, emptyText, catchLine = '', layoutMode = 'wall', heading = 'Partners', subhead = '') => {
   if (!sponsors.length) {
     return `<div class="poster-sponsor-empty">${htmlEscape(emptyText)}</div>`;
   }
 
   if (layoutMode === 'premium') {
+    const leadSponsor = sponsors[0];
+    const supportSponsors = sponsors.slice(1, 3);
     return `
       <div class="poster-sponsor-premium">
         <div class="poster-sponsor-premium-head">
           <span class="poster-sponsor-premium-kicker">${htmlEscape(heading)}</span>
-          <strong>Presented with partner backing</strong>
+          <strong>${htmlEscape(subhead || 'Presented with partner backing')}</strong>
         </div>
-        <div class="poster-sponsor-grid poster-sponsor-grid-premium">
-          ${sponsors.slice(0, 3).map((sponsor) => `
-            <div class="poster-sponsor-slot poster-sponsor-slot-premium">
-              ${sponsor.logo_url ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="poster-sponsor-image" />` : `<strong class="poster-sponsor-text">${htmlEscape(sponsor.name)}</strong>`}
+        <div class="poster-sponsor-premium-hero">
+          <div class="poster-sponsor-slot poster-sponsor-slot-premium poster-sponsor-slot-lead">
+            ${leadSponsor.logo_url ? `<img src="${htmlEscape(leadSponsor.logo_url)}" alt="${htmlEscape(leadSponsor.name)} logo" class="poster-sponsor-image" />` : `<strong class="poster-sponsor-text">${htmlEscape(leadSponsor.name)}</strong>`}
+            <span class="poster-sponsor-lead-label">${htmlEscape(leadSponsor.name)}</span>
+          </div>
+          ${supportSponsors.length ? `
+            <div class="poster-sponsor-grid poster-sponsor-grid-premium">
+              ${supportSponsors.map((sponsor) => `
+                <div class="poster-sponsor-slot poster-sponsor-slot-premium">
+                  ${sponsor.logo_url ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="poster-sponsor-image" />` : `<strong class="poster-sponsor-text">${htmlEscape(sponsor.name)}</strong>`}
+                </div>
+              `).join('')}
             </div>
-          `).join('')}
+          ` : ''}
         </div>
         ${catchLine ? `<p class="poster-sponsor-catchline poster-sponsor-catchline-premium">${htmlEscape(catchLine)}</p>` : ''}
       </div>
@@ -2360,7 +2394,7 @@ const getSponsorMarkup = (sponsors, emptyText, catchLine = '', layoutMode = 'wal
     <div class="poster-sponsor-wall">
       <div class="poster-sponsor-wall-head">
         <span class="poster-sponsor-wall-kicker">${htmlEscape(heading)}</span>
-        <strong>Official partner wall</strong>
+        <strong>${htmlEscape(subhead || 'Official partner wall')}</strong>
       </div>
       <div class="poster-sponsor-grid poster-sponsor-grid-wall">
         ${sponsors.map((sponsor) => `
@@ -2625,7 +2659,8 @@ const renderPoster = () => {
         'Select saved sponsors to show partner branding here.',
         sponsorCatchLine,
         sponsorLayoutMode,
-        sponsorLayoutMode === 'premium' ? 'Presented By' : 'Official Partners',
+        getSponsorLayoutHeading(posterType, sponsorLayoutMode),
+        getSponsorLayoutSubhead(posterType, sponsorLayoutMode),
       );
 
       if (posterType === 'lineup') {
@@ -3828,7 +3863,8 @@ const renderResultPoster = () => {
     'Select saved sponsors to show partner branding on this result poster.',
     resultSponsorCatchLine,
     resultSponsorLayoutMode,
-    resultSponsorLayoutMode === 'premium' ? 'Presented By' : 'Official Partners',
+    getSponsorLayoutHeading('result', resultSponsorLayoutMode),
+    getSponsorLayoutSubhead('result', resultSponsorLayoutMode),
   );
   const socialLinks = getSelectedSocialLinks(elements.resultPosterSocialLinks);
 
