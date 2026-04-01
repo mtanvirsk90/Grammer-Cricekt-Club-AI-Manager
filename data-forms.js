@@ -40,6 +40,13 @@ const elements = {
   playersTemplate: byId('players-template'),
   playersImportFile: byId('players-import-file'),
   homePlayersList: byId('home-players-list'),
+  sponsorForm: byId('sponsor-form'),
+  sponsorName: byId('sponsor-name'),
+  sponsorUrl: byId('sponsor-url'),
+  sponsorLogoUrl: byId('sponsor-logo-url'),
+  sponsorLogoFile: byId('sponsor-logo-file'),
+  sponsorCatchLine: byId('sponsor-catch-line'),
+  sponsorsList: byId('sponsors-list'),
   venueForm: byId('venue-form'),
   venueEditId: byId('venue-edit-id'),
   venueSubmitButton: byId('venue-submit-button'),
@@ -96,6 +103,7 @@ const PLAYER_CATEGORY_OPTIONS = ['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeep
 const STORAGE_BUCKETS = {
   team: 'club-assets',
   player: 'player-assets',
+  sponsor: 'sponsor-assets',
 };
 
 const CLUB_TYPE_PREFIX = 'club_type:';
@@ -104,6 +112,7 @@ let teamsCache = [];
 let playersCache = [];
 let venuesCache = [];
 let matchesCache = [];
+let sponsorsCache = [];
 
 const buildSquadLabels = (teamCount) => Array.from({ length: Math.max(1, Number(teamCount) || 1) }, (_, index) => `T${index + 1}`);
 
@@ -456,6 +465,37 @@ const renderVenues = () => {
   renderMatches();
 };
 
+const renderSponsors = () => {
+  if (!elements.sponsorsList) return;
+
+  if (!sponsorsCache.length) {
+    renderEmptyState(elements.sponsorsList, 'No sponsors saved yet.');
+    return;
+  }
+
+  elements.sponsorsList.innerHTML = `
+    <div class="sponsor-library-grid">
+      ${sponsorsCache.map((sponsor) => `
+        <article class="sponsor-card">
+          <div class="sponsor-card-media">
+            ${sponsor.logo_url
+              ? `<img src="${htmlEscape(sponsor.logo_url)}" alt="${htmlEscape(sponsor.name)} logo" class="sponsor-card-logo" />`
+              : `<div class="sponsor-card-logo sponsor-card-logo-fallback"><img src="./logo.svg" alt="Club crest" class="club-card-logo-crest" /></div>`
+            }
+          </div>
+          <div class="sponsor-card-body">
+            <h3>${htmlEscape(sponsor.name)}</h3>
+            ${sponsor.catch_line ? `<p class="record-meta">${htmlEscape(sponsor.catch_line)}</p>` : '<p class="record-meta">No catch line added yet.</p>'}
+          </div>
+          <div class="sponsor-card-actions">
+            <button type="button" class="danger-action" data-fallback-action="delete-sponsor" data-id="${sponsor.id}">Delete</button>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+};
+
 const getTeamName = (id) => teamsCache.find((team) => String(team.id) === String(id))?.name || 'Unknown club';
 
 const getVenueByName = (value) => {
@@ -786,8 +826,15 @@ const loadMatches = async () => {
   renderMatches();
 };
 
+const loadSponsors = async () => {
+  const { data, error } = await supabase.from('sponsors').select('*').order('name', { ascending: true });
+  if (error) throw error;
+  sponsorsCache = data || [];
+  renderSponsors();
+};
+
 const refreshBaseData = async () => {
-  await Promise.all([loadTeams(), loadPlayers(), loadVenues(), loadMatches()]);
+  await Promise.all([loadTeams(), loadPlayers(), loadVenues(), loadMatches(), loadSponsors()]);
 };
 
 const resetTeamForm = () => {
@@ -1076,6 +1123,33 @@ const handleMatchSubmit = async (event) => {
   showMessage(editingId ? 'Match updated successfully. Results and posters will use the saved venue pictures from this ground.' : 'Match saved successfully. Results and posters will use the saved venue pictures from this ground.');
 };
 
+const handleSponsorSubmit = async (event) => {
+  event?.preventDefault?.();
+  const session = await getSession();
+  const uploadedLogo = await uploadImageFile(elements.sponsorLogoFile?.files?.[0], STORAGE_BUCKETS.sponsor, 'logos');
+
+  const payload = {
+    name: elements.sponsorName?.value.trim() || '',
+    url: elements.sponsorUrl?.value.trim() || '',
+    logo_url: uploadedLogo || elements.sponsorLogoUrl?.value.trim() || '',
+    catch_line: elements.sponsorCatchLine?.value.trim() || '',
+    created_by: session.user.id,
+  };
+
+  if (!payload.name) {
+    showMessage('Sponsor name is required.', 'error');
+    return;
+  }
+
+  const { error } = await supabase.from('sponsors').insert([payload]);
+  if (error) throw error;
+
+  elements.sponsorForm?.reset();
+  await loadSponsors();
+  window.dispatchEvent(new Event('gcc:refresh-data'));
+  showMessage('Sponsor saved successfully.');
+};
+
 const handlePlayersImport = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -1211,6 +1285,8 @@ const handleListAction = async (event) => {
         ? 'venues'
         : fallbackAction === 'delete-match'
           ? 'matches'
+          : fallbackAction === 'delete-sponsor'
+            ? 'sponsors'
         : '';
 
   if (!table) return;
@@ -1242,6 +1318,12 @@ const handleListAction = async (event) => {
     window.dispatchEvent(new Event('gcc:refresh-data'));
     showMessage('Match deleted successfully.');
   }
+
+  if (table === 'sponsors') {
+    await loadSponsors();
+    window.dispatchEvent(new Event('gcc:refresh-data'));
+    showMessage('Sponsor deleted successfully.');
+  }
 };
 
 const bindHandlers = () => {
@@ -1249,11 +1331,13 @@ const bindHandlers = () => {
   window.__appHandlePlayerSubmit = createSafeHandler(handlePlayerSubmit);
   window.__appHandleVenueSubmit = createSafeHandler(handleVenueSubmit);
   window.__appHandleMatchSubmit = createSafeHandler(handleMatchSubmit);
+  window.__appHandleSponsorSubmit = createSafeHandler(handleSponsorSubmit);
 
   elements.teamSubmitButton?.addEventListener?.('click', window.__appHandleTeamSubmit);
   elements.playerSubmitButton?.addEventListener?.('click', window.__appHandlePlayerSubmit);
   elements.venueSubmitButton?.addEventListener?.('click', window.__appHandleVenueSubmit);
   elements.matchSubmitButton?.addEventListener?.('click', window.__appHandleMatchSubmit);
+  elements.sponsorForm?.addEventListener?.('submit', window.__appHandleSponsorSubmit);
   elements.teamForm?.addEventListener?.('submit', window.__appHandleTeamSubmit);
   elements.playerForm?.addEventListener?.('submit', window.__appHandlePlayerSubmit);
   elements.venueForm?.addEventListener?.('submit', window.__appHandleVenueSubmit);
@@ -1271,6 +1355,7 @@ const bindHandlers = () => {
   elements.playersList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.venuesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
   elements.matchesList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
+  elements.sponsorsList?.addEventListener?.('click', (event) => createSafeHandler(handleListAction)(event));
 };
 
 const init = async () => {
