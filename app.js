@@ -2601,6 +2601,13 @@ const getPosterLayoutClass = (posterType, variantIndex, sourceMode) => {
   return `${posterType}-layout-${family} poster-source-${sourceMode}`;
 };
 
+const getPosterRoleShort = (role) => ({
+  captain: 'C',
+  vice_captain: 'VC',
+  wicketkeeper: 'WK',
+  player: '',
+}[role] || '');
+
 const renderPoster = () => {
   const matchIds = getSelectedPosterMatchIds();
   if (!matchIds.length) {
@@ -2670,8 +2677,11 @@ const renderPoster = () => {
             <ol class="poster-xi">
               ${lineupEntries.slice(0, 11).map((entry, playerIndex) => `
                 <li>
-                  <strong>${playerIndex + 1}. ${htmlEscape(entry.players?.name || 'Player')}</strong>
-                  <small>${htmlEscape(getLineupRoleLabel(entry.match_role))}</small>
+                  <span class="poster-player-number">${playerIndex + 1}</span>
+                  <div class="poster-player-copy">
+                    <strong>${htmlEscape(entry.players?.name || 'Player')}</strong>
+                    ${getPosterRoleShort(entry.match_role) ? `<small>${htmlEscape(getPosterRoleShort(entry.match_role))}</small>` : ''}
+                  </div>
                 </li>
               `).join('')}
             </ol>
@@ -2695,7 +2705,6 @@ const renderPoster = () => {
             ${sponsorHeaderMarkup}
             <div class="poster-top lineup-poster-top">
               <div class="lineup-heading">
-                <span class="poster-badge">Home XI</span>
                 <h2 class="poster-title poster-title-lineup">Playing XI</h2>
                 <p class="lineup-versus">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
               </div>
@@ -2720,11 +2729,11 @@ const renderPoster = () => {
                 ></div>
                 <div class="poster-info poster-info-compact">
                   <div>
-                    <strong>Home Club</strong>
+                    <strong>Club</strong>
                     <span>${htmlEscape(team1.name)}</span>
                   </div>
                   <div>
-                    <strong>Opponent</strong>
+                    <strong>Fixture</strong>
                     <span>${htmlEscape(team2.name)}</span>
                   </div>
                   <div>
@@ -2776,20 +2785,18 @@ const renderPoster = () => {
           </div>
           <div class="match-poster-hero">
             <div class="match-poster-title-wrap">
-              <span class="poster-badge">Fixture Poster</span>
-              <h2 class="poster-title match-poster-title">Cricket Match</h2>
-              <p class="match-poster-subtitle">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
+              <h2 class="poster-title match-poster-title">${htmlEscape(team1.short_name || team1.name)}</h2>
+              <p class="match-poster-subtitle">vs</p>
+              <h2 class="poster-title match-poster-title match-poster-title-away">${htmlEscape(team2.short_name || team2.name)}</h2>
             </div>
           </div>
           <div class="match-versus-row">
             <div class="match-team-card match-team-home">
-              <span class="match-team-label">Home Team</span>
               <strong>${htmlEscape(team1.name)}</strong>
               <small>${htmlEscape(team1.short_name || '')}</small>
             </div>
             <div class="match-versus-badge">VS</div>
             <div class="match-team-card match-team-away">
-              <span class="match-team-label">Opponent</span>
               <strong>${htmlEscape(team2.name)}</strong>
               <small>${htmlEscape(team2.short_name || '')}</small>
             </div>
@@ -2816,40 +2823,20 @@ const renderPoster = () => {
               ></div>
               <div class="poster-info poster-info-compact">
                 <div>
-                  <strong>Home Team</strong>
-                  <span>${htmlEscape(team1.name)}</span>
-                </div>
-                <div>
-                  <strong>Opponent</strong>
-                  <span>${htmlEscape(team2.name)}</span>
-                </div>
-                <div>
                   <strong>Address</strong>
                   <span>${htmlEscape(venue.address || `${venue.city}, ${venue.country}`)}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(team1?.short_name || 'Home')} Captain</strong>
+                  <strong>Captain</strong>
                   <span>${htmlEscape(lineupSummary.homeCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(team1?.short_name || 'Home')} Vice Captain</strong>
+                  <strong>Vice Captain</strong>
                   <span>${htmlEscape(lineupSummary.homeViceCaptain || 'Not set')}</span>
                 </div>
                 <div>
-                  <strong>${htmlEscape(team1?.short_name || 'Home')} Wicketkeeper</strong>
+                  <strong>Wicketkeeper</strong>
                   <span>${htmlEscape(lineupSummary.homeWicketkeeper || 'Not set')}</span>
-                </div>
-                <div>
-                  <strong>${htmlEscape(team2?.short_name || 'Away')} Captain</strong>
-                  <span>${htmlEscape(lineupSummary.awayCaptain || 'Not set')}</span>
-                </div>
-                <div>
-                  <strong>${htmlEscape(team2?.short_name || 'Away')} Vice Captain</strong>
-                  <span>${htmlEscape(lineupSummary.awayViceCaptain || 'Not set')}</span>
-                </div>
-                <div>
-                  <strong>${htmlEscape(team2?.short_name || 'Away')} Wicketkeeper</strong>
-                  <span>${htmlEscape(lineupSummary.awayWicketkeeper || 'Not set')}</span>
                 </div>
                 <div>
                   <strong>Sponsors</strong>
