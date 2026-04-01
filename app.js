@@ -1584,9 +1584,9 @@ const renderMatches = () => {
                 }
               </div>
               <div class="match-card-actions">
-                <button type="button" class="primary-action" data-action="open-lineup-selector" data-id="${match.id}" onclick="if (window.__gccOpenLineupSelector) window.__gccOpenLineupSelector('${match.id}')">${lineupCount ? 'Edit Playing XI' : 'Select Playing XI'}</button>
-                <button type="button" class="secondary-action" data-action="open-match-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'match')">Match Poster</button>
-                <button type="button" class="secondary-action" data-action="open-lineup-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'lineup')">Lineup Poster</button>
+                <a href="#lineup-${match.id}" class="primary-action button-link" data-action="open-lineup-selector" data-id="${match.id}" onclick="if (window.__gccOpenLineupSelector) window.__gccOpenLineupSelector('${match.id}'); return false;">${lineupCount ? 'Edit Playing XI' : 'Select Playing XI'}</a>
+                <a href="#match-poster-${match.id}" class="secondary-action button-link" data-action="open-match-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'match'); return false;">Match Poster</a>
+                <a href="#lineup-poster-${match.id}" class="secondary-action button-link" data-action="open-lineup-poster" data-id="${match.id}" onclick="if (window.__gccOpenPosterStudio) window.__gccOpenPosterStudio('${match.id}', 'lineup'); return false;">Lineup Poster</a>
                 <button type="button" class="secondary-action" data-action="edit-match" data-id="${match.id}">Edit</button>
                 <button type="button" class="danger-action" data-action="delete-match" data-id="${match.id}">Delete</button>
               </div>
@@ -2069,6 +2069,34 @@ const openLineupSelector = (matchId) => {
   renderMatches();
   renderLineup();
   document.querySelector('.match-card-active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+const parseActionHash = (hashValue = window.location.hash) => {
+  const cleanHash = String(hashValue || '').replace(/^#/, '');
+  if (!cleanHash) return null;
+  if (cleanHash.startsWith('lineup-')) return { type: 'lineup', matchId: cleanHash.slice(7) };
+  if (cleanHash.startsWith('match-poster-')) return { type: 'match-poster', matchId: cleanHash.slice(13) };
+  if (cleanHash.startsWith('lineup-poster-')) return { type: 'lineup-poster', matchId: cleanHash.slice(14) };
+  return null;
+};
+
+const applyActionHashRoute = () => {
+  const route = parseActionHash();
+  if (!route?.matchId) return;
+
+  if (route.type === 'lineup') {
+    openLineupSelector(route.matchId);
+    return;
+  }
+
+  if (route.type === 'match-poster') {
+    openPosterStudio(route.matchId, 'match');
+    return;
+  }
+
+  if (route.type === 'lineup-poster') {
+    openPosterStudio(route.matchId, 'lineup');
+  }
 };
 
 const buildFixtureCaption = (match) => {
@@ -3382,8 +3410,6 @@ const renderResultPoster = () => {
   const playerOfMatchMode = playerOfMatchRecord ? getPlayerImageMode(playerOfMatchRecord.id) : 'original';
   const bestScorerMode = bestScorerRecord ? getPlayerImageMode(bestScorerRecord.id) : 'original';
   const bestBowlerMode = bestBowlerRecord ? getPlayerImageMode(bestBowlerRecord.id) : 'original';
-  const winningCaptainName = getWinningCaptainName(match, result);
-
   elements.resultPosterHost.innerHTML = `
     <article
       class="poster-card result-poster-card"
@@ -4167,6 +4193,7 @@ const init = async () => {
   addListener(elements.generatePoster, 'click', renderPoster);
   addListener(elements.downloadPoster, 'click', downloadPoster);
   addListener(elements.posterHost, 'click', handlePosterSelection);
+  window.addEventListener('hashchange', applyActionHashRoute);
   [
     elements.profilesList,
     elements.teamsList,
@@ -4198,9 +4225,11 @@ const init = async () => {
   }
 
   await bootstrapSession(data.session);
+  applyActionHashRoute();
 
   supabase.auth.onAuthStateChange(async (_event, session) => {
     await bootstrapSession(session);
+    applyActionHashRoute();
   });
 
 };

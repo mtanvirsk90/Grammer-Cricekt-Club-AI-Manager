@@ -1119,6 +1119,13 @@ button:disabled {
   color: var(--danger);
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .stack-list {
   display: grid;
   gap: 0.75rem;
