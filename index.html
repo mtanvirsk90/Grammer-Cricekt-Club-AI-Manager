@@ -231,6 +231,7 @@
               <button id="database-tab-clubs" type="button" class="workspace-tab">Clubs</button>
               <button id="database-tab-grounds" type="button" class="workspace-tab">Venue / Grounds</button>
               <button id="database-tab-social" type="button" class="workspace-tab">Social Links</button>
+              <button id="database-tab-sponsors" type="button" class="workspace-tab">Sponsors</button>
               <button id="database-tab-sheets" type="button" class="workspace-tab">Google Sheets</button>
             </div>
           </section>
@@ -553,6 +554,42 @@
             </form>
 
             <div id="social-links-list" class="stack-list"></div>
+          </section>
+
+          <section id="database-pane-sponsors" class="panel panel-wide hidden">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Sponsors</p>
+                <h2>Sponsor Library</h2>
+              </div>
+              <p class="panel-note">Save sponsor logos, website links, and optional catch lines once, then reuse them across match, lineup, and result posters.</p>
+            </div>
+
+            <form id="sponsor-form" class="form-grid">
+              <label class="field">
+                <span>Sponsor Name</span>
+                <input type="text" id="sponsor-name" placeholder="ABC Builders" required />
+              </label>
+              <label class="field">
+                <span>Website / Link</span>
+                <input type="url" id="sponsor-url" placeholder="https://example.com" />
+              </label>
+              <label class="field">
+                <span>Logo URL</span>
+                <input type="url" id="sponsor-logo-url" placeholder="https://example.com/sponsor-logo.png" />
+              </label>
+              <label class="field">
+                <span>Upload Logo</span>
+                <input type="file" id="sponsor-logo-file" accept="image/*" />
+              </label>
+              <label class="field field-wide">
+                <span>Catch Statement</span>
+                <textarea id="sponsor-catch-line" rows="2" placeholder="Proudly backing every boundary and breakthrough."></textarea>
+              </label>
+              <button type="submit" class="primary-action">Save Sponsor</button>
+            </form>
+
+            <div id="sponsors-list" class="stack-list"></div>
           </section>
 
           <section id="database-pane-sheets" class="panel panel-wide hidden">
@@ -915,13 +952,18 @@
             <button id="download-result-poster" type="button" class="secondary-action" disabled>Download PNG</button>
           </div>
 
+          <div class="field field-wide poster-extra-field">
+            <span>Saved Sponsors</span>
+            <div id="result-poster-sponsors" class="selection-grid"></div>
+          </div>
+
           <label class="field field-wide poster-extra-field">
-            <span>Sponsor Picture URLs</span>
-            <textarea
-              id="result-poster-sponsor-images"
-              rows="3"
-              placeholder="Add one sponsor logo or picture URL per line for result posters."
-            ></textarea>
+            <span>Sponsor Catch Line</span>
+            <select id="result-poster-sponsor-tone">
+              <option value="none">No sponsor catch line</option>
+              <option value="saved">Use saved sponsor catch lines</option>
+              <option value="ai">Use AI sponsor catch line</option>
+            </select>
           </label>
 
           <div class="field field-wide poster-extra-field">
@@ -989,13 +1031,18 @@
             <div id="poster-match-picker" class="selection-grid"></div>
           </div>
 
+          <div class="field field-wide poster-extra-field">
+            <span>Saved Sponsors</span>
+            <div id="poster-sponsors" class="selection-grid"></div>
+          </div>
+
           <label class="field field-wide poster-extra-field">
-            <span>Sponsor Picture URLs</span>
-            <textarea
-              id="poster-sponsor-images"
-              rows="4"
-              placeholder="Add one sponsor logo or picture URL per line. Example:&#10;https://example.com/sponsor-1.png&#10;https://example.com/sponsor-2.png"
-            ></textarea>
+            <span>Sponsor Catch Line</span>
+            <select id="poster-sponsor-tone">
+              <option value="none">No sponsor catch line</option>
+              <option value="saved">Use saved sponsor catch lines</option>
+              <option value="ai">Use AI sponsor catch line</option>
+            </select>
           </label>
 
           <div class="field field-wide poster-extra-field">
