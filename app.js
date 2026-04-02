@@ -2597,7 +2597,7 @@ const getPosterVenueImage = (venue, variantIndex) => {
 };
 
 const getPosterLayoutClass = (posterType, variantIndex, sourceMode) => {
-  const family = posterType === 'match' ? (variantIndex % 6) + 1 : (variantIndex % 3) + 1;
+  const family = (variantIndex % 6) + 1;
   return `${posterType}-layout-${family} poster-source-${sourceMode}`;
 };
 
