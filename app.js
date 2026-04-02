@@ -2597,7 +2597,7 @@ const getPosterVenueImage = (venue, variantIndex) => {
 };
 
 const getPosterLayoutClass = (posterType, variantIndex, sourceMode) => {
-  const family = (variantIndex % 3) + 1;
+  const family = posterType === 'match' ? (variantIndex % 6) + 1 : (variantIndex % 3) + 1;
   return `${posterType}-layout-${family} poster-source-${sourceMode}`;
 };
 
@@ -2791,23 +2791,13 @@ const renderPoster = () => {
           </div>
           <div class="match-poster-hero">
             <div class="match-poster-title-wrap">
-              <h2 class="poster-title match-poster-title">${htmlEscape(team1.short_name || team1.name)}</h2>
-              <p class="match-poster-subtitle">vs</p>
-              <h2 class="poster-title match-poster-title match-poster-title-away">${htmlEscape(team2.short_name || team2.name)}</h2>
+              <h2 class="poster-title match-poster-title">${htmlEscape(team1.name)}</h2>
+              <p class="match-poster-subtitle">vs ${htmlEscape(team2.name)}</p>
               <div class="match-hero-meta">
                 <span>${formatDate(match.match_date)}</span>
                 <span>${formatTime(match.match_time)}</span>
-                <span>${htmlEscape(venue.name)}</span>
+                <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
               </div>
-            </div>
-          </div>
-          <div class="match-versus-row">
-            <div class="match-team-card match-team-home">
-              <strong>${htmlEscape(team1.name)}</strong>
-            </div>
-            <div class="match-versus-badge">VS</div>
-            <div class="match-team-card match-team-away">
-              <strong>${htmlEscape(team2.name)}</strong>
             </div>
           </div>
           <div class="match-fixture-info">
