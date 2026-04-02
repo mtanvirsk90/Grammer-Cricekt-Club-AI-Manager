@@ -2714,10 +2714,8 @@ const renderPoster = () => {
               </div>
             </div>
             <div class="lineup-meta-row">
-                <span>${formatDate(match.match_date)}</span>
-                <span>${formatTime(match.match_time)}</span>
-                <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
-              </div>
+              <span>${formatDate(match.match_date)} | ${formatTime(match.match_time)} | ${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
+            </div>
             <div class="poster-grid lineup-poster-grid">
               <section class="poster-box lineup-list-box">
                 ${lineupMarkup}
