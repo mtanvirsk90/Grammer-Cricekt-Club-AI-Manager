@@ -2667,18 +2667,18 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-4 .poster-visual-box {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
-  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
   align-items: stretch;
 }
 
 .lineup-poster-card.lineup-layout-4 .poster-info-compact {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .lineup-poster-card.lineup-layout-4 .poster-xi {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem 0.6rem;
+  grid-template-columns: 1fr;
+  gap: 0.32rem;
 }
 
 .lineup-poster-card.lineup-layout-5 .lineup-poster-top {
@@ -2700,10 +2700,11 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-5 .lineup-poster-grid {
-  grid-template-columns: 1.06fr 0.94fr;
+  grid-template-columns: 1.2fr 0.8fr;
 }
 
 .lineup-poster-card.lineup-layout-5 .poster-xi {
+  grid-template-columns: 1fr;
   gap: 0.28rem;
 }
 
@@ -2716,28 +2717,29 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-6 .lineup-heading {
-  max-width: 60%;
+  max-width: 78%;
 }
 
 .lineup-poster-card.lineup-layout-6 .lineup-poster-grid {
-  grid-template-columns: 0.78fr 1.22fr;
+  grid-template-columns: 1.08fr 0.92fr;
 }
 
 .lineup-poster-card.lineup-layout-6 .lineup-list-box {
-  order: 2;
+  order: 1;
 }
 
 .lineup-poster-card.lineup-layout-6 .poster-visual-box {
-  order: 1;
-  grid-template-rows: minmax(360px, 1fr) auto;
+  order: 2;
+  grid-template-rows: minmax(320px, 1fr) auto;
 }
 
 .lineup-poster-card.lineup-layout-6 .poster-xi {
+  grid-template-columns: 1fr;
   gap: 0.3rem;
 }
 
 .lineup-poster-card.lineup-layout-6 .poster-xi li strong {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-visual-box {
@@ -2946,8 +2948,8 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-2 .poster-xi {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem 0.75rem;
+  grid-template-columns: 1fr;
+  gap: 0.32rem;
 }
 
 .lineup-poster-card.lineup-layout-2 .poster-visual-box {
@@ -2979,8 +2981,8 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-3 .poster-xi {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem 0.7rem;
+  grid-template-columns: 1fr;
+  gap: 0.32rem;
 }
 
 .poster-source-generated .match-poster-kicker,
