@@ -2608,6 +2608,30 @@ const getPosterRoleShort = (role) => ({
   player: '',
 }[role] || '');
 
+const getPosterClubShortName = (team) => {
+  if (!team) return 'CLUB';
+  const shortName = String(team.short_name || '').trim();
+  if (shortName) return shortName.toUpperCase();
+
+  const compact = String(team.name || '')
+    .replace(/\bcricket club\b/gi, 'CC')
+    .replace(/\bfootball club\b/gi, 'FC')
+    .replace(/\bclub\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!compact) return 'CLUB';
+  if (compact.length <= 16) return compact.toUpperCase();
+
+  const initials = compact
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('');
+
+  return (initials || compact.slice(0, 16)).toUpperCase();
+};
+
 const renderPoster = () => {
   const matchIds = getSelectedPosterMatchIds();
   if (!matchIds.length) {
@@ -2649,6 +2673,10 @@ const renderPoster = () => {
     if (!match || !team1 || !team2 || !venue) {
       return;
     }
+
+    const posterTeam1Short = getPosterClubShortName(team1);
+    const posterTeam2Short = getPosterClubShortName(team2);
+    const posterFixtureLine = `${team1.name} vs ${team2.name}`;
 
     captions.push([
       posterType === 'lineup' ? `${buildFixtureCaption(match)}\nPlaying XI locked in for this design.` : buildFixtureCaption(match),
@@ -2791,8 +2819,8 @@ const renderPoster = () => {
           </div>
           <div class="match-poster-hero">
             <div class="match-poster-title-wrap">
-              <h2 class="poster-title match-poster-title">${htmlEscape(team1.name)}</h2>
-              <p class="match-poster-subtitle">vs ${htmlEscape(team2.name)}</p>
+              <h2 class="poster-title match-poster-title">${htmlEscape(posterTeam1Short)} <span class="match-title-vs">VS</span> ${htmlEscape(posterTeam2Short)}</h2>
+              <p class="match-poster-subtitle">${htmlEscape(posterFixtureLine)}</p>
               <div class="match-hero-meta">
                 <span>${formatDate(match.match_date)}</span>
                 <span>${formatTime(match.match_time)}</span>
