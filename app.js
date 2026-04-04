@@ -2610,15 +2610,25 @@ const getPosterRoleShort = (role) => ({
 
 const getPosterClubShortName = (team) => {
   if (!team) return 'CLUB';
+  const fullName = String(team.name || '').trim();
   const shortName = String(team.short_name || '').trim();
-  if (shortName) return shortName.toUpperCase();
+  const normalizedShort = shortName.replace(/\s+/g, ' ').trim();
+  const normalizedFull = fullName.replace(/\s+/g, ' ').trim();
 
-  const compact = String(team.name || '')
-    .replace(/\bcricket club\b/gi, 'CC')
-    .replace(/\bfootball club\b/gi, 'FC')
-    .replace(/\bclub\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  if (
+    normalizedShort &&
+    normalizedShort.length <= 12 &&
+    normalizedShort.toLowerCase() !== normalizedFull.toLowerCase()
+  ) {
+    return normalizedShort.toUpperCase();
+  }
+
+  const compact = fullName
+      .replace(/\bcricket club\b/gi, 'CC')
+      .replace(/\bfootball club\b/gi, 'FC')
+      .replace(/\bclub\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
   if (!compact) return 'CLUB';
   if (compact.length <= 16) return compact.toUpperCase();
@@ -2630,6 +2640,18 @@ const getPosterClubShortName = (team) => {
     .join('');
 
   return (initials || compact.slice(0, 16)).toUpperCase();
+};
+
+const getPosterVenueSummary = (venue) => {
+  if (!venue) return 'Venue TBC';
+  const summary = [venue.name, venue.address]
+    .filter(Boolean)
+    .join(' | ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (summary.length <= 66) return summary;
+  return `${summary.slice(0, 63).trim()}...`;
 };
 
 const renderPoster = () => {
@@ -2734,7 +2756,7 @@ const renderPoster = () => {
             <div class="poster-top lineup-poster-top">
               <div class="lineup-heading">
                 <h2 class="poster-title poster-title-lineup">Playing XI</h2>
-                <p class="lineup-versus">${htmlEscape(team1.name)} vs ${htmlEscape(team2.name)}</p>
+                <p class="lineup-versus">${htmlEscape(getPosterClubShortName(team1))} vs ${htmlEscape(getPosterClubShortName(team2))}</p>
               </div>
               <div class="poster-logos lineup-poster-logos">
                 ${team1.logo_url ? `<img src="${htmlEscape(team1.logo_url)}" alt="${htmlEscape(team1.name)} logo" class="poster-logo" />` : ''}
@@ -2742,7 +2764,7 @@ const renderPoster = () => {
               </div>
             </div>
             <div class="lineup-meta-row">
-              <span>${formatDate(match.match_date)} | ${formatTime(match.match_time)} | ${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
+                <span>${formatDate(match.match_date)} | ${formatTime(match.match_time)} | ${htmlEscape(getPosterVenueSummary(venue))}</span>
             </div>
             <div class="poster-grid lineup-poster-grid">
               <section class="poster-box lineup-list-box">
@@ -2824,7 +2846,7 @@ const renderPoster = () => {
               <div class="match-hero-meta">
                 <span>${formatDate(match.match_date)}</span>
                 <span>${formatTime(match.match_time)}</span>
-                <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
+                  <span>${htmlEscape(getPosterVenueSummary(venue))}</span>
               </div>
             </div>
           </div>
@@ -2839,7 +2861,7 @@ const renderPoster = () => {
             </div>
             <div>
               <strong>Venue</strong>
-              <span>${htmlEscape(venue.name)}${venue.address ? ` | ${htmlEscape(venue.address)}` : ''}</span>
+                <span>${htmlEscape(getPosterVenueSummary(venue))}</span>
             </div>
           </div>
           <div class="poster-grid match-poster-grid">

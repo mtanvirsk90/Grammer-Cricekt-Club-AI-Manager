@@ -2289,8 +2289,8 @@ button:disabled {
 }
 
 .poster-logo {
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   object-fit: cover;
   border-radius: 16px;
   background: white;
@@ -2352,12 +2352,12 @@ button:disabled {
 .poster-xi li {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.32rem 0.46rem;
+  gap: 0.42rem;
+  align-items: start;
+  padding: 0.28rem 0.42rem;
   border-radius: 10px;
   background: rgba(248, 250, 252, 0.09);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 .poster-player-number {
@@ -2372,22 +2372,24 @@ button:disabled {
 }
 
 .poster-player-copy {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 0.24rem 0.42rem;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.18rem 0.35rem;
   min-width: 0;
 }
 
 .poster-xi li strong {
   display: block;
   min-width: 0;
-  font-size: 0.88rem;
-  line-height: 1.1;
+  font-size: 0.8rem;
+  line-height: 1.15;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .poster-xi li small {
@@ -2420,7 +2422,7 @@ button:disabled {
 }
 
 .lineup-poster-top {
-  padding-bottom: 0.65rem;
+  padding-bottom: 0.45rem;
 }
 
 .match-poster-top {
@@ -2455,14 +2457,14 @@ button:disabled {
 }
 
 .match-poster-title-wrap {
-  max-width: 72%;
+  max-width: 78%;
 }
 
 .match-poster-title {
   margin-top: 0.25rem;
-  font-size: clamp(1.9rem, 4vw, 3.2rem);
+  font-size: clamp(1.45rem, 2.8vw, 2.45rem);
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 0.96;
   text-shadow: 0 10px 34px rgba(0, 0, 0, 0.2);
   text-wrap: balance;
 }
@@ -2558,41 +2560,42 @@ button:disabled {
 }
 
 .lineup-poster-logos .poster-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
 }
 
 .poster-title-lineup {
-  font-size: clamp(2rem, 3vw, 3rem);
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
   text-transform: uppercase;
   line-height: 0.9;
 }
 
 .lineup-versus {
   margin: 0.32rem 0 0;
-  font-size: 0.88rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .lineup-meta-row {
   position: relative;
   z-index: 1;
   display: block;
-  padding: 0 1.5rem 0.8rem;
+  padding: 0 1.2rem 0.55rem;
 }
 
 .lineup-meta-row span {
   display: block;
-  padding: 0.62rem 0.85rem;
+  padding: 0.52rem 0.74rem;
   border-radius: 999px;
   background: rgba(10, 14, 35, 0.26);
   border: 1px solid rgba(248, 250, 252, 0.14);
   color: rgba(248, 250, 252, 0.86);
-  font-size: 0.8rem;
-  line-height: 1.2;
+  font-size: 0.72rem;
+  line-height: 1.15;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
@@ -2600,14 +2603,15 @@ button:disabled {
 
 .lineup-poster-grid {
   align-items: stretch;
-  grid-template-columns: 0.92fr 1.08fr;
+  grid-template-columns: 1.16fr 0.84fr;
 }
 
 .lineup-list-box {
   background:
-    linear-gradient(180deg, rgba(17, 98, 255, 0.28), rgba(3, 15, 61, 0.52)),
-    rgba(8, 15, 13, 0.32);
+      linear-gradient(180deg, rgba(17, 98, 255, 0.28), rgba(3, 15, 61, 0.52)),
+      rgba(8, 15, 13, 0.32);
   border-color: rgba(111, 168, 255, 0.28);
+  padding: 0.85rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-poster-top {
@@ -2617,12 +2621,12 @@ button:disabled {
 
 .lineup-poster-card.lineup-layout-1 .lineup-poster-logos {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: 1rem;
+  right: 1rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-title-lineup {
-  font-size: clamp(2.8rem, 4.8vw, 4.2rem);
+  font-size: clamp(1.9rem, 3.2vw, 2.8rem);
   letter-spacing: -0.05em;
 }
 
@@ -2632,16 +2636,16 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-meta-row {
-  max-width: 72%;
+  max-width: 82%;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-poster-grid {
-  grid-template-columns: 0.84fr 1.16fr;
-  gap: 1.1rem;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 0.8rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-list-box {
-  padding: 1.1rem;
+  padding: 0.9rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-xi {
@@ -2654,7 +2658,7 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-xi li strong {
-  font-size: 0.84rem;
+  font-size: 0.78rem;
 }
 
 .lineup-poster-card.lineup-layout-4 .lineup-poster-top {
@@ -2710,7 +2714,7 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-5 .lineup-poster-grid {
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1.15fr 0.85fr;
 }
 
 .lineup-poster-card.lineup-layout-5 .poster-xi {
@@ -2731,7 +2735,7 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-6 .lineup-poster-grid {
-  grid-template-columns: 1.08fr 0.92fr;
+  grid-template-columns: 1.14fr 0.86fr;
 }
 
 .lineup-poster-card.lineup-layout-6 .lineup-list-box {
@@ -2753,11 +2757,11 @@ button:disabled {
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-visual-box {
-  grid-template-rows: minmax(460px, 1fr) auto;
+  grid-template-rows: minmax(300px, 1fr) auto;
 }
 
 .lineup-poster-card.lineup-layout-1 .poster-venue-visual {
-  min-height: 460px;
+  min-height: 300px;
   border-radius: 28px;
 }
 
@@ -2827,7 +2831,7 @@ button:disabled {
 }
 
 .match-poster-card.match-layout-2 .match-poster-title {
-  font-size: clamp(1.8rem, 3.8vw, 2.9rem);
+  font-size: clamp(1.4rem, 2.7vw, 2.2rem);
 }
 
 .match-poster-card.match-layout-2 .match-fixture-info {
@@ -2856,7 +2860,7 @@ button:disabled {
 }
 
 .match-poster-card.match-layout-3 .match-poster-title {
-  max-width: 58%;
+  max-width: 66%;
 }
 
 .match-poster-card.match-layout-3 .match-fixture-info {
@@ -2881,7 +2885,7 @@ button:disabled {
 }
 
 .match-poster-card.match-layout-4 .match-poster-title {
-  font-size: clamp(1.75rem, 3.6vw, 2.7rem);
+  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
 }
 
 .match-poster-card.match-layout-4 .match-hero-meta {
@@ -2901,7 +2905,7 @@ button:disabled {
 }
 
 .match-poster-card.match-layout-5 .match-poster-title-wrap {
-  max-width: 58%;
+  max-width: 68%;
   margin-left: auto;
   text-align: right;
 }
@@ -2932,7 +2936,7 @@ button:disabled {
 }
 
 .match-poster-card.match-layout-6 .match-poster-title {
-  font-size: clamp(1.7rem, 3.5vw, 2.6rem);
+  font-size: clamp(1.35rem, 2.6vw, 2.05rem);
 }
 
 .match-poster-card.match-layout-6 .match-fixture-info {
@@ -3032,7 +3036,7 @@ button:disabled {
 
 .poster-venue-visual {
   border-radius: 22px;
-  min-height: 280px;
+  min-height: 220px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
     linear-gradient(145deg, rgba(210, 165, 42, 0.4), rgba(57, 68, 167, 0.15));
@@ -3056,8 +3060,8 @@ button:disabled {
 }
 
 .lineup-visual-club-logo {
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.94);
@@ -3080,23 +3084,23 @@ button:disabled {
 }
 
 .lineup-visual-copy strong {
-  font-size: 1.45rem;
+  font-size: 1.1rem;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-visual-overlay {
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-visual-club-logo {
-  width: 72px;
-  height: 72px;
+  width: 58px;
+  height: 58px;
 }
 
 .lineup-poster-card.lineup-layout-1 .lineup-visual-copy strong {
-  font-size: 1.45rem;
+  font-size: 1.12rem;
 }
 
 .poster-info-compact {
